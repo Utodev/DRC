@@ -223,7 +223,7 @@ _       _       AT      0               ; Empezamos una partida
                 PROCESS 6               ; El proceso de inicializaci¢n
                 
 
-_       _       WINDOW  0               ; Ventana de gr ficos
+_       _       WINDOW  0               ; Ventana de gráficos
                 CLEAR   fDarkF           ; Asume que hay luz
 ;               MINUS   2       1       ; Decrementa flag 2 (Ver notas arriba)
                 NOTZERO 0
@@ -232,8 +232,8 @@ _       _       WINDOW  0               ; Ventana de gr ficos
 ;               MINUS   4       1       ; y Flag 4 si no hay lampara(Ver notas)
                 SET     fDarkF           ; Oscuro
 ;
-_       _       PICTURE @fPlayer        ; Si hay gr fico, c rgalo
-                DISPLAY @fDarkF         ; Muestralo si no oscuro; si oscuro
+_       _       PICTURE @fPlayer        ; Si hay gráfico, cárgalo
+                DISPLAY @fDarkF         ; Muéstralo si no oscuro; si oscuro
                                         ; hace un CLS
 _       _       WINDOW  1
                 NOTZERO fDarkF           ; Oscuro
@@ -254,20 +254,20 @@ _       _       PROCESS 1
 
 _       _       PROCESS 4               ; Lo que en el PAW era el proceso 2
 
-;_       _       MINUS   5       1       ; Actualiza m s banderas 'autom ticas'
+;_       _       MINUS   5       1       ; Actualiza m s banderas "automáticas"
 ;                MINUS   6       1       ; Ya no se usan. Los primeros flags
-;                MINUS   7       1       ; est n reservados para implementar
-;                MINUS   8       1       ; una peque¤a pila si hace falta.
+;                MINUS   7       1       ; están reservados para implementar
+;                MINUS   8       1       ; una pequeña pila si hace falta.
 ;                NOTZERO 0               ; (Ver SYMBOLS.SCE)
-;                MINUS   9       1       ; De todas formas aqu¡ est  el c¢digo
+;                MINUS   9       1       ; De todas formas aquí está el código
 ;                ABSENT  0               ; que emula al PAW por si hace falta
 ;                MINUS   10      1
 
-_       _       PARSE   0               ; Toma sentencia l¢gica del buffer
-                PROCESS 2               ; Sentencia no v lida o timeout
+_       _       PARSE   0               ; Toma sentencia lógica del buffer
+                PROCESS 2               ; Sentencia no válida o timeout
                 REDO
 
-_       _       EQ      fTurns   255     ; El valo m ximo de un byte
+_       _       EQ      fTurns   255     ; El valo máximo de un byte
                 PLUS    fTurnsHi   1
                 CLEAR   fTurns
                 SKIP    1
@@ -276,7 +276,7 @@ _       _       PLUS    fTurns   1
 
 _       _       PROCESS 5               ; La antigua tabla de respuestas
                 ISDONE                  ; Ha hecho algo?
-                REDO                    ; S¡: pedimos otra orden del jugador
+                REDO                    ; Sí: pedimos otra orden del jugador
 
 _       _       MOVE    fPlayer          ; No: intentamos mover al jugador
                 RESTART                 ;Lo movimos: salta al principio de PRO 0
@@ -306,7 +306,7 @@ _       _       SYSMESS 6               ; I didn't understand
 
 ;Esto se hace mejor as¡
 _       _       NEWLINE
-                ZERO    fDarkF            ; No est  oscuro
+                ZERO    fDarkF            ; No está oscuro
                 LISTOBJ
 
 ;que con el antiguo sistema que no acced¡a a fDarkF:
@@ -371,9 +371,9 @@ MIRAR   _       RESTART
 
 _       _       WINDOW  1               ; Inicializamos las ventanas
                 WINAT   14       0
-                WINSIZE 25      127     ; Tama¤o m ximo
+                WINSIZE 25      127     ; Tamaño máximo
                 CLS
-;               DESC    0               ; Introducci¢n
+;               DESC    0               ; Introducción
 ;               ANYKEY
                 CLS
                 CLEAR   255             ; Pone a cero todas las banderas
@@ -383,7 +383,7 @@ _       _       NOTEQ   255     fGFlags  ; menos GFlags!!!
 
 _       _       PLUS    255     1
                 LT      255     255     ; Al final lo dejamos con valor 255
-                SKIP    -1              ; para indicer que hemos inicializado
+                SKIP    -2              ; para indicer que hemos inicializado
 
 _       _       RESET                   ; Objetos a su loc. inicial / Flag 1
                 LET     fStrength 10
