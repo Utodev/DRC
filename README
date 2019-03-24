@@ -10,3 +10,56 @@ plex DSF.l lexer.pas
 
 Plex is usually included with freepascal.
 
+
+
+Differences of  DSF y SCE DAAD formats
+======================================
+
+- #define labels can have any length
+- Message, sysmess, objects and locations texts should be between double quotes (")
+
+/58 "Disk or drive full."
+
+The lexical analyzer would admint anything in betwee the quotes, but it's agreed if \n is in the string, it 
+should be replaced by a carrage return when exporting, except when exporting to json format. Also \" is 
+replaced by " (except JSON) and \g should be stored as the special escape char to change charset.
+  
+- DRC supports the following directives : #define, #ifdef, #ifndef, #endif, #extern  y #db
+
+- When compiling for a given platform, the target is allways defined. For instance if you call the compiler with  "DRC C64 TEST.DSF" then "C64" symbols is defined, so you can use #ifdef
+
+- Indirection is marked as in NMP, Superglus and ngPAWS: '@38' instead of '[38]'
+
+- With DRC you have much less fixed layout for processes, for instance all these is valid:
+
+_ 
+_  AT 7 
+ CARRIED 2
+ LET 127 12 MESSAGE 15 ; comment goes here
+ CREATE ; other comment goes here
+ 2
+ DONE
+
+Although this exacmple is crazy, just notice you are not forced anymore  to put a condact in each line, one condact after the entry verb/noun, etc. More reasonable
+examples follow:
+
+; All in one line
+_ _ AT 7 CARRIED 2 LET 127 12 MESSAGE 15 CREATE 2 DONE
+
+; Superglus/ngpaws/NMP Style
+_ _
+ AT 7
+ CARRIED 2
+ LET 127 12
+ MESSAGE 15
+ CREATE 2 
+ DONE
+
+; Classic DAAD style
+_ _     AT 7
+        CARRIED 2
+        LET 127 12
+        MESSAGE 15
+        CREATE 2 
+        DONE
+ 

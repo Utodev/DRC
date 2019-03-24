@@ -299,27 +299,18 @@ _       _       HASAT TIMEOUT
 _       _       SYSMESS 6               ; I didn't understand
 
 ;------------------------------------------------------------------------------
-/PRO 3 ; Antiguo proceso 1. (N¢tese que tanto la tabla de respuestas como los
+/PRO 3 ; Antiguo proceso 1 del PAW. (Nótese que tanto la tabla de respuestas como los
 ; antiguos procesos 1 y 2 del PAW ahora pueden estar en cualquer parte; o no
-; existir en absoluto, ya que ya no hay nada autom tico al haberse implementado
+; existir en absoluto, ya que ya no hay nada automático al haberse implementado
 ; todo en el propio lenguaje del DAAD)
 
-;Esto se hace mejor as¡
 _       _       NEWLINE
                 ZERO    fDarkF            ; No está oscuro
                 LISTOBJ
 
-;que con el antiguo sistema que no acced¡a a fDarkF:
-;_       _       NEWLINE
-;                ZERO    0               ;If it is light...
-;                ABSENT  0               ;and the light source is absent...
-;                LISTOBJ                 ;List the objects
-
-;_       _       PRESENT 0               ;If the light source is present...
-;                LISTOBJ                 ;List the objects
 
 ;------------------------------------------------------------------------------
-/PRO 4 ; Antiguo proceso 2
+/PRO 4 ; Antiguo proceso 2 del PAW
 
 /PRO 5 ; Interpretamos los comando como en la antigua tabla de respuestas
 
@@ -351,9 +342,9 @@ R       _       RESTART
 FIN     _       QUIT
                 END
 
-FIN     _       DONE                    ;Not like QUIT on PAW
+FIN     _       DONE                    
 
-SV      _       SAVE 0                  ;ditto
+SV      _       SAVE 0                  
                 RESTART
 
 LD      _       LOAD 0
@@ -362,12 +353,13 @@ LD      _       LOAD 0
 RAMSA   _       RAMSAVE
                 RESTART
 
-RAMLO   _       RAMLOAD 255             ;Reload all flags
+RAMLO   _      
+RAMLOAD 255                             ;Reload all flags
                 RESTART
 
 MIRAR   _       RESTART
 
-/PRO 6 ; Inicializaci¢n
+/PRO 6 ; Inicialización
 
 _       _       WINDOW  1               ; Inicializamos las ventanas
                 WINAT   14       0
@@ -383,7 +375,7 @@ _       _       NOTEQ   255     fGFlags  ; menos GFlags!!!
 
 _       _       PLUS    255     1
                 LT      255     255     ; Al final lo dejamos con valor 255
-                SKIP    -2              ; para indicer que hemos inicializado
+                SKIP    -2              ; para indicar que hemos inicializado
 
 _       _       RESET                   ; Objetos a su loc. inicial / Flag 1
                 LET     fStrength 10
