@@ -1,0 +1,32 @@
+UNIT ULexTokens;
+
+{$MODE OBJFPC}
+
+INTERFACE
+
+const T_SECTION_CON = 257;
+const T_SECTION_CTL = 258;
+const T_SECTION_STX = 259;
+const T_SECTION_MTX = 260;
+const T_SECTION_LTX = 261;
+const T_SECTION_OTX = 262;
+const T_SECTION_OBJ = 263;
+const T_SECTION_VOC = 264;
+const T_SECTION_PRO = 265;
+const T_DEFINE = 266;
+const T_STRING = 267;
+const T_UNDERSCORE = 268;
+const T_LIST_ENTRY = 269;
+const T_COMMENT = 270;
+const T_IDENTIFIER = 271;
+const T_INDIRECT = 272;
+const T_NUMBER = 273;
+const T_IFDEF = 274;
+const T_IFNDEF = 275;
+const T_ENDIF = 276;
+const T_SECTION_END = 277;
+const T_DB=278;
+const T_INCBIN=279;
+
+IMPLEMENTATION
+END.

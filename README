@@ -1,0 +1,12 @@
+This compiler is (C) Uto 2018 and it's distributed under the GPL v3 license
+
+To compile just dowload freepascal and run:
+
+fpc DRC.pas
+
+In case you need to change the lexer file (DSF.l) delete file lexer.pas and update it by running:
+
+plex DSF.l lexer.pas
+
+Plex is usually included with freepascal.
+
