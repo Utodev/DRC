@@ -32,7 +32,7 @@ END;
 FUNCTION getVocabularyJSON(VocabularyTree:TPVocabularyTree): AnsiString;
 BEGIN
  IF (VocabularyTree = nil) THEN getVocabularyJSON := ''
-                       ELSE getVocabularyJSON :=  getVocabularyJSON(VocabularyTree^.Right) + tabs() + tabs() + '{"VocWord":"' +  VocabularyTree^.VocWord +'", "Value":' + IntToStr(VocabularyTree^.Value) +',"VocType":'+ IntToStr(Ord(VocabularyTree^.VocType)) +' },'#10 +  getVocabularyJSON(VocabularyTree^.Left);
+                       ELSE getVocabularyJSON :=  getVocabularyJSON(VocabularyTree^.Left) + tabs() + tabs() + '{"VocWord":"' +  VocabularyTree^.VocWord +'", "Value":' + IntToStr(VocabularyTree^.Value) +',"VocType":'+ IntToStr(Ord(VocabularyTree^.VocType)) +' },'#10 +  getVocabularyJSON(VocabularyTree^.Right);
 END;
 
 FUNCTION FixDoubleQuotes(Str: AnsiString):AnsiString;
