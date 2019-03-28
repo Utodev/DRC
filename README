@@ -11,7 +11,7 @@ In case you need to change the lexer file (DSF.l) delete file lexer.pas and upda
 
 plex DSF.l lexer.pas
 
-Plex is usually included with freepascal.
+Plex is usually included with freepascal. Make sure you have installed both fpc and fpc-src packages.
 
 Changes in DRC/DFM 
 ==================
