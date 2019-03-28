@@ -96,7 +96,6 @@ BEGIN
 	IF (CurrentTokenID = T_NUMBER) THEN Result := CurrentIntVal ELSE
 	BEGIN
 		Value := GetSymbolValue(SymbolTree,CurrentText);
-		//IF (Value = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined')	ELSE
 		Result := Value;
 	END;
 END;
@@ -110,6 +109,7 @@ BEGIN
 	Symbol := CurrentText;
 	Scan();
 	IF (CurrentTokenID=T_NUMBER) OR (CurrentTokenID= T_IDENTIFIER) THEN Value := GetIdentifierValue();
+	IF (Value = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
 	if NOT AddSymbol(SymbolTree, Symbol, Value) THEN SyntaxError('"' + Symbol + '" already defined');
 END;
 
@@ -119,7 +119,7 @@ BEGIN
 	Scan();
 	IF CurrentTokenID <> T_STRING THEN SyntaxError('Included extern file should be in between quotes');
 	FileName := Copy(CurrentText, 2, length(CurrentText) - 2);
-	IF NOT FileExists(Filename) THEN SyntaxError('Included file not found');
+	IF NOT FileExists(Filename) THEN SyntaxError('Extern file "'+FileName+'" not found');
 	WriteLn('#extern "' + Filename + '" processed.');
 	AddCTL_Extern(CTLExternList, FileName); // Adds the file to binary files to be included
 END;
@@ -154,6 +154,7 @@ BEGIN
 	Scan();
 	IF (CurrentTokenID=T_NUMBER) OR (CurrentTokenID=T_IDENTIFIER) THEN Value := GetIdentifierValue() 
 	ELSE SyntaxError('Number or Identifier expected');
+	IF (Value = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
 	Scan();
 	IF (AnsiUpperCase(CurrentText)='VERB') THEN TheType :=VOC_VERB ELSE
 	IF (AnsiUpperCase(CurrentText)='NOUN') THEN TheType :=VOC_NOUN ELSE
@@ -237,6 +238,7 @@ BEGIN
 			Scan();
 			if (CurrentTokenID <> T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Location number expected');
 			ToLoc := GetIdentifierValue();
+			IF (ToLoc = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
 			IF FindConnection(Connections, FromLoc, ToLoc, Direction) THEN SyntaxError('Connection already defined');
 			AddConnection(Connections, FromLoc, ToLoc, Direction);
 		END;
@@ -285,11 +287,13 @@ BEGIN
 			Scan(); // Get Initialy At
 			IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Object initial location expected');
 			InitialyAt := GetIdentifierValue();
+			IF (InitialyAt = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
 			IF (InitialyAt >= LTXCount) AND (InitialyAt <> LOC_NOT_CREATED) AND (InitialyAt <> LOC_WORN) AND (InitialyAt <> LOC_CARRIED) THEN SyntaxError('Invalid initial location');
 
 			Scan(); // Get Weight
 			IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Object weight expected');
 			Weight := GetIdentifierValue();
+			IF (Weight = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
 			IF (Weight >= MAX_FLAG_VALUE) THEN SyntaxError('Invalid weight');
 
 
@@ -413,7 +417,7 @@ BEGIN
 			Scan();
 			IF (CurrentTokenID<>T_STRING) THEN SyntaxError('Included file should be in between quotes');
 			Filename := Copy(CurrentText, 2, Length(CurrentText)-2);
-			IF NOT FileExists(Filename) THEN SyntaxError('Included file not found');
+			IF NOT FileExists(Filename) THEN SyntaxError('Included file "' + FileName + '" not found');
 			AssignFile(IncludedFile, Filename);
 			Reset(IncludedFile,1);
 			WriteLn('#incbin "' + Filename + '" processed.');
@@ -484,6 +488,7 @@ BEGIN
 		Scan();
 		IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Process number expected');
 		ProcNum := GetIdentifierValue();
+		IF (Procnum = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
 		IF ProcNum<>CurrentProcess THEN SyntaxError('Definition for process #' + IntToStr(CurrentProcess) + ' expected but process #' + IntToStr(ProcNum) + ' found');
 		ProcessCount := ProcessCount + 1;
 		ParseProcessEntries(CurrentProcess);
@@ -500,23 +505,23 @@ BEGIN
 	STXCount := 0;
 	LTXCount := 0;
 	OTXCount := 0;
-	WriteLn('Control...');
+	WriteLn('CTL...');
 	ParseCTL();
-	WriteLn('Vocabulary...');
+	WriteLn('VOC...');
 	ParseVOC();
-	WriteLn('System Messages...');
+	WriteLn('STX...');
 	ParseSTX();
-	WriteLn('Messages...');
+	WriteLn('MTX...');
 	ParseMTX();
-	WriteLn('Object Texts...');
+	WriteLn('OTX...');
 	ParseOTX();
-	WriteLn('Location Texts...');
+	WriteLn('LTX...');
 	ParseLTX();
-	WriteLn('Connections...');
+	WriteLn('CON...');
 	ParseCON();
-	WriteLn('Object definitions...');
+	WriteLn('OBJ...');
 	ParseOBJ();
-	WriteLn('Processes...');
+	WriteLn('PRO...');
 	ParsePRO();
 	WriteLn('Input file parse completed...');
 END;

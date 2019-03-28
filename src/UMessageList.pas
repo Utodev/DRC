@@ -65,7 +65,7 @@ BEGIN
 		  exit;
 		END;
 		AddMessage(AMessageList, LastMessageID + 1, AText);
-		Result :=  AMessageList^.MessageID + 1;
+		Result :=  LastMessageID + 1;
 	END;
 END;
 
@@ -75,12 +75,16 @@ BEGIN
   // First try to do it with the proper message list
   IF Opcode =  SYSMESS_OPCODE THEN MessageID := insertMessageFromProcessIntoSpecificList(STX, AText) 
 							   ELSE MessageID := insertMessageFromProcessIntoSpecificList(MTX, AText);
-  if (MessageID<MAX_MESSAGES_PER_TABLE) OR ClassicMode THEN 
+  if (MessageID<MAX_MESSAGES_PER_TABLE)THEN 
   BEGIN
    Result := MessageID;
    exit;
   END;
-	
+	if (ClassicMode) THEN
+  BEGIN
+   Result := Maxint;
+   exit;
+  END;
 
 
   // There was no room for the message in the proper table, so lets try in the other message table (STX/MTX)

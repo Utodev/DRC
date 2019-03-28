@@ -70,8 +70,8 @@ BEGIN
     WriteLn(JSON,  AuxAnsiString);
     WriteLn(JSON,tabs(),'],');
     DEC(Indent);
-    // Binaries, Externs
-    WriteLn(JSON,tabs(),'"binaries":');
+    // Externs
+    WriteLn(JSON,tabs(),'"externs":');
     INC(Indent);     
     WriteLn(JSON,tabs(),'[');
     IF Length(CTLExternList)> 0 THEN
@@ -229,7 +229,7 @@ BEGIN
 
     WriteLn(JSON,tabs(),'}');
     Close(JSON);
-    Writeln('JSON file exported.')
+    Writeln(OutputFileName + ' generated.')
 END;
 
 

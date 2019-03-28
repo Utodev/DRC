@@ -40,6 +40,7 @@ VAR Target: String;
 
 PROCEDURE CompileForTarget(Target: String; OutputFileName: String);
 BEGIN
+ Writeln('Opening ' + InputFileName);
   AssignFile(yyinput, InputFileName);
   Reset(yyinput);
   TokenList := nil;
@@ -57,7 +58,7 @@ BEGIN
  
   WriteLn('Checking Syntax...');
   Sintactic();
-  WriteLn('Generating output file...');
+  WriteLn('Generating output...');
   GenerateOutput(OutputFileName, Target);
 END;  
 

@@ -1,4 +1,7 @@
-This compiler is (C) Uto 2018 and it's distributed under the GPL v3 license
+DRC is a compiler front aimed to replace Aventuras AD DAAD compiler.
+DRC generates an intermediate code in JSON format, from an modified version of DAAD's SCE format, name DSF (DAAD source file).
+
+The compiler is (C) Uto 2018 and it's distributed under the GPL v3 license
 
 To compile just dowload freepascal and run:
 
@@ -10,54 +13,64 @@ plex DSF.l lexer.pas
 
 Plex is usually included with freepascal.
 
+Changes in DRC/DFM 
+==================
 
+These are some changes you may find when using DRC/DFM instead of DC/SCE:
 
-Differences of  DSF y SCE DAAD formats
-======================================
+- #define labels can have any length, they are also case-insensitive
 
-- #define labels can have any length
-- Message, sysmess, objects and locations texts should be between double quotes (")
+- Message, sysmess, objects and locations texts should be between double quotes (").The lexical analyzer would admit anything in between the quotes, but there are several escape codes that should be taken into account (see DAAD's manual, page 68).
 
-/58 "Disk or drive full."
+/58 "Disk or drive full.\n"
 
-The lexical analyzer would admit anything in between the quotes, but there are several escape codes that should be taken into account (see DAAD's manual, page 68)
-  
-- DRC supports the following directives : #define, #ifdef, #ifndef, #endif, #extern  and #db
+- DRC supports the following directives : #define, #ifdef, #ifndef, #endif, #extern, #classic, #incbin and #db
 
-- When compiling for a given platform, the target is allways defined. For instance if you call the compiler with  "DRC C64 TEST.DSF" then "C64" symbols is defined, so you can use #ifdef
+· 'define', 'ifdef', 'ifndef' and 'endif' work as expected.
 
-- All vocabulary words are added as symbols too, with prefix "_VOC_". For instance if there is a word NORTH, it can be refered as _VOC_NORTH. 
+· 'extern' can only be used at the beginning of /CTL section, and will include the binary in the output JSON file in the extern section.
+
+#extern "MLV_MSX.BIN"
+
+· 'incbin' and 'db' work only in the condats section of processes. 'db' will include a raw byte value, while 'incbin' will include as many bytes as the file given as parameter contains.
+
+#db 28
+#incbin "file.inc"
+
+· 'classic' is explained below
+
+- DFM files don't have a /TOK section.
+
+- All vocabulary words are added as symbols, with prefix "_voc_". For instance if there is a word NORTH, it can be refered as _VOC_NORTH. 
 
 - Also all vocabulary words can replace parameters, but if the same word is defined as symbol, the symbol will take precedence. i.e "EQ 33 TAKE" is valid and the second parameter would be replaced by the vocabulary number of word "TAKE", unless there is a previous
  "#define TAKE x", in which case TAKE would be replaced by value x. 
 
-- Indirection is marked as in NMP, Superglus and ngPAWS: '@38' instead of '[38]'
+- Indirection is marked as in NMP, Superglus and ngPAWS, that is: '@38' instead of '[38]'
 
 - You can directly write texts after MESSAGE/MES/SYSMESS like this
 
 MESSAGE "Hello world!"
+SYSMESS "Doo-bee-doo-bee-doo, Doo-doo-dee-dah, dah-dah-dah-dah-dah"
+MES "hey ho let's go"
 
-If a message already exists with that specific text the compiler will replace the text with the message number automatically and continue. If the message does not exist, it will be added to the message list automatically and then replaced by the new message number. 
-Of course, if there are several equal messages written like that in your code, only one message will be added to message list and all call will be replaced by same number.
+If a message already exists with that specific text in the matching table (MTX for MESSAGE and MES, STX for SYSMESS) the compiler will replace the text with the message number automatically and continue. If the message does not exist, it will be added to the message list automatically and then replaced by the new message number. 
+Of course, if there are several equal messages written like that in your code, only one message will be added to message list and a new message number will be obtained.
 
 Is stil possible to use old syntax "MESSAGE n" if you want or is required.
 
+Please notice that DRC will try to accomodate a message in other message tables if there is no room for messages in the matching message table. For instance if you write MESSAGE "blah blah blah" and message table (MTX) is already full, DRC will try to put the message in the sytem messages table (STX), and then it will not obly obtain the number of that message, but also will replace MESSAGE with SYSMES in the output.
+If system messages is also full, DRC will try to use the locations table (LTX), and replace the condact with DESC condact. All that will allow the writer to potentially use up to 768 different messages, counting location texts, system messages, and user messages.
 
-- With DRC you have much less fixed layout for processes, for instance all these is valid:
+If you don't like the idea of messages going to different tables, just add the #classic directive in the /CTL section. DRC will replace MESSAGE "xxx" and similar sentences, but will never try to accomodate messages in other tables when tables are full, and will raise an error instead.
 
-_ 
-_  AT 7 
- CARRIED 2
- LET 127 12 MESSAGE 15 ; comment goes here
- CREATE ; other comment goes here
- 2
- DONE
+- A DSF file has a '/END' mark at the end of last process
 
-Although this exacmple is crazy, just notice you are not forced anymore  to put a condact in each line, one condact after the entry verb/noun, etc. More reasonable
-examples follow:
+- With DRC you have much less fixed layout for processes, for instance all these options are valid:
 
 ; All in one line
 _ _ AT 7 CARRIED 2 LET 127 12 MESSAGE 15 CREATE 2 DONE
+
 
 ; Superglus/ngpaws/NMP Style
 _ _
@@ -75,4 +88,12 @@ _ _     AT 7
         MESSAGE 15
         CREATE 2 
         DONE
- 
+
+;Crazy order
+_ 
+_  AT 7 
+ CARRIED 
+ 2 LET 127 12 MESSAGE ; comment goes here
+ 15 CREATE ; other comment goes here
+ 2 DONE
+
