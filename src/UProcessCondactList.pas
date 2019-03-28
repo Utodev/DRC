@@ -19,25 +19,28 @@ TYPE TParam =  RECORD
 
 	TProcessCondactList = RECORD
 		Opcode: Longint;
+		IsDB : boolean; // Fake condact coming from a #DB pseudo-opcode
 		NumParams : Byte;
 		Params : TCondactParams;
 		Next : TPProcessCondactList;
 	END;	
 
 
-PROCEDURE AddProcessCondact(VAR AProcessCondactList:TPProcessCondactList; AOpcode: Longint; ANumParams: Byte; SomeParams: TCondactParams);
+PROCEDURE AddProcessCondact(VAR AProcessCondactList:TPProcessCondactList; AOpcode: Longint; ANumParams: Byte; SomeParams: TCondactParams; IsDB: boolean);
 
 IMPLEMENTATION
 
-PROCEDURE AddProcessCondact(VAR AProcessCondactList:TPProcessCondactList; AOpcode: Longint; ANumParams: Byte; SomeParams: TCondactParams);
+PROCEDURE AddProcessCondact(VAR AProcessCondactList:TPProcessCondactList; AOpcode: Longint; ANumParams: Byte; SomeParams: TCondactParams; IsDB: boolean);
 VAR i : integer;
 BEGIN
-	IF AProcessCondactList <> nil THEN AddProcessCondact(AProcessCondactList^.Next, AOpcode, ANumParams, SomeParams)
+	IF AProcessCondactList <> nil THEN AddProcessCondact(AProcessCondactList^.Next, AOpcode, ANumParams, SomeParams, IsDB)
 	ELSE
 	BEGIN
 		New(AProcessCondactList);
 		AProcessCondactList^.Opcode := AOpcode;
 		AProcessCondactList^.NumParams := ANumParams;
+		AProcessCondactList^.IsDB := IsDB;
+
 		FOR i:=0 TO MAX_CONDACT_PARAMS - 1 DO 
 		BEGIN
 			AProcessCondactList^.Params[i].Value := SomeParams[i].Value;

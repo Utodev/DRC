@@ -9,7 +9,7 @@ PROCEDURE GenerateJSON(OutputFileName: string);
 IMPLEMENTATION
 
 
-USES sysutils, UConstants, UVocabularyTree, UMessageList, UConnections, UObjects, UProcess, UProcessCondactList, UCTLIncBin, USymbolTree, strutils;
+USES sysutils, UConstants, UVocabularyTree, UMessageList, UConnections, UObjects, UProcess, UProcessCondactList, UCTLExtern, USymbolTree, strutils, UCondacts;
 
 
 VAR Indent : Byte;
@@ -53,6 +53,8 @@ VAR JSON : Text;
     TempEntriesList : TPProcessEntryList;
     TempCondactList : TPProcessCondactList;
     AuxAnsiString :AnsiString;
+    VerbStr, NounStr : String;
+    VerbPtr, NounPtr : TPVocabularyTree;
 
 BEGIN
     Indent := 0;
@@ -72,11 +74,11 @@ BEGIN
     WriteLn(JSON,tabs(),'"binaries":');
     INC(Indent);     
     WriteLn(JSON,tabs(),'[');
-    IF Length(CTLIncBinList)> 0 THEN
-    FOR i := 0 to Length(CTLIncBinList)-1 DO 
+    IF Length(CTLExternList)> 0 THEN
+    FOR i := 0 to Length(CTLExternList)-1 DO 
     BEGIN
-      Write(JSON, tabs(), '{"FilePath":"',CTLIncBinList[i] , '"}');
-      if (i<>Length(CTLIncBinList)-1) THEN WriteLN(JSON, ',') ELSE WriteLN(JSON);
+      Write(JSON, tabs(), '{"FilePath":"',CTLExternList[i] , '"}');
+      if (i<>Length(CTLExternList)-1) THEN WriteLN(JSON, ',') ELSE WriteLN(JSON);
     END;
     WriteLn(JSON,tabs(),'],');
     DEC(Indent);
@@ -165,7 +167,19 @@ BEGIN
             WHILE TempEntriesList<> nil  DO  // Each entry
             BEGIN
                 WriteLn(JSON,tabs(),'{');
-                INC(Indent);       
+                INC(Indent);      
+                IF (TempEntriesList^.Verb = 255) THEN VerbStr := '_' ELSE
+                BEGIN
+                  VerbPtr := GetVocabularyByNumber(VocabularyTree,TempEntriesList^.Verb, VOC_VERB);
+                  IF (VerbPtr = nil) AND (TempEntriesList^.Verb <= MAX_CONVERTIBLE_NAME) THEN VerbPtr := GetVocabularyByNumber(VocabularyTree,TempEntriesList^.Verb, VOC_NOUN);
+                  IF VerbPtr = nil then VerbStr := '?' ELSE VerbStr := VerbPtr^.VocWord;
+                END;  
+                IF (TempEntriesList^.Noun = 255) THEN NounStr := '_' ELSE
+                BEGIN
+                  NounPtr := GetVocabularyByNumber(VocabularyTree,TempEntriesList^.Noun, VOC_NOUN);
+                  IF NounPtr = nil then NounStr := '?' ELSE NounStr := NounPtr^.VocWord;
+                END;  
+                WriteLn(JSON,tabs(),'"Entry":"', VerbStr,' ',NounStr,'",');               
                 WriteLn(JSON,tabs(),'"Verb":', TempEntriesList^.Verb,',');
                 WriteLn(JSON,tabs(),'"Noun":', TempEntriesList^.Noun,',');
                 TempCondactList := TempEntriesList^.Condacts;
@@ -177,6 +191,8 @@ BEGIN
                     WriteLn(JSON,tabs(),'{');
                     INC(Indent);       
                     WriteLn(JSON,tabs(),'"Opcode":', TempCondactList^.Opcode,',');
+                    if (NOT TempCondactList^.isDB) THEN WriteLn(JSON,tabs(),'"Condact":"', Condacts[TempCondactList^.Opcode].Condact,'",')
+                                                   ELSE  WriteLn(JSON,tabs(),'"Condact":"#DB/#INCBIN",');
                      IF TempCondactList^.NumParams>0 THEN 
                     BEGIN
                         IF TempCondactList^.Params[0].Indirection THEN Aux := 1 ELSE Aux := 0;

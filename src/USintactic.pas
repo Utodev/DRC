@@ -12,7 +12,7 @@ PROCEDURE Sintactic();
 
 IMPLEMENTATION
 
-USES sysutils, UConstants, ULexTokens, USymbolTree, UVocabularyTree, UMessageList, UCondacts, UConnections, UObjects, UProcess, UProcessCondactList, UCTLIncBin;
+USES sysutils, UConstants, ULexTokens, USymbolTree, UVocabularyTree, UMessageList, UCondacts, UConnections, UObjects, UProcess, UProcessCondactList, UCTLExtern;
 
 VAR CurrentText: AnsiString;
 	CurrentIntVal : Longint;
@@ -21,6 +21,7 @@ VAR CurrentText: AnsiString;
 	CurrColno : Word;
 	CurrTokenPTR: TPTokenList;
 	OnIfdefMode : boolean;
+	ClassicMode : Boolean;
 
 
 
@@ -95,8 +96,8 @@ BEGIN
 	IF (CurrentTokenID = T_NUMBER) THEN Result := CurrentIntVal ELSE
 	BEGIN
 		Value := GetSymbolValue(SymbolTree,CurrentText);
-		IF (Value = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined')
-		ELSE Result := Value;
+		//IF (Value = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined')	ELSE
+		Result := Value;
 	END;
 END;
 
@@ -112,15 +113,20 @@ BEGIN
 	if NOT AddSymbol(SymbolTree, Symbol, Value) THEN SyntaxError('"' + Symbol + '" already defined');
 END;
 
-PROCEDURE ParseIncBin();
+PROCEDURE ParseExtern();
 VAR Filename : String;
 BEGIN
 	Scan();
-	IF CurrentTokenID <> T_STRING THEN SyntaxError('Included file should be in between quotes');
+	IF CurrentTokenID <> T_STRING THEN SyntaxError('Included extern file should be in between quotes');
 	FileName := Copy(CurrentText, 2, length(CurrentText) - 2);
 	IF NOT FileExists(Filename) THEN SyntaxError('Included file not found');
-	WriteLn('#incbin "' + Filename + '" processed.');
-	AddCTL_IncBin(CTLIncBinList, FileName); // Adds the file to binary files to be included
+	WriteLn('#extern "' + Filename + '" processed.');
+	AddCTL_Extern(CTLExternList, FileName); // Adds the file to binary files to be included
+END;
+
+PROCEDURE ParseClassic();
+BEGIN
+ ClassicMode := true;
 END;
 
 PROCEDURE ParseCTL();
@@ -130,8 +136,9 @@ BEGIN
 	REPEAT
 		Scan();
 		IF (CurrentTokenID = T_DEFINE) THEN ParseDefine()
-		ELSE IF (CurrentTokenID  =T_INCBIN) THEN ParseIncBin()
-		ELSE IF (CurrentTokenID<>T_SECTION_VOC) THEN SyntaxError('#define, #incbin or /VOC expected');
+		ELSE IF (CurrentTokenID  =T_EXTERN) THEN ParseExtern()
+		ELSE IF (CurrentTokenID  =T_CLASSIC) THEN ParseClassic()
+		ELSE IF (CurrentTokenID<>T_SECTION_VOC) THEN SyntaxError('#define, #extern, #classic or /VOC expected');
 	UNTIL CurrentTokenID = T_SECTION_VOC;
 END;
 
@@ -364,6 +371,20 @@ BEGIN
 					  CurrentCondactParams[i].Indirection := true;
 					  Scan();
 					END;
+			
+					IF (CurrentTokenID = T_STRING) AND (Opcode in [MESSAGE_OPCODE,MES_OPCODE, SYSMESS_OPCODE]) THEN  
+					BEGIN
+						CurrentText := Copy(CurrentText, 2, Length(CurrentText)-2);
+						CurrentIntVal := insertMessageFromProcess(Opcode, CurrentText, ClassicMode);
+	 				  IF CurrentIntVal>=MAX_MESSAGES_PER_TABLE THEN
+						BEGIN
+						 IF ClassicMode THEN SyntaxError('Too many messages, max messages per message table is ' +  IntToStr(MAX_MESSAGES_PER_TABLE))
+						                ELSE SyntaxError('Too many messages, total messages in  MTX, STX and LTX tables, plus "MESSAGE" strings is ' +  IntToStr(3*MAX_MESSAGES_PER_TABLE));
+						END;
+	 					CurrentTokenID := T_NUMBER;
+						Value := CurrentIntVal;
+						CurrentText := IntToStr(Value);
+					END;
 					IF (CurrentTokenID <> T_NUMBER) AND (CurrentTokenID <> T_IDENTIFIER) THEN SyntaxError('Invalid condact parameter');
 					Value := GetIdentifierValue();
 					IF Value=MAXINT THEN  // Parameter was neither numeric, nor previously defined, let's check if it's a non-verb vocabulary word as last chance
@@ -375,7 +396,7 @@ BEGIN
 					END;
 					CurrentCondactParams[i].Value := Value;
 				END;
-				AddProcessCondact(SomeEntryCondacts, Opcode, Condacts[Opcode].NumParams, CurrentCondactParams);
+				AddProcessCondact(SomeEntryCondacts, Opcode, Condacts[Opcode].NumParams, CurrentCondactParams, false);
 			END;
 		END ELSE
 		IF CurrentTokenID=T_DB THEN 
@@ -384,7 +405,7 @@ BEGIN
 			IF (CurrentTokenID<>T_NUMBER) THEN SyntaxError('DB value should be numeric');
 			IF (CurrentIntVal<0) OR (CurrentIntVal>255) THEN SyntaxError('DB value should be between 0 and 255');
 			WriteLn('#DB ' + CurrentText + ' processed');
-			AddProcessCondact(SomeEntryCondacts,CurrentIntVal , 0, CurrentCondactParams); // adds a fake condact, with the DB value as OPCODE and zero parameters
+			AddProcessCondact(SomeEntryCondacts,CurrentIntVal , 0, CurrentCondactParams, true); // adds a fake condact, with the DB value as OPCODE and zero parameters
 		END
 		ELSE 	
 		IF CurrentTokenID=T_INCBIN THEN 
@@ -399,7 +420,7 @@ BEGIN
 			WHILE NOT EOF(IncludedFile) DO
 			BEGIN
 				BlockRead(IncludedFile, AuxByte, 1);
-				AddProcessCondact(SomeEntryCondacts,AuxByte, 0, CurrentCondactParams); // Queues one fake condact as DB does above, pero byte in the file
+				AddProcessCondact(SomeEntryCondacts,AuxByte, 0, CurrentCondactParams, true); // Queues one fake condact as DB does above, per byte in the file
 			END;
 			CloseFile(IncludedFile);
 		END;
@@ -473,6 +494,7 @@ END;
 PROCEDURE Sintactic();
 BEGIN
 	CurrTokenPTR := TokenList;
+	ClassicMode := false;
 	OnIfdefMode := false;
 	MTXCount := 0;
 	STXCount := 0;

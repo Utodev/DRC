@@ -4,7 +4,7 @@ UNIT UConstants;
 INTERFACE
 
 CONST Version = 0;
-	  Minor = 1;
+	Minor = 1;
 
       LOC_CARRIED = 254;
       LOC_WORN = 253;       
@@ -18,8 +18,14 @@ CONST Version = 0;
       MAX_PROCESSES = 255;
       MAX_CONDACT_PARAMS  =2;
       MAX_PARAM_ACCEPTING_INDIRECTION = 1;
+      MAX_MESSAGES_PER_TABLE = 256;
 
       NUM_CONDACTS  =128;
+
+      MESSAGE_OPCODE = 38;
+      MES_OPCODE =77;
+      SYSMESS_OPCODE = 54;
+      DESC_OPCODE = 19;
 
 
 IMPLEMENTATION

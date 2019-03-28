@@ -8,15 +8,13 @@ PROCEDURE SYNTAX();
 VAR AppName :String;
 BEGIN
 	AppName := ChangeFileExt(ExtractFileName(ParamStr(0)),'');
-	WriteLn('Syntax: ', AppName, ' <machine> <file.DSF> [output.DDB] ');
+	WriteLn('Syntax: ', AppName, ' <define> <file.DSF> [output.json] ');
   WriteLn();
-	WriteLn('file.DSF is a DAAD ', ' ', Version, '.', Minor, ' source file.');
+	WriteLn('file.DSF is a DAAD', ' ', Version, '.', Minor, ' source file.');
   WriteLn();
-	WriteLn('<machine> is the target machine, it may be CPC, ZX, MSX, C64, PCW, PC, ST or AMIGA.');
+	WriteLn('<define> is a symbol that is automatically defined when compiling. Main use is writing there the target machine, and then add #ifdefs in the code. If you don''t understand what that is for, just write any word there, for instance "dummy"');
   WriteLn();
-  WriteLn('You also may enter "JSON" as machine, which will export database to JSON format.');
-  WriteLn();
-	WriteLn('[output.DDB] is optional file name for output database file, if missing same base name as DSF file will be used, if target machine is JSON, extension for output file will be .json.');
+	WriteLn('[output.json] is optional file name for output json file, if missing same base name as DSF file will be used.');
 	Halt(1);
 END;
 
@@ -73,12 +71,8 @@ BEGIN
   InputFileName := ParamStr(2);
   IF (NOT FileExists(InputFileName)) THEN ParamError('Input file not found');
   Target := UpperCase(ParamStr(1));
-  if (Target<>'CPC') AND (Target<>'ZX') AND (Target<>'MSX') AND (Target<>'C64') AND (Target<>'PC') AND (Target<>'ST') AND (Target<>'AMIGA')  AND (Target<>'PCW')  AND (Target<>'JSON')  THEN ParamError('Invalid Target');
   IF  ParamCount>2 THEN OutputFileName := ParamStr(3)
-                   ELSE 
-                   BEGIN
-                      if Target<>'JSON'  THEN OutputFileName := ChangeFileExt(InputFileName, '.DDB') ELSE OutputFileName := ChangeFileExt(InputFileName, '.json')
-                   END;
+                   ELSE OutputFileName := ChangeFileExt(InputFileName, '.json');
   CompileForTarget(Target, OutputFileName);
 END.
 

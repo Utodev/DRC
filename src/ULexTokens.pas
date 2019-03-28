@@ -27,6 +27,8 @@ const T_ENDIF = 276;
 const T_SECTION_END = 277;
 const T_DB=278;
 const T_INCBIN=279;
+const T_EXTERN=280;
+const T_CLASSIC=281;
 
 IMPLEMENTATION
 END.

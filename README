@@ -20,15 +20,28 @@ Differences of  DSF y SCE DAAD formats
 
 /58 "Disk or drive full."
 
-The lexical analyzer would admint anything in betwee the quotes, but it's agreed if \n is in the string, it 
-should be replaced by a carrage return when exporting, except when exporting to json format. Also \" is 
-replaced by " (except JSON) and \g should be stored as the special escape char to change charset.
+The lexical analyzer would admit anything in between the quotes, but there are several escape codes that should be taken into account (see DAAD's manual, page 68)
   
-- DRC supports the following directives : #define, #ifdef, #ifndef, #endif, #extern  y #db
+- DRC supports the following directives : #define, #ifdef, #ifndef, #endif, #extern  and #db
 
 - When compiling for a given platform, the target is allways defined. For instance if you call the compiler with  "DRC C64 TEST.DSF" then "C64" symbols is defined, so you can use #ifdef
 
+- All vocabulary words are added as symbols too, with prefix "_VOC_". For instance if there is a word NORTH, it can be refered as _VOC_NORTH. 
+
+- Also all vocabulary words can replace parameters, but if the same word is defined as symbol, the symbol will take precedence. i.e "EQ 33 TAKE" is valid and the second parameter would be replaced by the vocabulary number of word "TAKE", unless there is a previous
+ "#define TAKE x", in which case TAKE would be replaced by value x. 
+
 - Indirection is marked as in NMP, Superglus and ngPAWS: '@38' instead of '[38]'
+
+- You can directly write texts after MESSAGE/MES/SYSMESS like this
+
+MESSAGE "Hello world!"
+
+If a message already exists with that specific text the compiler will replace the text with the message number automatically and continue. If the message does not exist, it will be added to the message list automatically and then replaced by the new message number. 
+Of course, if there are several equal messages written like that in your code, only one message will be added to message list and all call will be replaced by same number.
+
+Is stil possible to use old syntax "MESSAGE n" if you want or is required.
+
 
 - With DRC you have much less fixed layout for processes, for instance all these is valid:
 
