@@ -64,7 +64,7 @@ END;
 
 BEGIN
   AppName := ChangeFileExt(ExtractFileName(ParamStr(0)),'');
-  Write('DAAD Reborn Compiler', ' ', Version, '.', Minor, ' (C) Uto 2018');
+  Write('DAAD Reborn Compiler Frontend', ' ', Version, '.', Minor, ' (C) Uto 2018');
   if (CurrentYear()<>2018) THEN Write('-', CurrentYear());
   WriteLn();
   // Check Parameters
