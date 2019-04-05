@@ -1,7 +1,7 @@
 <?php
 
 // (C) Uto & Jose Manuel Ferrer 2019 - This code is released under the GPL v3 license
-// To build the backend of DAAD reborn compiler I have had aid from Jos? Manuel Ferrer Ortiz's DAAD database code,
+// To build the backend of DAAD reborn compiler I have had aid from Jose Manuel Ferrer Ortiz's DAAD database code,
 // which he glently provided me. In some cases the code has been even copied and pasted, so that's why he is also
 // in the copyright notice above. Thanks Jose Manuel for this invaluable aid.
 
@@ -385,8 +385,7 @@ FUNCTION isLittleEndianPlatform($target)
 
 
 // Just for development, set to true for verbose info
-$verbose = true;
-
+$verbose = false;
 
 function Syntax()
 {
@@ -412,7 +411,7 @@ function Error($msg)
 
 
 //********************************************** MAIN **************************************************************** */
-echo "DRB {$version_hi}.{$version_lo} (C) Uto 2019\n";
+echo "DAAD Reborn Compiler Backend {$version_hi}.{$version_lo} (C) Uto 2019\n";
 
 // Check params
 if (sizeof($argv) < 4) Syntax();
@@ -567,7 +566,6 @@ writeWord($outputFileHandler, $objectWeightAndAttrOffset, $isLittleEndian);
 writeWord($outputFileHandler, $objectExtraAttrOffset, $isLittleEndian);
 // File length 
 $fileSize = $currentAddress - $baseAddress;
-if ($verbose) echo "DDB size is " .$fileSize . " bytes.\n";
 writeWord($outputFileHandler, $fileSize, $isLittleEndian);
 fclose($outputFileHandler);
-echo "OK.";
+echo "Done. DDB size is " .$fileSize . " bytes.\n";
