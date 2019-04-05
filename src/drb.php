@@ -63,8 +63,7 @@ function generateTokens($adventure, &$currentAddress, $outputFileHandler, $compr
 
     if ($compression == 'none') 
     {
-        $b = 0;
-        writeByte($outputFileHandler, $b);
+        writeZero($outputFileHandler);
         $currentAddress++;
     }
     else
@@ -98,7 +97,7 @@ function replace_extension($filename, $new_extension) {
 
 function addPaddingIfRequired($target, $outputFileHandler, &$currentAddress)
 {
-    if (isLittleEndianPlatform($target) && (($currentAddress % 2)==1)) 
+    if (isPaddingPlatform($target) && (($currentAddress % 2)==1)) 
     {
         writeZero($outputFileHandler); // Fill with one byte for padding
         $currentAddress++;       
@@ -370,14 +369,14 @@ FUNCTION getBaseAddressByTarget($target)
   return 0;
 };
 
-FUNCTION isPaddingPlatformByID($target)
+FUNCTION isPaddingPlatform($target)
 {
     return (($target=='pc') || ($target=='st') || ($target=='amiga'));
 };
 
 FUNCTION isLittleEndianPlatform($target)
 {
-    return (($target=='pc') || ($target=='st') || ($target=='amiga')); 
+    return (($target=='pc') || ($target=='st') || ($target=='amiga'));
 };
 
 //================================================================= main ========================================================
@@ -385,7 +384,7 @@ FUNCTION isLittleEndianPlatform($target)
 
 
 // Just for development, set to true for verbose info
-$verbose = false;
+$verbose = true;
 
 function Syntax()
 {
@@ -438,6 +437,12 @@ $baseAddress = getBaseAddressByTarget($target);
 $currentAddress = $baseAddress;
 $isLittleEndian = isLittleEndianPlatform($target);
 
+if ($verbose) 
+{
+    echo $isLittleEndian? "Little endian":"Big endian";
+    echo "\nBase address      [" . prettyFormat($baseAddress) . "]\n";
+}
+
 // *********************************************
 // 1 ************** WRITE HEADER ***************
 // *********************************************
@@ -475,53 +480,50 @@ writeByte($outputFileHandler, $numberOfProcesses);
 writeBlock($outputFileHandler, 26); 
 $currentAddress+=34;
 
+
 // *********************************************
 // 2 *************** DUMP DATA *****************
 // *********************************************
-// Dump compressed texts
-$compressedTextOffset = $currentAddress;
-if ($verbose) echo "Tokens            [" . prettyFormat($compressedTextOffset) . "]\n";
-generateTokens($adventure, $currentAddress, $outputFileHandler, $compression);
-addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
-// Dump Processes
-$processListOffset = $currentAddress;
-if ($verbose) echo "Processes         [" . prettyFormat($processListOffset) . "]\n";
-generateProcesses($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
-addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Dump Vocabulary
 $vocabularyOffset = $currentAddress;
 if ($verbose) echo "Vocabulary        [" . prettyFormat($vocabularyOffset) . "]\n";
 generateVocabulary($adventure, $currentAddress, $outputFileHandler);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
-// Messages
-$messageLookupOffset = $currentAddress;
-if ($verbose) echo "Messages          [" . prettyFormat($messageLookupOffset) . "]\n";
-generateMTX($adventure, $currentAddress, $outputFileHandler, $compression, $isLittleEndian);
+// Dump compressed texts
+$compressedTextOffset = $currentAddress;
+if ($verbose) echo "Tokens            [" . prettyFormat($compressedTextOffset) . "]\n";
+generateTokens($adventure, $currentAddress, $outputFileHandler, $compression);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Sysmess
 $sysmessLookupOffset = $currentAddress;
 if ($verbose) echo "Sysmess           [" . prettyFormat($sysmessLookupOffset) . "]\n";
 generateSTX($adventure, $currentAddress, $outputFileHandler, $compression, $isLittleEndian);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
-// Location texts
-$locationLookupOffset = $currentAddress;
-if ($verbose) echo "Locations         [" . prettyFormat($locationLookupOffset) . "]\n";
-generateLTX($adventure, $currentAddress, $outputFileHandler, $compression, $isLittleEndian);
+// Messages
+$messageLookupOffset = $currentAddress;
+if ($verbose) echo "Messages          [" . prettyFormat($messageLookupOffset) . "]\n";
+generateMTX($adventure, $currentAddress, $outputFileHandler, $compression, $isLittleEndian);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Object Texts
 $objectLookupOffset = $currentAddress;
 if ($verbose) echo "Object texts      [" . prettyFormat($objectLookupOffset) . "]\n";
 generateOTX($adventure, $currentAddress, $outputFileHandler, $compression, $isLittleEndian);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+// Location texts
+$locationLookupOffset = $currentAddress;
+if ($verbose) echo "Locations         [" . prettyFormat($locationLookupOffset) . "]\n";
+generateLTX($adventure, $currentAddress, $outputFileHandler, $compression, $isLittleEndian);
+addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+// Connections
+$connectionsLookupOffset = $currentAddress;
+if ($verbose) echo "Connections       [" . prettyFormat($connectionsLookupOffset) . "]\n";
+generateConnections($adventure, $currentAddress, $outputFileHandler,$isLittleEndian);
+addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Object names
 $objectNamesOffset = $currentAddress;
 if ($verbose) echo "Object words      [" . prettyFormat($objectNamesOffset) . "]\n";
 generateObjectNames($adventure, $currentAddress, $outputFileHandler);
-// InitiallyAt
-$initiallyAtOffset = $currentAddress;
-if ($verbose) echo "Initially at      [" . prettyFormat($initiallyAtOffset) . "]\n";
-generateObjectInitially($adventure, $currentAddress, $outputFileHandler);
-addPaddingIfRequired($target, $outputFileHandler, $currentAddress);// Weight & standard Attr
+// Weight & standard Attr
 $objectWeightAndAttrOffset = $currentAddress;
 if ($verbose) echo "Weight & std attr [" . prettyFormat($objectWeightAndAttrOffset) . "]\n";
 generateObjectWeightAndAttr($adventure, $currentAddress, $outputFileHandler);
@@ -530,10 +532,16 @@ addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 $objectExtraAttrOffset = $currentAddress;
 if ($verbose) echo "Extra attr        [" . prettyFormat($objectExtraAttrOffset) . "]\n";
 generateObjectExtraAttr($adventure, $currentAddress, $outputFileHandler, $isLittleEndian);
-// Connections
-$connectionsLookupOffset = $currentAddress;
-if ($verbose) echo "Connections       [" . prettyFormat($connectionsLookupOffset) . "]\n";
-generateConnections($adventure, $currentAddress, $outputFileHandler,$isLittleEndian);
+// InitiallyAt
+$initiallyAtOffset = $currentAddress;
+if ($verbose) echo "Initially at      [" . prettyFormat($initiallyAtOffset) . "]\n";
+generateObjectInitially($adventure, $currentAddress, $outputFileHandler);
+addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+// Dump Processes
+$processListOffset = $currentAddress;
+if ($verbose) echo "Processes         [" . prettyFormat($processListOffset) . "]\n";
+generateProcesses($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
+addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 
 // *********************************************
 // 3 **** PATCH HEADER WITH OFFSET VALUES ******
@@ -541,7 +549,7 @@ generateConnections($adventure, $currentAddress, $outputFileHandler,$isLittleEnd
 
 fseek($outputFileHandler, 8);
 // Compressed text position
-writeWord($outputFileHandler, $compressedTextOffset, $isLittleEndian);
+if ($compression != 'none') writeWord($outputFileHandler, $compressedTextOffset, $isLittleEndian); else writeWord($outputFileHandler, $compressedTextOffset, 0);  // If no compression, header should have 0x0000 for this value
 // Process list position
 writeWord($outputFileHandler, $processListOffset, $isLittleEndian);
 // Objects lookup list position
