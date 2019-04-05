@@ -52,6 +52,7 @@ VAR JSON : Text;
     TempMessageList : TPMessageList;
     TempEntriesList : TPProcessEntryList;
     TempCondactList : TPProcessCondactList;
+    TempConnectionList : TPConnectionList;
     AuxAnsiString :AnsiString;
     VerbStr, NounStr : String;
     VerbPtr, NounPtr : TPVocabularyTree;
@@ -117,7 +118,27 @@ BEGIN
     END;
     WriteLn(JSON,tabs(),'],');
     DEC(Indent);
-    // Vocabulary
+    // Connections
+
+    TempConnectionList := Connections;
+    WriteLn(JSON,tabs(),'"connections":');
+    INC(Indent);
+    WriteLn(JSON,tabs(),'[');
+    WHILE TempConnectionList<>nil DO
+    BEGIN
+        WriteLn(JSON,tabs(),'{');
+        INC(Indent);       
+        WriteLn(JSON,tabs(),'"FromLoc":', TempConnectionList^.FromLoc,',');
+        WriteLn(JSON,tabs(),'"ToLoc":', TempConnectionList^.ToLoc,',');
+        WriteLn(JSON,tabs(),'"Direction":', TempConnectionList^.Direction);
+        DEC(Indent);
+        Write(JSON, tabs(), '}');
+        if (TempConnectionList^.Next <> nil) THEN WriteLn(JSON,',') ELSE WriteLn(JSON);
+        TempConnectionList := TempConnectionList^.Next;
+    END;
+    WriteLn(JSON,tabs(),'],');
+    DEC(Indent);
+   
 
     // Texts
     MessageListsArray[0]:=MTX;
