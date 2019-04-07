@@ -128,10 +128,10 @@ LUEGO   2       conjugation
 /STX    ;Mensajes del sistema
 /0 "Esta demasiado oscuro para ver nada."
 /1 "Tambien \"puedo\" ver:"
-/2 "Que "personaje eliges?"
-/3 "Que personaje eliges?"
-/4 "Que personaje eliges?"
-/5 "Que personaje eliges?"
+/2 ""
+/3 ""
+/4 ""
+/5 ""
 /6 "No he \"entendido" nada."
 /7 "No puedo ir en esa direccion."
 /8 "No puedo hacer eso."
@@ -200,7 +200,7 @@ LUEGO   2       conjugation
 ;       -       -       -       -       -       -       -       -       -
 /LTX    ;Location Texts
 /0 "BASE DE DATOS VACIA - DAAD V2."
-/1 "Has entrado a la mazmorra, multiples peligros te esperan, pero tambien grandes logros y enormes tesoros. Jugaras con el guerrero o la Valkyria?"
+/1 "Has entrado a la mazmorra, multiples peligros te esperan, pero tambien grandes logros y enormes tesoros. "
 /2 "Estoy en la localidad numero dos. Un camino lleva al sur."
 ;------------------------------------------------------------------------------
 /CON    ;Conexiones
@@ -223,27 +223,16 @@ E 1
 
 
 _       _       AT      0               ; Empezamos una partida
-                MESSAGE "MS1"
-                MESSAGE "MS2"
-                MESSAGE "MS3"
-                MESSAGE "MS4"
-                MESSAGE "MS5"
-                MESSAGE "MS6"
-                MESSAGE 1
-                ANYKEY 
-                CLS
                 PROCESS 6               ; El proceso de inicializaci¢n
+                
                 
 
 _       _       WINDOW  0               ; Ventana de gráficos
                 CLEAR   fDarkF           ; Asume que hay luz
-;               MINUS   2       1       ; Decrementa flag 2 (Ver notas arriba)
                 NOTZERO 0
-;               MINUS   3       1       ; y Flag 3 si oscuro (Ver notas)
                 ABSENT  0
-;               MINUS   4       1       ; y Flag 4 si no hay lampara(Ver notas)
                 SET     fDarkF           ; Oscuro
-;
+
 _       _       PICTURE @fPlayer        ; Si hay gráfico, cárgalo
                 DISPLAY @fDarkF         ; Muéstralo si no oscuro; si oscuro
                                         ; hace un CLS
@@ -333,9 +322,7 @@ I       _       SYSMESS 9
                 LISTAT  WORN
                 DONE
 
-COGER   TODO    DOALL   HERE
-                SYNONYM COGER LINTE
-                
+COGER   TODO    DOALL   HERE                
 COGER   _       AUTOG
                 DONE
 
@@ -379,8 +366,8 @@ _       _       WINDOW  1               ; Inicializamos las ventanas
                 WINAT   14       0
                 WINSIZE 25      127     ; Tamaño máximo
                 CLS
-;               DESC    0               ; Introducción
-;               ANYKEY
+                DESC    0               ; Introducción
+                ANYKEY
                 CLS
                 CLEAR   255             ; Pone a cero todas las banderas
 
