@@ -54,7 +54,21 @@ function writeBlock($handle, $size)
 
 
 
+//================================================================= externs ========================================================
 
+function generateExterns($adventure, &$currentAddress, $outputFileHandler)
+{
+    foreach ($adventure->externs as $extern)
+    {
+        $filePath = $extern->FilePath;
+        if (!file_exists($filePath)) Error("Extern file not found: ${filePath}.");
+        $externfileHandle = fopen($filePath, "r");
+        $buffer = fread($externfileHandle, filesize($filePath));
+        fclose($externfileHandle);
+        fputs($outputFileHandler, $buffer);
+        $currentAddress+=filesize($filePath);
+    }   
+}
 
 //================================================================= tokens ========================================================
 
@@ -74,7 +88,11 @@ function generateTokens($adventure, &$currentAddress, $outputFileHandler, $compr
 //================================================================= common ========================================================
 
 define ('OFUSCATE_VALUE', 0xFF);
-$daad_to_chr = array('ª', '¡', '¿', '«', '»', 'á', 'é', 'í', 'ó', 'ú', 'ñ', 'Ñ', 'ç', 'Ç', 'ü', 'Ü');
+
+class daadToChr
+{
+var $conversions = array('ª', '¡', '¿', '«', '»', 'á', 'é', 'í', 'ó', 'ú', 'ñ', 'Ñ', 'ç', 'Ç', 'ü', 'Ü');
+}
 $version_hi = 0;
 $version_lo = 1;
 
@@ -106,7 +124,46 @@ function addPaddingIfRequired($target, $outputFileHandler, &$currentAddress)
 
 //================================================================= messages  ========================================================
 
-// real length, shortening escape chars
+function replaceEscapeChars($str)
+{
+    // replace special spanish characters
+    $daad_to_chr = new daadToChr();
+    for($i=0;$i<sizeof($daad_to_chr->conversions);$i++)
+    {
+        $spanishChar = $daad_to_chr->conversions[$i];
+        if (strpos($str, $spanishChar)!==false)
+        {
+            $to = chr($i+16);
+            $str = str_replace($spanishChar, $to, $str);
+        } 
+    }
+    // replace escape sequences
+    $replacements = array('#g'=>0x0e, '#t'=>0x0f,'#b'=>0x0b, '#s'=>0x20, '#f'=>0x7f, '#k'=>0x0c, '#n'=>0x0D, '#r'=>0x0D);
+    // Add #A to #P to replacements array
+    for ($i=ord('A');$i<=ord('P');$i++) $replacements["#" . chr($i)]= $i + 0x10 - ord('A');
+
+    $oldSequenceWarning = false;
+    foreach ($replacements as $search=>$replace)
+    {
+        // Check the string does not contain old escape sequences using baskslash, print warning otherwise
+        if ($search!='#n') 
+        {
+            $oldSequence = str_replace('#','\\', $search);
+            if ((strpos($str, $oldSequence)!==false) && (!$oldSequenceWarning))
+            {
+                echo "Warning: DRC does not support escape sequences with backslash character, use sharp (#) instead. i.e: #g instead of \g";
+                $oldSequenceWarning = true;
+            } 
+        }
+        $str = str_replace($search, chr($replace), $str);
+    }
+
+    // Replace carriage retuns that may come by users writing \n and that going throuhg as chr(10) instead of '\n' string
+    $str = str_replace(chr(10), chr(13),$str); 
+    // this line must be last, to properly print # character
+    $str = str_replace('##', "#",$str); 
+    return $str;
+}
 
 function generateMessages($messageList, &$currentAddress, $outputFileHandler, $compression, $isLittleEndian)
 {
@@ -116,6 +173,7 @@ function generateMessages($messageList, &$currentAddress, $outputFileHandler, $c
     {
         $messageOffsets[$messageID] = $currentAddress;
         $message = $messageList[$messageID];
+        $message->Text = replaceEscapeChars($message->Text);
         for ($i=0;$i<strlen($message->Text);$i++)
         {
             writeByte($outputFileHandler, ord($message->Text[$i]) ^ OFUSCATE_VALUE);
@@ -208,13 +266,14 @@ function generateConnections($adventure, &$currentAddress, $outputFileHandler, $
 
 function generateVocabulary($adventure, &$currentAddress, $outputFileHandler)
 {
+    $daad_to_chr = new daadToChr();
     foreach ($adventure->vocabulary as $word)
     {
         $vocWord = substr(str_pad($word->VocWord,5),0,5);
         for ($i=0;$i<5;$i++)
         {
             $character = $vocWord[$i];
-            if (ord($character)>127) $character = array_search($character, $daad_to_chr) + 16;  else  $character = ord(strtoupper($character));
+            if (ord($character)>127) $character = array_search($character, $daad_to_chr->conversions) + 16;  else  $character = ord(strtoupper($character));
             $character = $character ^ OFUSCATE_VALUE;
             writeByte($outputFileHandler, $character);
         }
@@ -276,7 +335,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
 {
     
 
-    $terminatorOpcodes = array(22, 23,103, 116,108);  //DONE/OK/NOTDONE/SKIP/REDO
+    $terminatorOpcodes = array(22, 23,103, 116,117,108);  //DONE/OK/NOTDONE/SKIP/RESTART/REDO
 
     $condactsOffsets = array();
 
@@ -498,6 +557,10 @@ $currentAddress+=26;
 // *********************************************
 // 2 *************** DUMP DATA *****************
 // *********************************************
+
+// DumpExterns
+generateExterns($adventure, $currentAddress, $outputFileHandler);
+addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Dump Vocabulary
 $vocabularyOffset = $currentAddress;
 if ($verbose) echo "Vocabulary        [" . prettyFormat($vocabularyOffset) . "]\n";
