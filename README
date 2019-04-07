@@ -26,18 +26,18 @@ These are some changes you may find when using DRC/DFM instead of DC/SCE:
 
 - DRC supports the following directives : #define, #ifdef, #ifndef, #endif, #extern, #classic, #incbin and #db
 
-· 'define', 'ifdef', 'ifndef' and 'endif' work as expected.
+ 'define', 'ifdef', 'ifndef' and 'endif' work as expected.
 
-· 'extern' can only be used at the beginning of /CTL section, and will include the binary in the output JSON file in the extern section.
+ 'extern' can only be used at the beginning of /CTL section, and will include the binary in the output JSON file in the extern section.
 
 #extern "MLV_MSX.BIN"
 
-· 'incbin' and 'db' work only in the condats section of processes. 'db' will include a raw byte value, while 'incbin' will include as many bytes as the file given as parameter contains.
+ 'incbin' and 'db' work only in the condats section of processes. 'db' will include a raw byte value, while 'incbin' will include as many bytes as the file given as parameter contains.
 
 #db 28
 #incbin "file.inc"
 
-· 'classic' is explained below
+ 'classic' is explained below
 
 - DFM files don't have a /TOK section.
 
@@ -66,13 +66,16 @@ If you don't like the idea of messages going to different tables, just add the #
 
 - A DSF file has a '/END' mark at the end of last process
 
+- Escape chars (\g,\t,\k, etc. described at page 68 of DAAD's manual (Special characters) have to be included in DSF files with a sharp character instead of backslash. i.e "#k" replaces "\k". Also, it is possible to use either #n or #r to add a carriage return in any message/location/object. Finally, 
+  and  as an excepcion, "\n" is also accepted for carriage return. So in the end there are three ways of adding a carriage return:  #n, #r and \n.
+
 - With DRC you have much less fixed layout for processes, for instance all these options are valid:
 
 ; All in one line
 _ _ AT 7 CARRIED 2 LET 127 12 MESSAGE 15 CREATE 2 DONE
 
 
-; Superglus/ngpaws/NMP Style
+; Superglus/ngPAWS/NMP Style
 _ _
  AT 7
  CARRIED 2
