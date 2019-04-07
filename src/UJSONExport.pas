@@ -9,7 +9,7 @@ PROCEDURE GenerateJSON(OutputFileName: string);
 IMPLEMENTATION
 
 
-USES sysutils, UConstants, UVocabularyTree, UMessageList, UConnections, UObjects, UProcess, UProcessCondactList, UCTLExtern, USymbolTree, strutils, UCondacts;
+USES sysutils, UConstants, UVocabularyTree, UMessageList, UConnections, UObjects, UProcess, UProcessCondactList, UCTLExtern, USymbolTree, strutils, UCondacts, USintactic;
 
 
 VAR Indent : Byte;
@@ -62,6 +62,13 @@ BEGIN
     Assign(JSON, OutputFileName);
     Rewrite(JSON);
     WriteLn(JSON,tabs(),'{');
+    // Settings
+    WriteLn(JSON,tabs(),'"settings":');
+    INC(Indent);     
+    WriteLn(JSON,tabs(),'[');
+    WriteLn(JSON,tabs(),'{"classic_mode":', byte(ClassicMode), '}');
+    WriteLn(JSON,tabs(),'],');
+    DEC(Indent);
     // Symbols
     WriteLn(JSON,tabs(),'"symbols":');
     INC(Indent);     

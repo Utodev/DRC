@@ -7,6 +7,7 @@ USES UTokenList;
 
 PROCEDURE Sintactic();
 
+var ClassicMode : Boolean;
 
 
 
@@ -21,7 +22,6 @@ VAR CurrentText: AnsiString;
 	CurrColno : Word;
 	CurrTokenPTR: TPTokenList;
 	OnIfdefMode : boolean;
-	ClassicMode : Boolean;
 
 
 
