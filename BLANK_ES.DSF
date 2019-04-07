@@ -127,15 +127,15 @@ LUEGO   2       conjugation
 ;------------------------------------------------------------------------------
 /STX    ;Mensajes del sistema
 /0 "Esta demasiado oscuro para ver nada."
-/1 "Tambien \"puedo\" ver:"
-/2 ""
-/3 ""
-/4 ""
-/5 ""
-/6 "No he \"entendido" nada."
+/1 "Tambien puedo ver:"
+/2 "#n"
+/3 "#n"
+/4 "#n"
+/5 "#n"
+/6 "No he entendido nada."
 /7 "No puedo ir en esa direccion."
 /8 "No puedo hacer eso."
-/9 "Llevo:"
+/9 "Llevo:#n"
 /10 "Llevo puesto:"
 /11 "";*Libre
 /12 "Seguro?"
@@ -154,14 +154,14 @@ LUEGO   2       conjugation
 /25 "Ya tengo _."
 /26 "Aqui no hay nada de eso."
 /27 "No puedo llevar nada mas."
-/28 "No tengo eso."
-/29 "Ya llevo puesto _."
-/30 "S";Un solo caracter en mayusculas. Inicial de S¡
+/28 "No tengo eso.#n"
+/29 "Ya llevo puesto _.#n"
+/30 "S";Un solo caracter en mayusculas. Inicial de Sí
 /31 "N"  ;Un solo caracter en mayusculas. Inicial de No
-/32 "Hay mas..."
+/32 "Hay más..."
 /33 ">"
 /34 "" ;*Libre
-/35 "El tiempo pasa..."
+/35 "#nEl tiempo pasa..."
 /36 "He cogido _."
 /37 "Me he puesto _."
 /38 "Me he quitado _."
@@ -174,10 +174,10 @@ LUEGO   2       conjugation
 /45 "@ no esta en"
 /46 ", "
 /47 " y "
-/48 "."
+/48 ".#n"
 /49 "No tengo _."
 /50 "No llevo puesto _."
-/51 "."
+/51 ".#n"
 /52 "No hay nada de eso en"
 /53 "Nada."
 /54 "C" ; Inicial de Cinta
@@ -199,7 +199,7 @@ LUEGO   2       conjugation
 /1 "Un cazo"
 ;       -       -       -       -       -       -       -       -       -
 /LTX    ;Location Texts
-/0 "BASE DE DATOS VACIA - DAAD V2."
+/0 "BASE DE DATOS VACIA - DAAD V2.#ga#t"
 /1 "Has entrado a la mazmorra, multiples peligros te esperan, pero tambien grandes logros y enormes tesoros. "
 /2 "Estoy en la localidad numero dos. Un camino lleva al sur."
 ;------------------------------------------------------------------------------
@@ -322,6 +322,13 @@ I       _       SYSMESS 9
                 LISTAT  WORN
                 DONE
 
+R       _       SYSMESS 9
+                LISTAT  CARRIED
+                SYSMESS 10
+                LISTAT  WORN
+                DONE
+
+
 COGER   TODO    DOALL   HERE                
 COGER   _       AUTOG
                 DONE
@@ -333,6 +340,7 @@ DEJAR   _       AUTOD
 QUITAR  TODO    DOALL   WORN
 QUITAR  _       AUTOR
                 DONE
+
 
 PONER   TODO    DOALL   CARRIED
 PONER   _       AUTOW
@@ -355,7 +363,7 @@ RAMSA   _       RAMSAVE
                 RESTART
 
 RAMLO   _      
-RAMLOAD 255                             ;Reload all flags
+                RAMLOAD 255                             ;Reload all flags
                 RESTART
 
 MIRAR   _       RESTART

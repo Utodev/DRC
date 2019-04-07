@@ -331,6 +331,29 @@ function generateObjectExtraAttr($adventure, &$currentAddress, $outputFileHandle
 //================================================================= processes ========================================================
 
 
+function getCondactsHash($condacts, $from)
+{
+    $hash = '';
+    for ($i=$from; $i<sizeof($condacts);$i++)
+    {
+        $condact = $condacts[$i];
+        $opcode = $condact->Opcode;
+        if ($condact->Indirection1) $opcode = $opcode | 0x80; // Set indirection bit
+        $hash .= chr($opcode);
+        if ($condact->NumParams>0)
+        {
+            $param1 = $condact->Param1;
+            $hash .= chr($param1);
+            if ($condact->NumParams>1) 
+            {
+                $param2 = $condact->Param2;
+                $hash .= chr($param2);
+            }
+        }
+    }
+    return $hash;
+}
+
 function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $isLittleEndian)
 {
     
@@ -338,6 +361,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
     $terminatorOpcodes = array(22, 23,103, 116,117,108);  //DONE/OK/NOTDONE/SKIP/RESTART/REDO
 
     $condactsOffsets = array();
+    $condactsHash = array();  
 
     // Dump  all condacts and store which address each entry condacts
     for ($procID=0;$procID<sizeof($adventure->processes);$procID++)
@@ -349,6 +373,26 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
             $condactsOffsets["${procID}_${entryID}"] = $currentAddress;
             $entry = $process->entries[$entryID];
             $terminatorFound = false;
+            if (!$adventure->classicMode)
+            {
+                $hash = getCondactsHash($entry->condacts, 0);
+                if ($hash!='')
+                {
+                    if (array_key_exists("$hash", $condactsHash))
+                    {
+                        $condactsOffsets["${procID}_${entryID}"] = $condactsHash["$hash"]->offset;
+                        if ($adventure->verbose) echo "Saved ". strlen($hash) . " bytes from entry ".$condactsHash["$hash"]->origin." to ${procID}_${entryID}]  \n" ;
+                        continue;
+                    }
+                    else 
+                    {
+                        $offsetData = new stdClass();
+                        $offsetData->origin = "${procID}_${entryID}";
+                        $offsetData->offset = $currentAddress;
+                        $condactsHash["$hash"] = $offsetData;
+                    }
+                }
+            }
             foreach ($entry->condacts as $condact)
             {
                 $opcode = $condact->Opcode;
@@ -369,13 +413,13 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     }
                 }
                 $currentAddress+= $condact->NumParams;
-                if (in_array($opcode, $terminatorOpcodes)) 
+                if (!$adventure->classicMode) if (in_array($opcode, $terminatorOpcodes)) 
                 {
                     $terminatorFound = true;
                     break; // If a terminator condact found, no more condacts in the entry will be ever executed, so we break the loop (normally there won't be more condacts anyway)
                 }
             }
-            if (!$terminatorFound) // If no terminator condact found, ad termination fake condact 0xFF
+            if  (($adventure->classicMode) || (!$terminatorFound)) // If no terminator condact found, ad termination fake condact 0xFF
             {
                 writeFF($outputFileHandler); // mark of end of entry
                 $currentAddress++;
@@ -454,8 +498,6 @@ function isLittleEndianPlatform($target)
 
 
 
-// Just for development, set to true for verbose info
-$verbose = false;
 
 function Syntax()
 {
@@ -502,13 +544,21 @@ if (!$adventure) Error('Invalid json file');
 // Open output file
 $outputFileHandler = fopen($outputFileName, "wr");
 if (!$outputFileHandler) Error('Can\'t create output file.');
+
+// Check settings in JSON
+$adventure->classicMode = $adventure->settings[0]->classic_mode;
+if ($adventure->classicMode) echo "Warning: Compiling in classic mode, optimization disabled.\n";
+// Just for development, set to true for verbose info
+$adventure->verbose = true;
+
+
 // **** DUMP DATA TO DDB ****
 
 $baseAddress = getBaseAddressByTarget($target);
 $currentAddress = $baseAddress;
 $isLittleEndian = isLittleEndianPlatform($target);
 
-if ($verbose) 
+if ($adventure->verbose) 
 {
     echo $isLittleEndian? "Little endian":"Big endian";
     echo "\nBase address      [" . prettyFormat($baseAddress) . "]\n";
@@ -563,61 +613,61 @@ generateExterns($adventure, $currentAddress, $outputFileHandler);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Dump Vocabulary
 $vocabularyOffset = $currentAddress;
-if ($verbose) echo "Vocabulary        [" . prettyFormat($vocabularyOffset) . "]\n";
+if ($adventure->verbose) echo "Vocabulary        [" . prettyFormat($vocabularyOffset) . "]\n";
 generateVocabulary($adventure, $currentAddress, $outputFileHandler);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Dump compressed texts
 if ($compression<>'none') $compressedTextOffset = $currentAddress; $compressedTextOffset = 0; // If no compression, the header should have 0x0000 in the compression pointer
-if ($verbose) echo "Tokens            [" . prettyFormat($compressedTextOffset) . "]\n";
+if ($adventure->verbose) echo "Tokens            [" . prettyFormat($compressedTextOffset) . "]\n";
 generateTokens($adventure, $currentAddress, $outputFileHandler, $compression);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Sysmess
 generateSTX($adventure, $currentAddress, $outputFileHandler, $compression, $isLittleEndian);
 $sysmessLookupOffset = $currentAddress - 2 * sizeof($adventure->sysmess);;
-if ($verbose) echo "Sysmess           [" . prettyFormat($sysmessLookupOffset) . "]\n";
+if ($adventure->verbose) echo "Sysmess           [" . prettyFormat($sysmessLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Messages
 generateMTX($adventure, $currentAddress, $outputFileHandler, $compression, $isLittleEndian);
 $messageLookupOffset = $currentAddress - 2 * sizeof($adventure->messages);
-if ($verbose) echo "Messages          [" . prettyFormat($messageLookupOffset) . "]\n";
+if ($adventure->verbose) echo "Messages          [" . prettyFormat($messageLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Object Texts
 generateOTX($adventure, $currentAddress, $outputFileHandler, $compression, $isLittleEndian);
 $objectLookupOffset = $currentAddress - 2 * sizeof($adventure->object_data);
-if ($verbose) echo "Object texts      [" . prettyFormat($objectLookupOffset) . "]\n";
+if ($adventure->verbose) echo "Object texts      [" . prettyFormat($objectLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Location texts
 generateLTX($adventure, $currentAddress, $outputFileHandler, $compression, $isLittleEndian);
 $locationLookupOffset =  $currentAddress - 2 * sizeof($adventure->locations);
-if ($verbose) echo "Locations         [" . prettyFormat($locationLookupOffset) . "]\n";
+if ($adventure->verbose) echo "Locations         [" . prettyFormat($locationLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Connections
 generateConnections($adventure, $currentAddress, $outputFileHandler,$isLittleEndian);
 $connectionsLookupOffset = $currentAddress - 2 * sizeof($adventure->locations) ;
-if ($verbose) echo "Connections       [" . prettyFormat($connectionsLookupOffset) . "]\n";
+if ($adventure->verbose) echo "Connections       [" . prettyFormat($connectionsLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Object names
 $objectNamesOffset = $currentAddress;
-if ($verbose) echo "Object words      [" . prettyFormat($objectNamesOffset) . "]\n";
+if ($adventure->verbose) echo "Object words      [" . prettyFormat($objectNamesOffset) . "]\n";
 generateObjectNames($adventure, $currentAddress, $outputFileHandler);
 // Weight & standard Attr
 $objectWeightAndAttrOffset = $currentAddress;
-if ($verbose) echo "Weight & std attr [" . prettyFormat($objectWeightAndAttrOffset) . "]\n";
+if ($adventure->verbose) echo "Weight & std attr [" . prettyFormat($objectWeightAndAttrOffset) . "]\n";
 generateObjectWeightAndAttr($adventure, $currentAddress, $outputFileHandler);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Extra Attr
 $objectExtraAttrOffset = $currentAddress;
-if ($verbose) echo "Extra attr        [" . prettyFormat($objectExtraAttrOffset) . "]\n";
+if ($adventure->verbose) echo "Extra attr        [" . prettyFormat($objectExtraAttrOffset) . "]\n";
 generateObjectExtraAttr($adventure, $currentAddress, $outputFileHandler, $isLittleEndian);
 // InitiallyAt
 $initiallyAtOffset = $currentAddress;
-if ($verbose) echo "Initially at      [" . prettyFormat($initiallyAtOffset) . "]\n";
+if ($adventure->verbose) echo "Initially at      [" . prettyFormat($initiallyAtOffset) . "]\n";
 generateObjectInitially($adventure, $currentAddress, $outputFileHandler);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Dump Processes
 generateProcesses($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
 $processListOffset = $currentAddress - sizeof($adventure->processes) * 2;
-if ($verbose) echo "Processes         [" . prettyFormat($processListOffset) . "]\n";
+if ($adventure->verbose) echo "Processes         [" . prettyFormat($processListOffset) . "]\n";
 
 
 // *********************************************
@@ -653,5 +703,5 @@ writeWord($outputFileHandler, $objectExtraAttrOffset, $isLittleEndian);
 $fileSize = $currentAddress;
 writeWord($outputFileHandler, $fileSize, $isLittleEndian);
 fclose($outputFileHandler);
-echo "Done. DDB size is " . ($fileSize - $baseAddress) . " bytes.\n";
+echo "Done. DDB size is " . ($fileSize - $baseAddress) . " bytes.\n Database ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
 
