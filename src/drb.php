@@ -122,6 +122,7 @@ function addPaddingIfRequired($target, $outputFileHandler, &$currentAddress)
     }
 }
 
+
 //================================================================= messages  ========================================================
 
 function replaceEscapeChars($str)
@@ -339,15 +340,15 @@ function getCondactsHash($condacts, $from)
         $condact = $condacts[$i];
         $opcode = $condact->Opcode;
         if ($condact->Indirection1) $opcode = $opcode | 0x80; // Set indirection bit
-        $hash .= chr($opcode);
+        $hash .= ($opcode);
         if ($condact->NumParams>0)
         {
             $param1 = $condact->Param1;
-            $hash .= chr($param1);
+            $hash .= ($param1);
             if ($condact->NumParams>1) 
             {
                 $param2 = $condact->Param2;
-                $hash .= chr($param2);
+                $hash .= ($param2);
             }
         }
     }
@@ -358,43 +359,80 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
 {
     
 
+    
     $terminatorOpcodes = array(22, 23,103, 116,117,108);  //DONE/OK/NOTDONE/SKIP/RESTART/REDO
 
     $condactsOffsets = array();
+    
+    
+    // PASS ONE, GENERATE HASHES UNLESS CLASSICMODE IS ON
     $condactsHash = array();  
+    if (!$adventure->classicMode)
+    {
+        for ($procID=0;$procID<sizeof($adventure->processes);$procID++)
+        {
+            $process = $adventure->processes[$procID];
+            for ($entryID=0;$entryID<sizeof($process->entries);$entryID++)
+            {
+                $entry = $process->entries[$entryID];
+                for($condactID=0;$condactID<sizeof($entry->condacts); $condactID++)
+                {
+                    $hash = getCondactsHash($entry->condacts, $condactID);
+                    if (($hash!='') && (!array_key_exists("$hash", $condactsHash)))
+                    {
+                        $hashInfo = new StdClass();
+                        $hashInfo->offset = -1; // Not yet calculated
+                        $hashInfo->details = new StdClass();
+                        $hashInfo->details->process = $procID;
+                        $hashInfo->details->entry = $entryID;
+                        $hashInfo->details->condact = $condactID;
+                        $condactsHash["$hash"] = $hashInfo;
+                    }
+                }
+            }
+        }
+    }
 
+    
     // Dump  all condacts and store which address each entry condacts
     for ($procID=0;$procID<sizeof($adventure->processes);$procID++)
     {
         $process = $adventure->processes[$procID];
-
         for ($entryID=0;$entryID<sizeof($process->entries);$entryID++)
         {
-            $condactsOffsets["${procID}_${entryID}"] = $currentAddress;
+            // Check entry condacts hashes (unless classicMode is on)
             $entry = $process->entries[$entryID];
-            $terminatorFound = false;
             if (!$adventure->classicMode)
             {
                 $hash = getCondactsHash($entry->condacts, 0);
                 if ($hash!='')
                 {
-                    if (array_key_exists("$hash", $condactsHash))
+                    if ($condactsHash["$hash"]->offset != -1)
                     {
-                        $condactsOffsets["${procID}_${entryID}"] = $condactsHash["$hash"]->offset;
-                        if ($adventure->verbose) echo "Saved ". strlen($hash) . " bytes from entry ".$condactsHash["$hash"]->origin." to ${procID}_${entryID}]  \n" ;
-                        continue;
+                        $condactsOffsets["${procID}_${entryID}"] = $condactsHash["$hash"]->offset; 
+                        //if ($adventure->verbose) echo "Saved [$hash] ".  $saved . " bytes by re-using condacts of process " .$condactsHash["$hash"]->details->process. ", entry " . $condactsHash["$hash"]->details->entry. ", condact #" .$condactsHash["$hash"]->details->condact . " for process $procID, entry $entryID.\n" ;
+                        continue; // Avoid generating this entry condacts, as there is one which can be re-used
                     }
                     else 
                     {
-                        $offsetData = new stdClass();
-                        $offsetData->origin = "${procID}_${entryID}";
-                        $offsetData->offset = $currentAddress;
-                        $condactsHash["$hash"] = $offsetData;
+                        $condactsHash["$hash"]->offset = $currentAddress;
                     }
                 }
             }
-            foreach ($entry->condacts as $condact)
+
+
+            $condactsOffsets["${procID}_${entryID}"] = $currentAddress;
+            $entry = $process->entries[$entryID];
+            $terminatorFound = false;
+            for($condactID=0;$condactID<=sizeof($entry->condacts);$condactID++)
             {
+                $condact = $entry->condacts[$condactID];
+                if (!$adventure->classicMode)
+                {
+                    $hash = getCondactsHash($entry->condacts, $condactID);
+                    if ($condactsHash["$hash"]->offset == -1) $condactsHash["$hash"]->offset = $currentAddress;
+                }
+
                 $opcode = $condact->Opcode;
                 if ($condact->Indirection1) $opcode = $opcode | 0x80; // Set indirection bit
                 writeByte($outputFileHandler, $opcode);
@@ -451,7 +489,6 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
         writeWord ($outputFileHandler, $processesOffsets["$procID"], $isLittleEndian);
         $currentAddress+=2;
     }
-    
 }
     
 
@@ -703,5 +740,5 @@ writeWord($outputFileHandler, $objectExtraAttrOffset, $isLittleEndian);
 $fileSize = $currentAddress;
 writeWord($outputFileHandler, $fileSize, $isLittleEndian);
 fclose($outputFileHandler);
-echo "Done. DDB size is " . ($fileSize - $baseAddress) . " bytes.\n Database ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
+echo "Done. DDB size is " . ($fileSize - $baseAddress) . " bytes.\nDatabase ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
 
