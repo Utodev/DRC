@@ -84,6 +84,7 @@ BEGIN
 
 
 	CurrentText := CurrTokenPTR^.Text;
+
 	CurrentIntVal := CurrTokenPTR^.IntVal;
 	CurrLineno := CurrTokenPTR^.lineno;
 	CurrColno := CurrTokenPTR^.colno;
@@ -178,7 +179,7 @@ END;
 
 PROCEDURE ParseMessageList(VAR AMessageList: TPMessageList; VAR AMessageCOunter: Longint; TerminatorToken : Word);
 VAR Value: Longint;
-	Message : String;
+	Message : AnsiString;
 BEGIN
 	REPEAT
 		Scan();
@@ -389,14 +390,18 @@ BEGIN
 						Value := CurrentIntVal;
 						CurrentText := IntToStr(Value);
 					END;
-					IF (CurrentTokenID <> T_NUMBER) AND (CurrentTokenID <> T_IDENTIFIER) THEN SyntaxError('Invalid condact parameter');
+					IF (CurrentTokenID <> T_NUMBER) AND (CurrentTokenID <> T_IDENTIFIER) AND (CurrentTokenID<> T_UNDERSCORE) THEN SyntaxError('Invalid condact parameter');
 					Value := GetIdentifierValue();
 					IF Value=MAXINT THEN  // Parameter was neither numeric, nor previously defined, let's check if it's a non-verb vocabulary word as last chance
 					BEGIN
-						TheWord := Copy(CurrentText, 1, VOCABULARY_LENGTH);
-						AuxVocabularyPTR := GetVocabulary(VocabularyTree, TheWord, VOC_ANY);
-						IF AuxVocabularyPTR = nil THEN SyntaxError('Invalid condact parameter');
-						Value := AuxVocabularyPTR^.Value;
+						IF (CurrentTokenID = T_UNDERSCORE) THEN Value:=MAX_FLAG_VALUE
+						ELSE
+						BEGIN
+							TheWord := Copy(CurrentText, 1, VOCABULARY_LENGTH);
+							AuxVocabularyPTR := GetVocabulary(VocabularyTree, TheWord, VOC_ANY);
+							IF AuxVocabularyPTR = nil THEN SyntaxError('Invalid condact parameter');
+							Value := AuxVocabularyPTR^.Value;
+						END;
 					END;
 					CurrentCondactParams[i].Value := Value;
 				END;
