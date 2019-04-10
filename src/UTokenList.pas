@@ -26,7 +26,6 @@ BEGIN
 	IF ATokenList <> nil THEN AddToken(ATokenList^.Next, ATokenID, AText, AIntVal, yylineno, yycolno)
 	ELSE
 	BEGIN
-		//WriteLn('Adding: ', AText);
 		New(ATokenList);
 		ATokenList^.TokenID := ATokenID;
 		ATokenList^.Text := AText;
