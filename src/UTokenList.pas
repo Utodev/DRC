@@ -17,9 +17,23 @@ TYPE TPTokenList = ^TTokenList;
 
 var TokenList : TPTokenList;			  
 
-PROCEDURE AddToken(VAR ATokenList:TPTokenList; ATokenID: Word; AText: AnsiString; AIntVal:longint; yylineno: longint; yycolno: word);			     
 
+
+PROCEDURE AddToken(VAR ATokenList:TPTokenList; ATokenID: Word; AText: AnsiString; AIntVal:longint; yylineno: longint; yycolno: word);			     
+FUNCTION normalize(S: AnsiString) :AnsiString;
 IMPLEMENTATION
+uses sysutils;
+
+FUNCTION normalize(S: AnsiString) :AnsiString;
+var i : integer;
+	
+BEGIN
+Result :='';
+ for i := 1 to length(S) DO 
+ BEGIN
+  if (ord(s[i])>127) THEN  Result := Result + '#' + IntToStr(ord(S[i])) ELSE Result := Result + S[i];
+ END;
+END;
 
 PROCEDURE AddToken(VAR ATokenList:TPTokenList; ATokenID: Word; AText: AnsiString; AIntVal:longint; yylineno: longint; yycolno: word);			     
 BEGIN

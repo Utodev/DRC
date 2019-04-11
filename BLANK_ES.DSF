@@ -1,4 +1,4 @@
-; Este es el fichero de inicio de la librer√≠a para DAAD Reborn Compiler en espa√±ol
+; Este es el fichero de inicio de la librerÌa para DAAD Reborn Compiler en espa√±ol
 
 
 /CTL    ;Secci¬¢n de control
@@ -34,12 +34,13 @@
 #define fScMode   62     ; 2=Text, 4=CGA, 13=EGA, 141=VGA
 #define fCurWin   63     ; Which window is active at the moment
 #define kk fCurWIn
-
-
+;
+;
 ;------------------------------------------------------------------------------
 /VOC    ;Vocabulario
 ;                       Movimiento: verbos y nombres < 14
 N       2       noun
+NÛ      2  noun
 NORTE   2       noun
 S       3       noun
 SUR     3       noun
@@ -156,7 +157,7 @@ LUEGO   2       conjugation
 /27 "No puedo llevar nada mas."
 /28 "No tengo eso.#n"
 /29 "Ya llevo puesto _.#n"
-/30 "S";Un solo caracter en mayusculas. Inicial de S√≠
+/30 "S";Un solo caracter en mayusculas. Inicial de SÌ
 /31 "N"  ;Un solo caracter en mayusculas. Inicial de No
 /32 "Hay m√°s..."
 /33 ">"
@@ -191,16 +192,20 @@ LUEGO   2       conjugation
 /62 "Cinta o disco?"
 ;------------------------------------------------------------------------------
 /MTX    ;Mensajes
-/0 "Mensaje 0"
-/1 "Otro mensaje"
+/0 "Mensaje prueba  aÒ—o ·ÈÌÛ˙ ¡…Õ”⁄ ¸‹ Á« °! ø?"
+/1 "Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,888"
+/2 "Otro dÌa"
+/3 "mensaje de otros"
+/4 "Hello world"
+/5 "Hello"
 ;       -       -       -       -       -       -       -       -       -
 /OTX    ;Object Texts
 /0 "Una linterna.(encendida)"
 /1 "Un cazo"
 ;       -       -       -       -       -       -       -       -       -
 /LTX    ;Location Texts
-/0 "BASE DE DATOS VACIA - DAAD V2.#ga#t"
-/1 "Has entrado a la mazmorra, multiples peligros te esperan, pero tambien grandes logros y enormes tesoros. "
+/0 "BASE DE DATOS VACIA - DAAD V2.\nGeneraciÛn de cÛdigo por compilador caÒero traido por la cig¸eÒa."
+/1 "Has entrado a la mazmorra, m˙ltiples peligros te esperan, pero tambiÈn grandes logros y enormes tesoros. "
 /2 "Estoy en la localidad numero dos. Un camino lleva al sur."
 ;------------------------------------------------------------------------------
 /CON    ;Conexiones
@@ -223,18 +228,18 @@ E 1
 
 
 _       _       AT      0               ; Empezamos una partida
-                PROCESS 6               ; El proceso de inicializaci¬¢n
+                PROCESS 6               ; El proceso de inicializaciÛn
                 
                 
 
-_       _       WINDOW  0               ; Ventana de gr√°ficos
+_       _       WINDOW  0               ; Ventana de gr·ficos
                 CLEAR   fDarkF           ; Asume que hay luz
                 NOTZERO 0
                 ABSENT  0
                 SET     fDarkF           ; Oscuro
 
-_       _       PICTURE @fPlayer        ; Si hay gr√°fico, c√°rgalo
-                DISPLAY @fDarkF         ; Mu√©stralo si no oscuro; si oscuro
+_       _       PICTURE @fPlayer        ; Si hay gr·fico, c√°rgalo
+                DISPLAY @fDarkF         ; Muestralo si no oscuro; si oscuro
                                         ; hace un CLS
 _       _       WINDOW  1
                 NOTZERO fDarkF           ; Oscuro
@@ -246,7 +251,7 @@ _       _       ZERO    fDarkF
 _       _       PROCESS 3
 
 ; Ahora usamos el proceso 1 como el bucle principal del juego. Un retorno desde
-; ‚Äöl significa el fin del juego
+; aquÌ significa el fin del juego
 
 _       _       PROCESS 1
 
@@ -255,20 +260,11 @@ _       _       PROCESS 1
 
 _       _       PROCESS 4               ; Lo que en el PAW era el proceso 2
 
-;_       _       MINUS   5       1       ; Actualiza m¬†s banderas "autom√°ticas"
-;                MINUS   6       1       ; Ya no se usan. Los primeros flags
-;                MINUS   7       1       ; est√°n reservados para implementar
-;                MINUS   8       1       ; una peque√±a pila si hace falta.
-;                NOTZERO 0               ; (Ver SYMBOLS.SCE)
-;                MINUS   9       1       ; De todas formas aqu√≠ est√° el c√≥digo
-;                ABSENT  0               ; que emula al PAW por si hace falta
-;                MINUS   10      1
-
-_       _       PARSE   0               ; Toma sentencia l√≥gica del buffer
-                PROCESS 2               ; Sentencia no v√°lida o timeout
+_       _       PARSE   0               ; Toma sentencia lÛgica del buffer
+                PROCESS 2               ; Sentencia no v·lida o timeout
                 REDO
 
-_       _       EQ      fTurns   255     ; El valo m√°ximo de un byte
+_       _       EQ      fTurns   255     ; El valo m·ximo de un byte
                 PLUS    fTurnsHi   1
                 CLEAR   fTurns
                 SKIP    1
@@ -277,7 +273,7 @@ _       _       PLUS    fTurns   1
 
 _       _       PROCESS 5               ; La antigua tabla de respuestas
                 ISDONE                  ; Ha hecho algo?
-                REDO                    ; S√≠: pedimos otra orden del jugador
+                REDO                    ; SÌ≠: pedimos otra orden del jugador
 
 _       _       MOVE    fPlayer          ; No: intentamos mover al jugador
                 RESTART                 ;Lo movimos: salta al principio de PRO 0
@@ -297,16 +293,16 @@ _       _       HASAT TIMEOUT
                 SYSMESS 35
                 DONE
 
-_       _       SYSMESS 6               ; I didn't understand
+_       _       SYSMESS 6               ; No te entiendo
 
 ;------------------------------------------------------------------------------
-/PRO 3 ; Antiguo proceso 1 del PAW. (N√≥tese que tanto la tabla de respuestas como los
+/PRO 3 ; Antiguo proceso 1 del PAW. (NÛtese que tanto la tabla de respuestas como los
 ; antiguos procesos 1 y 2 del PAW ahora pueden estar en cualquer parte; o no
-; existir en absoluto, ya que ya no hay nada autom√°tico al haberse implementado
+; existir en absoluto, ya que ya no hay nada autom·tico al haberse implementado
 ; todo en el propio lenguaje del DAAD)
 
 _       _       NEWLINE
-                ZERO    fDarkF            ; No est√° oscuro
+                ZERO    fDarkF            ; No est· oscuro
                 LISTOBJ
 
 
@@ -322,11 +318,7 @@ I       _       SYSMESS 9
                 LISTAT  WORN
                 DONE
 
-R       _       SYSMESS 9
-                LISTAT  CARRIED
-                SYSMESS 10
-                LISTAT  WORN
-                DONE
+
 
 
 COGER   TODO    DOALL   HERE                
@@ -368,13 +360,13 @@ RAMLO   _
 
 MIRAR   _       RESTART
 
-/PRO 6 ; Inicializaci√≥n
+/PRO 6 ; InicializaciÛn
 
 _       _       WINDOW  1               ; Inicializamos las ventanas
                 WINAT   14       0
-                WINSIZE 25      127     ; Tama√±o m√°ximo
+                WINSIZE 25      127     ; TamaÒo m·ximo
                 CLS
-                DESC    0               ; Introducci√≥n
+                DESC    0               ; IntroducciÛn
                 ANYKEY
                 CLS
                 CLEAR   255             ; Pone a cero todas las banderas
