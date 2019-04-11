@@ -61,7 +61,7 @@ function generateExterns($adventure, &$currentAddress, $outputFileHandler)
     foreach ($adventure->externs as $extern)
     {
         $filePath = $extern->FilePath;
-        if (!file_exists($filePath)) Error("Extern file not found: ${filePath}.");
+        if (!file_exists($filePath)) Error("Extern file not found: ${filePath}");
         $externfileHandle = fopen($filePath, "r");
         $buffer = fread($externfileHandle, filesize($filePath));
         fclose($externfileHandle);
@@ -72,33 +72,48 @@ function generateExterns($adventure, &$currentAddress, $outputFileHandler)
 
 //================================================================= tokens ========================================================
 
-function generateTokens(&$adventure, &$currentAddress, $outputFileHandler, $hasTokens, $compressionData)
+function generateTokens(&$adventure, &$currentAddress, $outputFileHandler, $hasTokens, $compressionData, &$savings)
 {
-
-    if ($hasTokens) 
+    if (!$hasTokens) 
     {
         writeZero($outputFileHandler);
         $currentAddress++;
     }
     else
     {
-        $tokenDetails = $compressionData->tokenDetails;
-        $compressableTables = getCompressableTables($compressionData->compression);
+        // Compress the mesage tables
+        $totalSaving = 0;
+        $compressableTables = getCompressableTables($compressionData->compression,$adventure);
         foreach ($compressableTables as $compressableTable)
-            for ($i=0;$i<sizeof($table);$i++)
+            for ($i=0;$i<sizeof($compressableTable);$i++)
             {
-                $message = $table[$i]->Text;
-                foreach ($tokenDetails as $token)
+                $message = $compressableTable[$i]->Text;
+                for ($j=0;$j<sizeof($compressionData->tokenDetails->tokens);$j++)
                 {
-                    if ($token->saving>0)
-                    {
-                        $message = str_replace($token-$token, chr($i+128), $message);
-                    }
+                    $token = $compressionData->tokenDetails->tokens[$j];
+                    $newMessage = str_replace($token->token,chr($j+127), $message);
+                    $totalSaving += (strlen($message) - strlen($newMessage));
+                    $message = $newMessage;
                 }
-                $table[$i]->Text = $message;
+                $compressableTable[$i]->Text = $message;
             }
-        // Dump tokens into database
-        //TODO
+        if ($totalSaving == 0) Error('Could not apply any text compression, TOK file maybe not for this game?. Stopping');
+        // Dump tokens to file
+        foreach ($compressionData->tokenDetails->tokens as $token)
+        {
+            $tokenStr = $token->token;
+            $tokenLength = strlen($tokenStr);
+            for ($i=0;$i<$tokenLength;$i++)
+            {
+                $shift = ($i == $tokenLength-1) ? 128 : 0;
+                $c = $tokenStr[$i];
+                writeByte($outputFileHandler, ord($c) + $shift);
+                $currentAddress++;
+            }
+            $totalSaving -= $tokenLength;
+        }
+        $savings = $totalSaving;
+        
     }
 }
 //================================================================= common ========================================================
@@ -134,7 +149,7 @@ function addPaddingIfRequired($target, $outputFileHandler, &$currentAddress)
     if (isPaddingPlatform($target) && (($currentAddress % 2)==1)) 
     {
         writeZero($outputFileHandler); // Fill with one byte for padding
-        $currentAddress++;       
+        $currentAddress++;
     }
 }
 
@@ -223,13 +238,18 @@ function getBestTokens($adventure, $maxLength, $compression)
         }
     } // for 0-127
     $totalSaving = 0;
+    $finalBestTokens = array();
     foreach ($bestTokens as $tokenInfo)   
     {
         $tokenRealSaving = $tokenInfo->saving - strlen($tokenInfo->token);
-        if ($tokenRealSaving>0) $totalSaving += $tokenRealSaving;
+        if ($tokenRealSaving>0) 
+        {
+            $totalSaving += $tokenRealSaving;
+            $finalBestTokens[] = $tokenInfo;
+        }
     }
     $result = new StdClass();
-    $result->tokens = $bestTokens;
+    $result->tokens = $finalBestTokens;
     $result->saving = $totalSaving;
     return $result;
     
@@ -702,15 +722,15 @@ else
 {
     if (sizeof($argv) < 3) Syntax();
     $compression = strtolower($argv[2]);
-    if (($compression!='basic') && ($compression!='advanced') && ($compression!='full')) Error('Invalid compression level.');
+    if (($compression!='basic') && ($compression!='advanced') && ($compression!='full')) Error('Invalid compression level');
     $inputFileName = $argv[3];
     if (sizeof($argv) >4) $outputFileName = $argv[4];
     else $outputFileName = replace_extension($inputFileName, 'TOK');
 }
 
 
-if ($outputFileName==$inputFileName) Error('Input and output file name cannot be the same.');
-if (!file_exists($inputFileName)) Error('File not found.');
+if ($outputFileName==$inputFileName) Error('Input and output file name cannot be the same');
+if (!file_exists($inputFileName)) Error('File not found');
 
 $json = file_get_contents($inputFileName);
 $adventure = json_decode(utf8_encode($json));
@@ -734,7 +754,7 @@ if (!$adventure)
 if  ($command=='ddb')
 {
     $outputFileHandler = fopen($outputFileName, "wr");
-    if (!$outputFileHandler) Error('Can\'t create output file.');
+    if (!$outputFileHandler) Error('Can\'t create output file');
         // Check settings in JSON
     $adventure->classicMode = $adventure->settings[0]->classic_mode;
     if ($adventure->classicMode) echo "Warning: Compiling in classic mode, optimization disabled.\n";
@@ -806,7 +826,7 @@ if  ($command=='ddb')
     {
         $hasTokens = true;
         $compressionData = json_decode(file_get_contents($tokensFilename));
-        if (!$compressionData) Error('Invalid tokens file.');
+        if (!$compressionData) Error('Invalid tokens file');
     }
 
     // DumpExterns
@@ -820,7 +840,7 @@ if  ($command=='ddb')
     // Dump tokens for compression and compress text sections (if possible)
     if ($hasTokens) $compressedTextOffset = $currentAddress; else $compressedTextOffset = 0; // If no compression, the header should have 0x0000 in the compression pointer
     if ($adventure->verbose) echo "Tokens            [" . prettyFormat($compressedTextOffset) . "]\n";
-    generateTokens($adventure, $currentAddress, $outputFileHandler, $hasTokens, $compressionData);
+    generateTokens($adventure, $currentAddress, $outputFileHandler, $hasTokens, $compressionData, $textSavings);
     addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
     // Sysmess
     generateSTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
@@ -905,6 +925,7 @@ if  ($command=='ddb')
     writeWord($outputFileHandler, $fileSize, $isLittleEndian);
     fclose($outputFileHandler);
     echo "Done. DDB size is " . ($fileSize - $baseAddress) . " bytes.\nDatabase ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
+    if ($textSavings>0) echo "Text compression saving: $textSavings bytes.\n";
 }
 else // command=='tok'
 {

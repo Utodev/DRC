@@ -173,7 +173,7 @@ procedure fatal ( msg : String );
 
 const nl = #10;  (* newline character *)
 
-const max_chars = 2048;
+const max_chars = 8192;
 
 var
 

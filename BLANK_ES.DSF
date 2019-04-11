@@ -128,38 +128,38 @@ LUEGO   2       conjugation
 ;------------------------------------------------------------------------------
 /STX    ;Mensajes del sistema
 /0 "Esta demasiado oscuro para ver nada."
-/1 "Tambien puedo ver:"
+/1 "También puedo ver:"
 /2 "#n"
 /3 "#n"
 /4 "#n"
 /5 "#n"
 /6 "No he entendido nada."
-/7 "No puedo ir en esa direccion."
+/7 "No puedo ir en esa dirección."
 /8 "No puedo hacer eso."
 /9 "Llevo:#n"
 /10 "Llevo puesto:"
 /11 "";*Libre
-/12 "Seguro?"
-/13 "Quieres intentarlo de nuevo?"
+/12 "¿Seguro?"
+/13 "¿Quieres intentarlo de nuevo?"
 /14 ""  ;*Libre
 /15 "Vale."
 /16 "Pulsa una tecla para continuar."
 /17 "" ;*Has jugado
 /18 "" ;*\sturno
 /19 "" ;*s
-/20 "" ; *.[CR]
+/20 "" ; *.
 /21 "" ; *Ha resuelto un
-/22 "" ; *%[CR]
+/22 "" ; *%
 /23 "No llevo eso puesto."
 /24 "No puedo. Tengo puesto _."
 /25 "Ya tengo _."
-/26 "Aqui no hay nada de eso."
-/27 "No puedo llevar nada mas."
+/26 "Aquí no hay nada de eso."
+/27 "No puedo llevar nada más."
 /28 "No tengo eso.#n"
 /29 "Ya llevo puesto _.#n"
-/30 "S";Un solo caracter en mayusculas. Inicial de Sí
-/31 "N"  ;Un solo caracter en mayusculas. Inicial de No
-/32 "Hay mÃ¡s..."
+/30 "S";Un solo carácter en mayúsculas. Inicial de Sí
+/31 "N"  ;Un solo carácter en mayúsculas. Inicial de No
+/32 "Hay más..."
 /33 ">"
 /34 "" ;*Libre
 /35 "#nEl tiempo pasa..."
@@ -169,10 +169,10 @@ LUEGO   2       conjugation
 /39 "He dejado _."
 /40 "No puedo ponerme _."
 /41 "No puedo quitarme _."
-/42 "No puedo quitarme _.  No puedo llevar nada mas en las manos."
-/43 "@ pesa demasiado para mi."
-/44 "@ esta en"
-/45 "@ no esta en"
+/42 "No puedo quitarme _.  No puedo llevar nada más en las manos."
+/43 "@ pesa demasiado para mí."
+/44 "@ está en"
+/45 "@ no está en"
 /46 ", "
 /47 " y "
 /48 ".#n"
@@ -186,14 +186,14 @@ LUEGO   2       conjugation
 /56 "Unidad no preparada. Pulsa una tecla para volver a intentarlo."
 /57 "Error de entrada/salida."
 /58 "El disco o el directorio puede estar lleno."
-/59 "Nombre de fichero no valido."
+/59 "Nombre de fichero no válido."
 /60 "Nombre del fichero:"
 /61 "Pon en marcha la cinta."
-/62 "Cinta o disco?"
+/62 "¿Cinta o disco?"
 ;------------------------------------------------------------------------------
 /MTX    ;Mensajes
-/0 "Mensaje prueba  añÑo áéíóú ÁÉÍÓÚ üÜ çÇ ¡! ¿?"
-/1 "Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,Mensaje largo otro mensaje,888"
+/0 "PRUEBA: ñÑáéíóúüçÇ¡¿"
+/1 "BEGIN En un lugar de la Mancha, de cuyo nombre no quiero acordarme, no ha mucho tiempo que vivía un hidalgo de los de lanza en astillero, adarga antigua, rocín flaco y galgo corredor. Una olla de algo más vaca que carnero, salpicón las más noches, duelos y quebrantos los sábados, lentejas los viernes, algún palomino de añadidura los domingos, consumían las tres partes de su hacienda. El resto della concluían sayo de velarte, calzas de velludo para las fiestas con sus pantuflos de lo mismo, los días de entre semana se honraba con su vellori de lo más fino. Tenía en su casa una ama que pasaba de los cuarenta, y una sobrina que no llegaba a los veinte, y un mozo de campo y plaza, que así ensillaba el rocín como tomaba la podadera. Frisaba la edad de nuestro hidalgo con los cincuenta años, era de complexión recia, seco de carnes, enjuto de rostro; gran madrugador y amigo de la caza. Quieren decir que tenía el sobrenombre de Quijada o Quesada (que en esto hay alguna diferencia en los autores que deste caso escriben), aunque por conjeturas verosímiles se deja entender que se llama Quijana; pero esto importa poco a nuestro cuento; basta que en la narración dél no se salga un punto de la verdad. Es, pues, de saber, que este sobredicho hidalgo, los ratos que estaba ocioso (que eran los más del año) se daba a leer libros de caballerías con tanta afición y gusto, que olvidó casi de todo punto el ejercicio de la caza, y aun la administración de su hacienda; y llegó a tanto su curiosidad y desatino en esto, que vendió muchas hanegas de tierra de sembradura, para comprar libros de caballerías en que leer; y así llevó a su casa todos cuantos pudo haber dellos; y de todos ningunos le parecían tan bien como los que compuso el famoso Feliciano de Silva: porque la claridad de su prosa, y aquellas intrincadas razones suyas, le parecían de perlas; y más cuando llegaba a leer aquellos requiebros y cartas de desafío, donde en muchas partes hallaba escrito: la razón de la sinrazón que a mi razón se hace, de tal manera mi razón enflaquece, que con razón me quejo de la vuestra fermosura, y también cuando leía: los altos cielos que de vuestra divinidad divinamente con las estrellas se fortifican, y os hacen merecedora del merecimiento que merece la vuestra grandeza. END"
 /2 "Otro día"
 /3 "mensaje de otros"
 /4 "Hello world"
@@ -312,7 +312,9 @@ _       _       NEWLINE
 /PRO 5 ; Interpretamos los comando como en la antigua tabla de respuestas
 
 
-I       _       SYSMESS 9
+I       _       MESSAGE 0
+                MESSAGE 1
+                SYSMESS 9
                 LISTAT  CARRIED
                 SYSMESS 10
                 LISTAT  WORN

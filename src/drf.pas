@@ -1,7 +1,9 @@
 PROGRAM DRC;
 {$MODE OBJFPC}
+{$I-}
 
-uses sysutils, ULexTokens, LexLib, UTokenList, USintactic, UConstants, USymbolTree, UCodeGeneration;
+
+uses sysutils, ULexTokens, ULexLib, UTokenList, USintactic, UConstants, USymbolTree, UCodeGeneration;
 
 
 PROCEDURE SYNTAX();
