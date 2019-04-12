@@ -137,6 +137,7 @@ BEGIN
 	REPEAT
 		Scan();
 		IF (CurrentTokenID = T_DEFINE) THEN ParseDefine()
+		ELSE IF (CurrentTokenID = T_UNDERSCORE) THEN BEGIN END 
 		ELSE IF (CurrentTokenID  =T_EXTERN) THEN ParseExtern()
 		ELSE IF (CurrentTokenID  =T_CLASSIC) THEN ParseClassic()
 		ELSE IF (CurrentTokenID<>T_SECTION_VOC) THEN SyntaxError('#define, #extern, #classic or /VOC expected');
@@ -172,7 +173,7 @@ PROCEDURE ParseVOC();
 BEGIN
 	REPEAT
 		Scan();
-		IF (CurrentTokenID=T_IDENTIFIER) THEN ParseNewWord()
+		IF (CurrentTokenID=T_IDENTIFIER) OR (CurrentTokenID=T_NUMBER) THEN ParseNewWord()
 		ELSE IF (CurrentTokenID<>T_SECTION_STX) THEN SyntaxError('Vocabulary word definition or /STX expected')
 	UNTIL CurrentTokenID =  T_SECTION_STX;
 END;
@@ -286,10 +287,14 @@ BEGIN
 			IF (CurrentIntVal>=LTXCount) THEN SyntaxError ('Object #' + IntToStr(CurrentIntVal) + ' not defined');
 
 			Scan(); // Get Initialy At
-			IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Object initial location expected');
-			InitialyAt := GetIdentifierValue();
-			IF (InitialyAt = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
-			IF (InitialyAt >= LTXCount) AND (InitialyAt <> LOC_NOT_CREATED) AND (InitialyAt <> LOC_WORN) AND (InitialyAt <> LOC_CARRIED) THEN SyntaxError('Invalid initial location');
+			IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_UNDERSCORE) THEN SyntaxError('Object initial location expected');
+			IF (CurrentTokenID = T_UNDERSCORE) THEN InitialyAt := LOC_NOT_CREATED
+			ELSE
+			BEGIN
+				InitialyAt:=GetIdentifierValue();
+				IF (InitialyAt = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
+			END;	
+			IF (InitialyAt >= LTXCount) AND (InitialyAt <> LOC_NOT_CREATED) AND (InitialyAt <> LOC_WORN) AND (InitialyAt <> LOC_CARRIED) THEN SyntaxError('Invalid initial location' + IntToStr(InitialyAt));
 
 			Scan(); // Get Weight
 			IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Object weight expected');
@@ -322,14 +327,18 @@ BEGIN
 			END;			
 
 			Scan(); // Get Noun
-			IF (CurrentTokenID<>T_IDENTIFIER) THEN SyntaxError('Vocabulary noun expected');
-			TheWord := Copy(CurrentText, 1, VOCABULARY_LENGTH);
-			AuxVocabularyTree := GetVocabulary(VocabularyTree, TheWord, VOC_NOUN);
-			IF AuxVocabularyTree = nil THEN SyntaxError('Noun not defined');
-			Noun := AuxVocabularyTree^.Value;
+			IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER)  AND (CurrentTokenID<>T_UNDERSCORE) THEN SyntaxError('Vocabulary noun or underscore expected');
+			IF (CurrentTokenID=T_UNDERSCORE) THEN Noun := NO_WORD 
+			ELSE
+			BEGIN
+				TheWord := Copy(CurrentText, 1, VOCABULARY_LENGTH);
+				AuxVocabularyTree := GetVocabulary(VocabularyTree, TheWord, VOC_NOUN);
+				IF AuxVocabularyTree = nil THEN SyntaxError('Noun not defined');
+				Noun := AuxVocabularyTree^.Value;
+			END;
 
 			Scan(); // Get Adject
-			IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_UNDERSCORE) THEN SyntaxError('Vocabulary adjective or underscore character expected');
+			IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_UNDERSCORE) THEN SyntaxError('Vocabulary adjective or underscore character expected');
 			IF CurrentTokenID = T_UNDERSCORE THEN Adjective := NO_WORD 
 			ELSE
 			BEGIN
@@ -394,7 +403,7 @@ BEGIN
 					Value := GetIdentifierValue();
 					IF Value=MAXINT THEN  // Parameter was neither numeric, nor previously defined, let's check if it's a non-verb vocabulary word as last chance
 					BEGIN
-						IF (CurrentTokenID = T_UNDERSCORE) THEN Value:=MAX_FLAG_VALUE
+						IF (CurrentTokenID = T_UNDERSCORE) THEN Value:=NO_WORD
 						ELSE
 						BEGIN
 							TheWord := Copy(CurrentText, 1, VOCABULARY_LENGTH);
@@ -460,7 +469,7 @@ BEGIN
                                 IF (AuxVocabularyTree^.VocType=VOC_VERB) THEN ValidVerb := true
                                 ELSE IF (AuxVocabularyTree^.VocType=VOC_NOUN) AND (AuxVocabularyTree^.Value<=MAX_CONVERTIBLE_NAME) THEN ValidVerb:= true
                           END;
-                          IF (NOT ValidVerb) THEN SyntaxError('Verb not defined');
+                          IF (NOT ValidVerb) THEN SyntaxError('Verb not defined or invalid condact: ' + TheWord);
 			  Verb := AuxVocabularyTree^.Value;
 		  END;
 

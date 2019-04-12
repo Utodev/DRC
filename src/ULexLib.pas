@@ -343,10 +343,8 @@ procedure yynew;
 
 procedure yyscan;
   begin
-    if yyleng=2048 then fatal('yytext overflow');
+    if yyleng=max_chars then fatal('Lexer overflow, this usually means a line in your source file is too long');
     yyactchar := get_char;
-    //inc(yyleng);
-    //yytext := copy(yytext, 1, yyleng-1) + yyactchar;// + copy(yytext, yyleng+1, maxint);
     yytext := yytext + yyactchar;
     yyleng := length(yytext);
    end(*yyscan*);

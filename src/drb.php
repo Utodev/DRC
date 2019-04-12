@@ -154,6 +154,26 @@ function addPaddingIfRequired($target, $outputFileHandler, &$currentAddress)
 }
 
 
+function str2hex($string)
+{
+    $hex='';
+
+    for ($i=0; $i < strlen($string); $i++)
+        $hex .= dechex(ord($string[$i]));
+
+    return $hex;
+}
+
+
+function hex2str($hex)
+{
+    $string='';
+    for ($i=0; $i < strlen($hex)-1; $i+=2)
+        $string .= chr(hexdec($hex[$i].$hex[$i+1]));
+
+    return $string;
+}
+
 
 function getCompressableTables($compression, &$adventure)
 {
@@ -186,7 +206,6 @@ function getBestTokens($adventure, $maxLength, $compression)
     // Check how many times every different substring appears
     for ($i=0;$i<128;$i++) // repeat this until we have 128 tokens
     {
-
         // Calculate how much saving would provide each different substring in the strings
         $potentialTokenSavings = array();
         $potentialTokenRepetitions = array();
@@ -196,7 +215,7 @@ function getBestTokens($adventure, $maxLength, $compression)
             if ($stringLength < $minTokenLength) continue;
             for ($pos=0;$pos<($stringLength - $minTokenLength) + 1;$pos++)
             {
-                for ($tokenLength=$minAbrev;$tokenLength< min($maxLength, $stringLength - $pos) + 1;$tokenLength++)
+                for ($tokenLength=$minTokenLength;$tokenLength< min($maxLength, $stringLength - $pos) + 1;$tokenLength++)
                 {
                     $potentialToken = substr($string, $pos, $tokenLength); 
                     $saving = strlen($potentialToken) - 1;
@@ -239,12 +258,17 @@ function getBestTokens($adventure, $maxLength, $compression)
     } // for 0-127
     $totalSaving = 0;
     $finalBestTokens = array();
+    $k = 0;
     foreach ($bestTokens as $tokenInfo)   
     {
+        
         $tokenRealSaving = $tokenInfo->saving - strlen($tokenInfo->token);
         if ($tokenRealSaving>0) 
         {
             $totalSaving += $tokenRealSaving;
+            $tokenInfo->hexToken = str2hex($tokenInfo->token);
+            $tokenInfo->Index = $k;
+            $k++;
             $finalBestTokens[] = $tokenInfo;
         }
     }
@@ -413,7 +437,7 @@ function generateVocabulary($adventure, &$currentAddress, $outputFileHandler)
     $daad_to_chr = new daadToChr();
     foreach ($adventure->vocabulary as $word)
     {
-        $vocWord = substr(str_pad($word->VocWord,5),0,5);
+        $vocWord = replaceChars(substr(str_pad($word->VocWord,5),0,5));
         for ($i=0;$i<5;$i++)
         {
             $character = $vocWord[$i];
@@ -749,10 +773,14 @@ if (!$adventure)
     }
     Error($error);
 }
-// Open output file
+
+// Replace characters over ASCII 127 with those below. Replace also escape chars.
+replaceEscapeChars($adventure);
+
 
 if  ($command=='ddb')
 {
+    // Open output file
     $outputFileHandler = fopen($outputFileName, "wr");
     if (!$outputFileHandler) Error('Can\'t create output file');
         // Check settings in JSON
@@ -819,13 +847,16 @@ if  ($command=='ddb')
     // *********************************************
 
     // Replace all escape and spanish chars in the input strings with the ASCII codes used by DAAD interpreters
-    replaceEscapeChars($adventure);
     $hasTokens = false;
     $bestTokensDetails = null;
     if (file_exists($tokensFilename))
     {
         $hasTokens = true;
         $compressionData = json_decode(file_get_contents($tokensFilename));
+        for ($j=0;$j<sizeof($compressionData->tokenDetails->tokens);$j++)
+        {
+            $compressionData->tokenDetails->tokens[$j]->token = hex2str($compressionData->tokenDetails->tokens[$j]->hexToken);
+        }
         if (!$compressionData) Error('Invalid tokens file');
     }
 
