@@ -72,6 +72,9 @@ function generateExterns($adventure, &$currentAddress, $outputFileHandler)
 
 //================================================================= tokens ========================================================
 
+$compressionJSON_ES  = '{ "compression": "full","tokenDetails": {"tokens": [{"saving":9,"hexToken":"2020202020"},{"saving":9,"hexToken":"2071756520"},{"saving":9,"hexToken":"6120646520"},{"saving":9,"hexToken":"6f20646520"},{"saving":9,"hexToken":"20756e6120"},{"saving":9,"hexToken":"2064656c20"},{"saving":9,"hexToken":"7320646520"},{"saving":9,"hexToken":"206465206c"},{"saving":9,"hexToken":"20636f6e20"},{"saving":9,"hexToken":"656e746520"},{"saving":9,"hexToken":"20706f7220"},{"saving":9,"hexToken":"20657374a0"},{"saving":9,"hexToken":"7469656e65"},{"saving":9,"hexToken":"7320756e20"},{"saving":9,"hexToken":"616e746520"},{"saving":9,"hexToken":"2070617261"},{"saving":9,"hexToken":"206c617320"},{"saving":9,"hexToken":"656e747261"},{"saving":9,"hexToken":"6e20656c20"},{"saving":9,"hexToken":"6520646520"},{"saving":9,"hexToken":"61206c6120"},{"saving":9,"hexToken":"6572696f72"},{"saving":9,"hexToken":"6369a26e20"},{"saving":9,"hexToken":"616e646f20"},{"saving":9,"hexToken":"69656e7465"},{"saving":9,"hexToken":"20656c20"},{"saving":9,"hexToken":"206c6120"},{"saving":9,"hexToken":"20646520"},{"saving":9,"hexToken":"20636f6e"},{"saving":9,"hexToken":"20656e20"},{"saving":9,"hexToken":"6c6f7320"},{"saving":9,"hexToken":"61646f20"},{"saving":9,"hexToken":"20736520"},{"saving":9,"hexToken":"65737461"},{"saving":9,"hexToken":"20756e20"},{"saving":9,"hexToken":"6c617320"},{"saving":9,"hexToken":"656e7461"},{"saving":9,"hexToken":"20646573"},{"saving":9,"hexToken":"20616c20"},{"saving":9,"hexToken":"61646120"},{"saving":9,"hexToken":"617320"},{"saving":9,"hexToken":"657320"},{"saving":9,"hexToken":"6f7320"},{"saving":9,"hexToken":"207920"},{"saving":9,"hexToken":"61646f"},{"saving":9,"hexToken":"746520"},{"saving":9,"hexToken":"616461"},{"saving":9,"hexToken":"6c6120"},{"saving":9,"hexToken":"656e74"},{"saving":9,"hexToken":"726573"},{"saving":9,"hexToken":"717565"},{"saving":9,"hexToken":"616e20"},{"saving":9,"hexToken":"6f2070"},{"saving":9,"hexToken":"726563"},{"saving":9,"hexToken":"69646f"},{"saving":9,"hexToken":"732c20"},{"saving":9,"hexToken":"616e74"},{"saving":9,"hexToken":"696e61"},{"saving":9,"hexToken":"696461"},{"saving":9,"hexToken":"6c6172"},{"saving":9,"hexToken":"65726f"},{"saving":9,"hexToken":"6d706c"},{"saving":9,"hexToken":"6120"},{"saving":9,"hexToken":"6f20"},{"saving":9,"hexToken":"6572"},{"saving":9,"hexToken":"6573"},{"saving":9,"hexToken":"6f72"},{"saving":9,"hexToken":"6172"},{"saving":9,"hexToken":"616c"},{"saving":9,"hexToken":"656e"},{"saving":9,"hexToken":"6173"},{"saving":9,"hexToken":"6f73"},{"saving":9,"hexToken":"6520"},{"saving":9,"hexToken":"616e"},{"saving":9,"hexToken":"656c"},{"saving":9,"hexToken":"6f6e"},{"saving":9,"hexToken":"696e"},{"saving":9,"hexToken":"6369"},{"saving":9,"hexToken":"756e"},{"saving":9,"hexToken":"2e20"},{"saving":9,"hexToken":"636f"},{"saving":9,"hexToken":"7265"},{"saving":9,"hexToken":"6469"},{"saving":9,"hexToken":"2c20"},{"saving":9,"hexToken":"7572"},{"saving":9,"hexToken":"7472"},{"saving":9,"hexToken":"6465"},{"saving":9,"hexToken":"7375"},{"saving":9,"hexToken":"6162"},{"saving":9,"hexToken":"6f6c"},{"saving":9,"hexToken":"616d"},{"saving":9,"hexToken":"7374"},{"saving":9,"hexToken":"6375"},{"saving":9,"hexToken":"7320"},{"saving":9,"hexToken":"6163"},{"saving":9,"hexToken":"696c"},{"saving":9,"hexToken":"6772"},{"saving":9,"hexToken":"6164"},{"saving":9,"hexToken":"7465"},{"saving":9,"hexToken":"7920"},{"saving":9,"hexToken":"696d"},{"saving":9,"hexToken":"746f"},{"saving":9,"hexToken":"7565"},{"saving":9,"hexToken":"7069"},{"saving":9,"hexToken":"6775"},{"saving":9,"hexToken":"6368"},{"saving":9,"hexToken":"6361"},{"saving":9,"hexToken":"6c61"},{"saving":9,"hexToken":"6e20"},{"saving":9,"hexToken":"726f"},{"saving":9,"hexToken":"7269"},{"saving":9,"hexToken":"6c6f"},{"saving":9,"hexToken":"6d69"},{"saving":9,"hexToken":"6c20"},{"saving":9,"hexToken":"7469"},{"saving":9,"hexToken":"6f62"},{"saving":9,"hexToken":"6d65"},{"saving":9,"hexToken":"7369"},{"saving":9,"hexToken":"7065"},{"saving":9,"hexToken":"206e"},{"saving":9,"hexToken":"7475"},{"saving":9,"hexToken":"6174"},{"saving":9,"hexToken":"6669"},{"saving":9,"hexToken":"646f"},{"saving":9,"hexToken":"656d"},{"saving":9,"hexToken":"6179"},{"saving":9,"hexToken":"222e"},{"saving":9,"hexToken":"6c6c"}], "saving": 99999}}';
+$compressionJSON_EN  = '{ "compression": "full","tokenDetails": {"tokens": [{"saving":9,"hexToken":"2020202020"},{"saving":9,"hexToken":"2071756520"},{"saving":9,"hexToken":"6120646520"},{"saving":9,"hexToken":"6f20646520"},{"saving":9,"hexToken":"20756e6120"},{"saving":9,"hexToken":"2064656c20"},{"saving":9,"hexToken":"7320646520"},{"saving":9,"hexToken":"206465206c"},{"saving":9,"hexToken":"20636f6e20"},{"saving":9,"hexToken":"656e746520"},{"saving":9,"hexToken":"20706f7220"},{"saving":9,"hexToken":"20657374a0"},{"saving":9,"hexToken":"7469656e65"},{"saving":9,"hexToken":"7320756e20"},{"saving":9,"hexToken":"616e746520"},{"saving":9,"hexToken":"2070617261"},{"saving":9,"hexToken":"206c617320"},{"saving":9,"hexToken":"656e747261"},{"saving":9,"hexToken":"6e20656c20"},{"saving":9,"hexToken":"6520646520"},{"saving":9,"hexToken":"61206c6120"},{"saving":9,"hexToken":"6572696f72"},{"saving":9,"hexToken":"6369a26e20"},{"saving":9,"hexToken":"616e646f20"},{"saving":9,"hexToken":"69656e7465"},{"saving":9,"hexToken":"20656c20"},{"saving":9,"hexToken":"206c6120"},{"saving":9,"hexToken":"20646520"},{"saving":9,"hexToken":"20636f6e"},{"saving":9,"hexToken":"20656e20"},{"saving":9,"hexToken":"6c6f7320"},{"saving":9,"hexToken":"61646f20"},{"saving":9,"hexToken":"20736520"},{"saving":9,"hexToken":"65737461"},{"saving":9,"hexToken":"20756e20"},{"saving":9,"hexToken":"6c617320"},{"saving":9,"hexToken":"656e7461"},{"saving":9,"hexToken":"20646573"},{"saving":9,"hexToken":"20616c20"},{"saving":9,"hexToken":"61646120"},{"saving":9,"hexToken":"617320"},{"saving":9,"hexToken":"657320"},{"saving":9,"hexToken":"6f7320"},{"saving":9,"hexToken":"207920"},{"saving":9,"hexToken":"61646f"},{"saving":9,"hexToken":"746520"},{"saving":9,"hexToken":"616461"},{"saving":9,"hexToken":"6c6120"},{"saving":9,"hexToken":"656e74"},{"saving":9,"hexToken":"726573"},{"saving":9,"hexToken":"717565"},{"saving":9,"hexToken":"616e20"},{"saving":9,"hexToken":"6f2070"},{"saving":9,"hexToken":"726563"},{"saving":9,"hexToken":"69646f"},{"saving":9,"hexToken":"732c20"},{"saving":9,"hexToken":"616e74"},{"saving":9,"hexToken":"696e61"},{"saving":9,"hexToken":"696461"},{"saving":9,"hexToken":"6c6172"},{"saving":9,"hexToken":"65726f"},{"saving":9,"hexToken":"6d706c"},{"saving":9,"hexToken":"6120"},{"saving":9,"hexToken":"6f20"},{"saving":9,"hexToken":"6572"},{"saving":9,"hexToken":"6573"},{"saving":9,"hexToken":"6f72"},{"saving":9,"hexToken":"6172"},{"saving":9,"hexToken":"616c"},{"saving":9,"hexToken":"656e"},{"saving":9,"hexToken":"6173"},{"saving":9,"hexToken":"6f73"},{"saving":9,"hexToken":"6520"},{"saving":9,"hexToken":"616e"},{"saving":9,"hexToken":"656c"},{"saving":9,"hexToken":"6f6e"},{"saving":9,"hexToken":"696e"},{"saving":9,"hexToken":"6369"},{"saving":9,"hexToken":"756e"},{"saving":9,"hexToken":"2e20"},{"saving":9,"hexToken":"636f"},{"saving":9,"hexToken":"7265"},{"saving":9,"hexToken":"6469"},{"saving":9,"hexToken":"2c20"},{"saving":9,"hexToken":"7572"},{"saving":9,"hexToken":"7472"},{"saving":9,"hexToken":"6465"},{"saving":9,"hexToken":"7375"},{"saving":9,"hexToken":"6162"},{"saving":9,"hexToken":"6f6c"},{"saving":9,"hexToken":"616d"},{"saving":9,"hexToken":"7374"},{"saving":9,"hexToken":"6375"},{"saving":9,"hexToken":"7320"},{"saving":9,"hexToken":"6163"},{"saving":9,"hexToken":"696c"},{"saving":9,"hexToken":"6772"},{"saving":9,"hexToken":"6164"},{"saving":9,"hexToken":"7465"},{"saving":9,"hexToken":"7920"},{"saving":9,"hexToken":"696d"},{"saving":9,"hexToken":"746f"},{"saving":9,"hexToken":"7565"},{"saving":9,"hexToken":"7069"},{"saving":9,"hexToken":"6775"},{"saving":9,"hexToken":"6368"},{"saving":9,"hexToken":"6361"},{"saving":9,"hexToken":"6c61"},{"saving":9,"hexToken":"6e20"},{"saving":9,"hexToken":"726f"},{"saving":9,"hexToken":"7269"},{"saving":9,"hexToken":"6c6f"},{"saving":9,"hexToken":"6d69"},{"saving":9,"hexToken":"6c20"},{"saving":9,"hexToken":"7469"},{"saving":9,"hexToken":"6f62"},{"saving":9,"hexToken":"6d65"},{"saving":9,"hexToken":"7369"},{"saving":9,"hexToken":"7065"},{"saving":9,"hexToken":"206e"},{"saving":9,"hexToken":"7475"},{"saving":9,"hexToken":"6174"},{"saving":9,"hexToken":"6669"},{"saving":9,"hexToken":"646f"},{"saving":9,"hexToken":"656d"},{"saving":9,"hexToken":"6179"},{"saving":9,"hexToken":"222e"},{"saving":9,"hexToken":"6c6c"}], "saving": 99999}}';
+
 function generateTokens(&$adventure, &$currentAddress, $outputFileHandler, $hasTokens, $compressionData, &$savings)
 {
     if (!$hasTokens) 
@@ -153,18 +156,6 @@ function addPaddingIfRequired($target, $outputFileHandler, &$currentAddress)
     }
 }
 
-
-function str2hex($string)
-{
-    $hex='';
-
-    for ($i=0; $i < strlen($string); $i++)
-        $hex .= dechex(ord($string[$i]));
-
-    return $hex;
-}
-
-
 function hex2str($hex)
 {
     $string='';
@@ -187,97 +178,6 @@ function getCompressableTables($compression, &$adventure)
 }
 
 
-function getBestTokens($adventure, $maxLength, $compression)
-{
-    // Obtain strings to work with and their length
-    $compressableTables = getCompressableTables($compression, $adventure);
-    
-    $originalLength = 0;
-    $workStrings = array();
-    foreach ($compressableTables as $compressableTable)
-        foreach ($compressableTable as $message)
-        {
-            $string = $message->Text;
-            $originalLength += strlen($string);
-            $workStrings[] = $string;
-        }
-    $minTokenLength = 2;
-    $bestTokens = array();
-    // Check how many times every different substring appears
-    for ($i=0;$i<128;$i++) // repeat this until we have 128 tokens
-    {
-        // Calculate how much saving would provide each different substring in the strings
-        $potentialTokenSavings = array();
-        $potentialTokenRepetitions = array();
-        foreach($workStrings as $string)    
-        {
-            $stringLength = strlen($string);
-            if ($stringLength < $minTokenLength) continue;
-            for ($pos=0;$pos<($stringLength - $minTokenLength) + 1;$pos++)
-            {
-                for ($tokenLength=$minTokenLength;$tokenLength< min($maxLength, $stringLength - $pos) + 1;$tokenLength++)
-                {
-                    $potentialToken = substr($string, $pos, $tokenLength); 
-                    $saving = strlen($potentialToken) - 1;
-
-                    if (strlen($potentialToken)<$minTokenLength) continue;
-                    if (array_key_exists("$potentialToken" ,$potentialTokenRepetitions))
-                    {
-                        $potentialTokenSavings["$potentialToken"] += $saving;
-                        $potentialTokenRepetitions["$potentialToken"]++;
-                    }
-                    else    
-                    {
-                        $potentialTokenSavings["$potentialToken"] = -1;  
-                        $potentialTokenRepetitions["$potentialToken"] = 1;
-                    }
-                }
-            }
-        }
-        arsort($potentialTokenSavings);
-        $bestToken = key($potentialTokenSavings);
-        if ($bestToken == '') break;
-        $bestTokenInfo = new StdClass();
-        $bestTokenInfo->token = "$bestToken";
-        $bestTokenInfo->saving = $potentialTokenSavings["$bestToken"];
-        $bestTokens[] = $bestTokenInfo;
-        // Now we update the workStrings, so the already selected one is not avaliable anymore
-        $currentWorkStringsSize = sizeof($workStrings);
-        for($s=0;$s<$currentWorkStringsSize;$s++)
-        {
-            $parts = explode($bestToken, $workStrings[$s]);
-            if (sizeof($parts)>1) // If the token was present in the string
-            {
-                $workStrings[$s] = $parts[0]; // Replace the string itself with the text before the token
-                for ($t=1;$t<sizeof($parts);$t++)  // Now ge the rest of parts separated by the token and add them as new strings to $workStrings
-                {
-                    $workStrings[] = $parts[$t]; 
-                }
-            }
-        }
-    } // for 0-127
-    $totalSaving = 0;
-    $finalBestTokens = array();
-    $k = 0;
-    foreach ($bestTokens as $tokenInfo)   
-    {
-        
-        $tokenRealSaving = $tokenInfo->saving - strlen($tokenInfo->token);
-        if ($tokenRealSaving>0) 
-        {
-            $totalSaving += $tokenRealSaving;
-            $tokenInfo->hexToken = str2hex($tokenInfo->token);
-            $tokenInfo->Index = $k;
-            $k++;
-            $finalBestTokens[] = $tokenInfo;
-        }
-    }
-    $result = new StdClass();
-    $result->tokens = $finalBestTokens;
-    $result->saving = $totalSaving;
-    return $result;
-    
-}
 
 
 //================================================================= messages  ========================================================
@@ -656,37 +556,38 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
 
 function isValidTarget($target)
 {
-    return ($target == 'zx') || ($target == 'cpc') ||  ($target == 'c64') ||  ($target == 'pcw') ||  ($target == 'msx') ||  ($target == 'amiga') ||  ($target == 'pc') ||  ($target == 'st');
+    return ($target == 'ZX') || ($target == 'CPC') ||  ($target == 'C64') ||  ($target == 'PCW') ||  ($target == 'MSX') ||  ($target == 'AMIGA') ||  ($target == 'PC') ||  ($target == 'ST') || ($target == 'MSX2');
 }
 
 function getMachineIDByTarget($target)
 {
-  if ($target=='zx') return 1; else
-  if ($target=='c64') return 2; else
-  if ($target=='cpc') return 3; else
-  if ($target=='msx') return 4; else
-  if ($target=='pc') return 5; else
-  if ($target=='st') return 6; else
-  if ($target=='amiga') return 7; else
-  if ($target=='pcw') return 8;
+  if ($target=='PC') return 0; else
+  if ($target=='ZX') return 1; else
+  if ($target=='C64') return 2; else
+  if ($target=='CPC') return 3; else
+  if ($target=='MSX') return 4; else
+  if ($target=='ST') return 6; else
+  if ($target=='AMIGA') return 7; else
+  if ($target=='MSX2') return 100; else
+  if ($target=='PCW') return 8;
 };  
 
 function getBaseAddressByTarget($target)
 {
-  if ($target=='zx') return 0x8400; else
-  if ($target=='msx') return 0x100; else
-  if ($target=='cpc') return 0x2880; else
-  if ($target=='c64') return 0x3880; else return 0;
+  if ($target=='ZX') return 0x8400; else
+  if ($target=='MSX') return 0x100; else
+  if ($target=='CPC') return 0x2880; else
+  if ($target=='C64') return 0x3880; else return 0;
 };
 
 function isPaddingPlatform($target)
 {
-    return (($target=='pc') || ($target=='st') || ($target=='amiga'));
+    return (($target=='PC') || ($target=='ST') || ($target=='AMIGA'));
 };
 
 function isLittleEndianPlatform($target)
 {
-    return (($target=='pc') || ($target=='st') || ($target=='amiga'));
+    return (($target=='ST') || ($target=='AMIGA'));
 };
 
 //================================================================= main ========================================================
@@ -697,18 +598,13 @@ function isLittleEndianPlatform($target)
 function Syntax()
 {
     
-    echo("SYNTAX: php drb <command> {<target> <language>|<compression>} <inputfile> [outputfile]\n\n");
-    echo("<command>: should be either 'ddb' or 'tok'.\n\n");
-    echo ("If <command> is 'ddb' (generate DDB):\n");
-    echo("<target>: target machine, should be 'zx', 'cpc', 'c64', 'msx', 'pcw', 'pc', 'st' or 'amiga'.\n");
+    echo("SYNTAX: php drb <target> <language> <inputfile> [outputfile]\n\n");
+    echo("<target>: target machine, should be 'ZX', 'CPC', 'C64', 'MSX', 'MSX2', 'PCW', 'PC', 'ST' or 'AMIGA'.\n");
     echo("<language>: game language, should be 'EN' or 'ES' (english or spanish).\n\n");
-    echo ("If <command> is 'tok' (generate compression tokens):\n");
-    echo("<compression>: text compresion level, should be 'basic', 'advanced' or 'full'. Basic compresses only locations, advanced compresses locations, messages and system mesasges, and full compresses all, including object texts.\n\n");
     echo("<inputfile>: a json file generated by DRF.\n");
-    echo("[outputfile] : (optional) name of output file. If absent, same name of json file would be used, with DDB or TOK extension, depending on command .\n\n\n");
+    echo("[outputfile] : (optional) name of output file. If absent, same name of json file would be used, with DDB extension.\n\n\n");
     echo "Examples:\n";
-    echo "php drb ddb zx es game.json\n";
-    echo "php drb tok full game.json\n";
+    echo "php drb zx es game.json\n";
     exit(1);
 }
 
@@ -727,34 +623,16 @@ if (intval(date("Y"))>2018) $extra = '-'.date("Y"); else $extra = '';
 echo "DAAD Reborn Compiler Backend ".VERSION_HI.".".VERSION_LO. " (C) Uto 2018$extra\n";
 
 // Check params
-if (sizeof($argv) < 2) Syntax();
-$command = strtolower($argv[1]);
-if (($command!='tok') && ($command!='ddb')) Error('Invalid command');
-if  ($command == 'ddb')
-{
-    if (sizeof($argv) < 4) Syntax();
-    $target = strtolower($argv[2]);
-    if (!isValidTarget($target)) Error('Invalid target machine');
-    $language = strtolower($argv[3]);
-    if (($language!='es') && ($language!='en')) Error('Invalid target language');
-    $inputFileName = $argv[4];
-    if (sizeof($argv) >5) $outputFileName = $argv[5];
-    else $outputFileName = replace_extension($inputFileName, 'DDB');
-    $tokensFilename = replace_extension($inputFileName, 'TOK');
-}
-else
-{
-    if (sizeof($argv) < 3) Syntax();
-    $compression = strtolower($argv[2]);
-    if (($compression!='basic') && ($compression!='advanced') && ($compression!='full')) Error('Invalid compression level');
-    $inputFileName = $argv[3];
-    if (sizeof($argv) >4) $outputFileName = $argv[4];
-    else $outputFileName = replace_extension($inputFileName, 'TOK');
-}
-
-
+if (sizeof($argv) < 4) Syntax();
+$target = strtoupper($argv[1]);
+if (!isValidTarget($target)) Error('Invalid target machine');
+$language = strtoupper($argv[2]);
+if (($language!='ES') && ($language!='EN')) Error('Invalid target language');
+$inputFileName = $argv[3];
+if (sizeof($argv) >4) $outputFileName = $argv[4]; else $outputFileName = replace_extension($inputFileName, 'DDB');
 if ($outputFileName==$inputFileName) Error('Input and output file name cannot be the same');
 if (!file_exists($inputFileName)) Error('File not found');
+$tokensFilename = replace_extension($inputFileName, 'TOK');
 
 $json = file_get_contents($inputFileName);
 $adventure = json_decode(utf8_encode($json));
@@ -777,220 +655,202 @@ if (!$adventure)
 // Replace characters over ASCII 127 with those below. Replace also escape chars.
 replaceEscapeChars($adventure);
 
+// Open output file
+$outputFileHandler = fopen($outputFileName, "wr");
+if (!$outputFileHandler) Error('Can\'t create output file');
+    // Check settings in JSON
+$adventure->classicMode = $adventure->settings[0]->classic_mode;
+if ($adventure->classicMode) echo "Warning: Compiling in classic mode, optimization disabled.\n";
+// Just for development, set to true for verbose info
+$adventure->verbose = true;
 
-if  ($command=='ddb')
+
+// **** DUMP DATA TO DDB ****
+
+$baseAddress = getBaseAddressByTarget($target);
+$currentAddress = $baseAddress;
+$isLittleEndian = isLittleEndianPlatform($target);
+
+if ($adventure->verbose) 
 {
-    // Open output file
-    $outputFileHandler = fopen($outputFileName, "wr");
-    if (!$outputFileHandler) Error('Can\'t create output file');
-        // Check settings in JSON
-    $adventure->classicMode = $adventure->settings[0]->classic_mode;
-    if ($adventure->classicMode) echo "Warning: Compiling in classic mode, optimization disabled.\n";
-    // Just for development, set to true for verbose info
-    $adventure->verbose = true;
-
-
-    // **** DUMP DATA TO DDB ****
-
-    $baseAddress = getBaseAddressByTarget($target);
-    $currentAddress = $baseAddress;
-    $isLittleEndian = isLittleEndianPlatform($target);
-
-    if ($adventure->verbose) 
-    {
-        echo $isLittleEndian? "Little endian":"Big endian";
-        echo "\nBase address      [" . prettyFormat($baseAddress) . "]\n";
-    }
-
-    // *********************************************
-    // 1 ************** WRITE HEADER ***************
-    // *********************************************
-
-    // DAAD version
-    $b = 2; 
-    writeByte($outputFileHandler, $b);
-
-    // Machine and language
-    $b = getMachineIDByTarget($target);
-    $b = $b << 4; // Move machine ID to high nibble
-    if ($language=='es') $b = $b | 1; // Set spanish language   
-    writeByte($outputFileHandler, $b);
-
-    // No idea what this byte is for, but all DDBs have same value
-    $b = 95;
-    writeByte($outputFileHandler, $b);
-
-    // Number of object descriptions
-    $numberOfObjects = sizeof($adventure->object_data);
-    writeByte($outputFileHandler, $numberOfObjects);
-    // Number of location descriptions
-    $numberOfLocations = sizeof($adventure->locations);
-    writeByte($outputFileHandler, $numberOfLocations);
-    // Number of user messages
-    $numberOfMessages = sizeof($adventure->messages);
-    writeByte($outputFileHandler, $numberOfMessages);
-    // Number of system messages
-    $numberOfSysmess = sizeof($adventure->sysmess);
-    writeByte($outputFileHandler, $numberOfSysmess);
-    // Number of processes
-    $numberOfProcesses = sizeof($adventure->processes);
-    writeByte($outputFileHandler, $numberOfProcesses);
-    // Fill the rest of the header with zeros, as we don't know yet the offset values. Will comeupdate them later.
-    writeBlock($outputFileHandler, 26); 
-    $currentAddress+=34;
-    writeBlock($outputFileHandler, 26);  // Los punteros varios, en principio a 0x000
-    $currentAddress+=26;
-
-
-    // *********************************************
-    // 2 *************** DUMP DATA *****************
-    // *********************************************
-
-    // Replace all escape and spanish chars in the input strings with the ASCII codes used by DAAD interpreters
-    $hasTokens = false;
-    $bestTokensDetails = null;
-    if (file_exists($tokensFilename))
-    {
-        $hasTokens = true;
-        $compressionData = json_decode(file_get_contents($tokensFilename));
-        for ($j=0;$j<sizeof($compressionData->tokenDetails->tokens);$j++)
-        {
-            $compressionData->tokenDetails->tokens[$j]->token = hex2str($compressionData->tokenDetails->tokens[$j]->hexToken);
-        }
-        if (!$compressionData) Error('Invalid tokens file');
-    }
-
-    // DumpExterns
-    generateExterns($adventure, $currentAddress, $outputFileHandler);
-    addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
-    // Dump Vocabulary
-    $vocabularyOffset = $currentAddress;
-    if ($adventure->verbose) echo "Vocabulary        [" . prettyFormat($vocabularyOffset) . "]\n";
-    generateVocabulary($adventure, $currentAddress, $outputFileHandler);
-    addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
-    // Dump tokens for compression and compress text sections (if possible)
-    if ($hasTokens) $compressedTextOffset = $currentAddress; else $compressedTextOffset = 0; // If no compression, the header should have 0x0000 in the compression pointer
-    if ($adventure->verbose) echo "Tokens            [" . prettyFormat($compressedTextOffset) . "]\n";
-    generateTokens($adventure, $currentAddress, $outputFileHandler, $hasTokens, $compressionData, $textSavings);
-    addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
-    // Sysmess
-    generateSTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
-    $sysmessLookupOffset = $currentAddress - 2 * sizeof($adventure->sysmess);;
-    if ($adventure->verbose) echo "Sysmess           [" . prettyFormat($sysmessLookupOffset) . "]\n";
-    addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
-    // Messages
-    generateMTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
-    $messageLookupOffset = $currentAddress - 2 * sizeof($adventure->messages);
-    if ($adventure->verbose) echo "Messages          [" . prettyFormat($messageLookupOffset) . "]\n";
-    addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
-    // Object Texts
-    generateOTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
-    $objectLookupOffset = $currentAddress - 2 * sizeof($adventure->object_data);
-    if ($adventure->verbose) echo "Object texts      [" . prettyFormat($objectLookupOffset) . "]\n";
-    addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
-    // Location texts
-    generateLTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
-    $locationLookupOffset =  $currentAddress - 2 * sizeof($adventure->locations);
-    if ($adventure->verbose) echo "Locations         [" . prettyFormat($locationLookupOffset) . "]\n";
-    addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
-    // Connections
-    generateConnections($adventure, $currentAddress, $outputFileHandler,$isLittleEndian);
-    $connectionsLookupOffset = $currentAddress - 2 * sizeof($adventure->locations) ;
-    if ($adventure->verbose) echo "Connections       [" . prettyFormat($connectionsLookupOffset) . "]\n";
-    addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
-    // Object names
-    $objectNamesOffset = $currentAddress;
-    if ($adventure->verbose) echo "Object words      [" . prettyFormat($objectNamesOffset) . "]\n";
-    generateObjectNames($adventure, $currentAddress, $outputFileHandler);
-    // Weight & standard Attr
-    $objectWeightAndAttrOffset = $currentAddress;
-    if ($adventure->verbose) echo "Weight & std attr [" . prettyFormat($objectWeightAndAttrOffset) . "]\n";
-    generateObjectWeightAndAttr($adventure, $currentAddress, $outputFileHandler);
-    addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
-    // Extra Attr
-    $objectExtraAttrOffset = $currentAddress;
-    if ($adventure->verbose) echo "Extra attr        [" . prettyFormat($objectExtraAttrOffset) . "]\n";
-    generateObjectExtraAttr($adventure, $currentAddress, $outputFileHandler, $isLittleEndian);
-    // InitiallyAt
-    $initiallyAtOffset = $currentAddress;
-    if ($adventure->verbose) echo "Initially at      [" . prettyFormat($initiallyAtOffset) . "]\n";
-    generateObjectInitially($adventure, $currentAddress, $outputFileHandler);
-    addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
-    // Dump Processes
-    generateProcesses($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
-    $processListOffset = $currentAddress - sizeof($adventure->processes) * 2;
-    if ($adventure->verbose) echo "Processes         [" . prettyFormat($processListOffset) . "]\n";
-
-
-    // *********************************************
-    // 3 **** PATCH HEADER WITH OFFSET VALUES ******
-    // *********************************************
-
-    fseek($outputFileHandler, 8);
-    // Compressed text position
-    writeWord($outputFileHandler, $compressedTextOffset, $isLittleEndian); 
-    // Process list position
-    writeWord($outputFileHandler, $processListOffset, $isLittleEndian);
-    // Objects lookup list position
-    writeWord($outputFileHandler, $objectLookupOffset, $isLittleEndian);
-    // Locations lookup list position
-    writeWord($outputFileHandler, $locationLookupOffset, $isLittleEndian);
-    // User messages lookup list position
-    writeWord($outputFileHandler, $messageLookupOffset, $isLittleEndian);
-    // System messages lookup list position
-    writeWord($outputFileHandler, $sysmessLookupOffset, $isLittleEndian);
-    // Connections lookup list position
-    writeWord($outputFileHandler, $connectionsLookupOffset, $isLittleEndian);
-    // Vocabulary
-    writeWord($outputFileHandler, $vocabularyOffset, $isLittleEndian);
-    // Objects "initialy at" list position
-    writeWord($outputFileHandler, $initiallyAtOffset, $isLittleEndian);
-    // Object names positions
-    writeWord($outputFileHandler, $objectNamesOffset, $isLittleEndian);
-    // Object weight and container/wearable attributes
-    writeWord($outputFileHandler, $objectWeightAndAttrOffset, $isLittleEndian);
-    // Extra object attributes 
-    writeWord($outputFileHandler, $objectExtraAttrOffset, $isLittleEndian);
-    // File length 
-    $fileSize = $currentAddress;
-    writeWord($outputFileHandler, $fileSize, $isLittleEndian);
-    fclose($outputFileHandler);
-    echo "Done. DDB size is " . ($fileSize - $baseAddress) . " bytes.\nDatabase ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
-    if ($textSavings>0) echo "Text compression saving: $textSavings bytes.\n";
+    echo $isLittleEndian? "Little endian":"Big endian";
+    echo "\nBase address      [" . prettyFormat($baseAddress) . "]\n";
 }
-else // command=='tok'
+
+// *********************************************
+// 1 ************** WRITE HEADER ***************
+// *********************************************
+
+// DAAD version
+$b = 2; 
+writeByte($outputFileHandler, $b);
+
+// Machine and language
+$b = getMachineIDByTarget($target);
+$b = $b << 4; // Move machine ID to high nibble
+if ($language=='ES') $b = $b | 1; // Set spanish language   
+writeByte($outputFileHandler, $b);
+
+// No idea what this byte is for, but all DDBs have same value
+$b = 95;
+writeByte($outputFileHandler, $b);
+
+// Number of object descriptions
+$numberOfObjects = sizeof($adventure->object_data);
+writeByte($outputFileHandler, $numberOfObjects);
+// Number of location descriptions
+$numberOfLocations = sizeof($adventure->locations);
+writeByte($outputFileHandler, $numberOfLocations);
+// Number of user messages
+$numberOfMessages = sizeof($adventure->messages);
+writeByte($outputFileHandler, $numberOfMessages);
+// Number of system messages
+$numberOfSysmess = sizeof($adventure->sysmess);
+writeByte($outputFileHandler, $numberOfSysmess);
+// Number of processes
+$numberOfProcesses = sizeof($adventure->processes);
+writeByte($outputFileHandler, $numberOfProcesses);
+// Fill the rest of the header with zeros, as we don't know yet the offset values. Will comeupdate them later.
+writeBlock($outputFileHandler, 26); 
+$currentAddress+=34;
+writeBlock($outputFileHandler, 26);  // Los punteros varios, en principio a 0x000
+$currentAddress+=26;
+
+
+// *********************************************
+// 2 *************** DUMP DATA *****************
+// *********************************************
+
+// Replace all escape and spanish chars in the input strings with the ASCII codes used by DAAD interpreters
+$hasTokens = false;
+$bestTokensDetails = null;
+if (file_exists($tokensFilename))
 {
-    echo "Compressing texts\n";
-    $progress = array('-','\\','|', '/','-','\\','|','/');
-    $bestSaving = 0;
-    $bestTokensDetails=null;
-    for ($maxLength=3;$maxLength<31;$maxLength++)
+    $hasTokens = true;
+    if (file_exists(strtolower($tokensFilename))) $tokensFilename = strtolower($tokensFilename);
+    if (file_exists($tokensFilename)) 
     {
-        echo $progress[$maxLength % 8] .chr(8);
-        $tokenDetails = getBestTokens($adventure,$maxLength, $compression); 
-        if ($tokenDetails->saving > $bestSaving)
+        if ($adventure->verbose) echo "Loading $tokensFilename.\n";
+        $compressionJSON = file_get_contents($tokensFilename);
+    }
+    else 
+    {
+        if ($adventure->verbose) echo "Loading default compression tokens for '$language'.\n";
+        switch ($language)
         {
-            $bestSaving = $tokenDetails->saving;
-            $bestTokensDetails = $tokenDetails;
+            
+            case 'ES': $compressionJSON = $compressionJSON_ES; break;
+            case 'EN': $compressionJSON = $compressionJSON_EN; break;
         }
     }
-    echo "\n";
-    if ($bestSaving == 0)
+    
+    $compressionData = json_decode($compressionData);
+    if (!$compressionData) Error('Invalid tokens file');
+    for ($j=0;$j<sizeof($compressionData->tokenDetails->tokens);$j++)
     {
-        echo "Unable to find tokens that could compress your game texts, won't be compressed.\n";
+        $compressionData->tokenDetails->tokens[$j]->token = hex2str($compressionData->tokenDetails->tokens[$j]->hexToken);
     }
-    else
-    {
-        $compressionData = new StdClass();
-        $compressionData->compression = $compression;
-        $compressionData->tokenDetails = $bestTokensDetails;
-        $fileContents = json_encode($compressionData, JSON_PRETTY_PRINT|JSON_PARTIAL_OUTPUT_ON_ERROR );
-        if (!$fileContents) echo "Err : ". json_last_error();
-        file_put_contents($outputFileName, $fileContents);
-        echo "Text compression saved $bestSaving bytes.\n";
-    } 
-
 }
+
+// DumpExterns
+generateExterns($adventure, $currentAddress, $outputFileHandler);
+addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+// Dump Vocabulary
+$vocabularyOffset = $currentAddress;
+if ($adventure->verbose) echo "Vocabulary        [" . prettyFormat($vocabularyOffset) . "]\n";
+generateVocabulary($adventure, $currentAddress, $outputFileHandler);
+addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+// Dump tokens for compression and compress text sections (if possible)
+if ($hasTokens) $compressedTextOffset = $currentAddress; else $compressedTextOffset = 0; // If no compression, the header should have 0x0000 in the compression pointer
+if ($adventure->verbose) echo "Tokens            [" . prettyFormat($compressedTextOffset) . "]\n";
+generateTokens($adventure, $currentAddress, $outputFileHandler, $hasTokens, $compressionData, $textSavings);
+addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+// Sysmess
+generateSTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
+$sysmessLookupOffset = $currentAddress - 2 * sizeof($adventure->sysmess);;
+if ($adventure->verbose) echo "Sysmess           [" . prettyFormat($sysmessLookupOffset) . "]\n";
+addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+// Messages
+generateMTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
+$messageLookupOffset = $currentAddress - 2 * sizeof($adventure->messages);
+if ($adventure->verbose) echo "Messages          [" . prettyFormat($messageLookupOffset) . "]\n";
+addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+// Object Texts
+generateOTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
+$objectLookupOffset = $currentAddress - 2 * sizeof($adventure->object_data);
+if ($adventure->verbose) echo "Object texts      [" . prettyFormat($objectLookupOffset) . "]\n";
+addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+// Location texts
+generateLTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
+$locationLookupOffset =  $currentAddress - 2 * sizeof($adventure->locations);
+if ($adventure->verbose) echo "Locations         [" . prettyFormat($locationLookupOffset) . "]\n";
+addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+// Connections
+generateConnections($adventure, $currentAddress, $outputFileHandler,$isLittleEndian);
+$connectionsLookupOffset = $currentAddress - 2 * sizeof($adventure->locations) ;
+if ($adventure->verbose) echo "Connections       [" . prettyFormat($connectionsLookupOffset) . "]\n";
+addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+// Object names
+$objectNamesOffset = $currentAddress;
+if ($adventure->verbose) echo "Object words      [" . prettyFormat($objectNamesOffset) . "]\n";
+generateObjectNames($adventure, $currentAddress, $outputFileHandler);
+// Weight & standard Attr
+$objectWeightAndAttrOffset = $currentAddress;
+if ($adventure->verbose) echo "Weight & std attr [" . prettyFormat($objectWeightAndAttrOffset) . "]\n";
+generateObjectWeightAndAttr($adventure, $currentAddress, $outputFileHandler);
+addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+// Extra Attr
+$objectExtraAttrOffset = $currentAddress;
+if ($adventure->verbose) echo "Extra attr        [" . prettyFormat($objectExtraAttrOffset) . "]\n";
+generateObjectExtraAttr($adventure, $currentAddress, $outputFileHandler, $isLittleEndian);
+// InitiallyAt
+$initiallyAtOffset = $currentAddress;
+if ($adventure->verbose) echo "Initially at      [" . prettyFormat($initiallyAtOffset) . "]\n";
+generateObjectInitially($adventure, $currentAddress, $outputFileHandler);
+addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+// Dump Processes
+generateProcesses($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
+$processListOffset = $currentAddress - sizeof($adventure->processes) * 2;
+if ($adventure->verbose) echo "Processes         [" . prettyFormat($processListOffset) . "]\n";
+
+
+// *********************************************
+// 3 **** PATCH HEADER WITH OFFSET VALUES ******
+// *********************************************
+
+fseek($outputFileHandler, 8);
+// Compressed text position
+writeWord($outputFileHandler, $compressedTextOffset, $isLittleEndian); 
+// Process list position
+writeWord($outputFileHandler, $processListOffset, $isLittleEndian);
+// Objects lookup list position
+writeWord($outputFileHandler, $objectLookupOffset, $isLittleEndian);
+// Locations lookup list position
+writeWord($outputFileHandler, $locationLookupOffset, $isLittleEndian);
+// User messages lookup list position
+writeWord($outputFileHandler, $messageLookupOffset, $isLittleEndian);
+// System messages lookup list position
+writeWord($outputFileHandler, $sysmessLookupOffset, $isLittleEndian);
+// Connections lookup list position
+writeWord($outputFileHandler, $connectionsLookupOffset, $isLittleEndian);
+// Vocabulary
+writeWord($outputFileHandler, $vocabularyOffset, $isLittleEndian);
+// Objects "initialy at" list position
+writeWord($outputFileHandler, $initiallyAtOffset, $isLittleEndian);
+// Object names positions
+writeWord($outputFileHandler, $objectNamesOffset, $isLittleEndian);
+// Object weight and container/wearable attributes
+writeWord($outputFileHandler, $objectWeightAndAttrOffset, $isLittleEndian);
+// Extra object attributes 
+writeWord($outputFileHandler, $objectExtraAttrOffset, $isLittleEndian);
+// File length 
+$fileSize = $currentAddress;
+writeWord($outputFileHandler, $fileSize, $isLittleEndian);
+fclose($outputFileHandler);
+echo "$outputFileName for $target created.\n";
+echo "Done. DDB size is " . ($fileSize - $baseAddress) . " bytes.\nDatabase ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
+if ($textSavings>0) echo "Text compression saving: $textSavings bytes.\n";
+
 
 
  
