@@ -340,7 +340,7 @@ function generateVocabulary($adventure, &$currentAddress, $outputFileHandler)
         $vocWord = replaceChars(substr(str_pad($word->VocWord,5),0,5));
         for ($i=0;$i<5;$i++)
         {
-            $character = $vocWord[$i];
+            $character = substr($vocWord,$i,1);
             if (ord($character)>127) $character = array_search($character, $daad_to_chr->conversions) + 16;  else  $character = ord(strtoupper($character));
             $character = $character ^ OFUSCATE_VALUE;
             writeByte($outputFileHandler, $character);
@@ -482,7 +482,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
             $condactsOffsets["${procID}_${entryID}"] = $currentAddress;
             $entry = $process->entries[$entryID];
             $terminatorFound = false;
-            for($condactID=0;$condactID<=sizeof($entry->condacts);$condactID++)
+            for($condactID=0;$condactID<sizeof($entry->condacts);$condactID++)
             {
                 $condact = $entry->condacts[$condactID];
                 if (!$adventure->classicMode)
@@ -723,6 +723,7 @@ $currentAddress+=26;
 
 // Replace all escape and spanish chars in the input strings with the ASCII codes used by DAAD interpreters
 $hasTokens = false;
+$compressionData = null;
 $bestTokensDetails = null;
 if (file_exists($tokensFilename))
 {
@@ -739,12 +740,12 @@ if (file_exists($tokensFilename))
         switch ($language)
         {
             
-            case 'ES': $compressionJSON = $compressionJSON_ES; break;
             case 'EN': $compressionJSON = $compressionJSON_EN; break;
+            default : $compressionJSON = $compressionJSON_ES; break;
         }
     }
     
-    $compressionData = json_decode($compressionData);
+    $compressionData = json_decode($compressionJSON);
     if (!$compressionData) Error('Invalid tokens file');
     for ($j=0;$j<sizeof($compressionData->tokenDetails->tokens);$j++)
     {
