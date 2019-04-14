@@ -619,9 +619,12 @@ function Error($msg)
 
 
 //********************************************** MAIN **************************************************************** */
+
+
 if (intval(date("Y"))>2018) $extra = '-'.date("Y"); else $extra = '';
 echo "DAAD Reborn Compiler Backend ".VERSION_HI.".".VERSION_LO. " (C) Uto 2018$extra\n";
 
+if (!function_exists ('utf8_encode')) Error('This software requires php-xml package, please use yum or apt-get to install it.');
 // Check params
 if (sizeof($argv) < 4) Syntax();
 $target = strtoupper($argv[1]);
