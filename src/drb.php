@@ -725,35 +725,34 @@ $currentAddress+=26;
 // *********************************************
 
 // Replace all escape and spanish chars in the input strings with the ASCII codes used by DAAD interpreters
-$hasTokens = false;
 $compressionData = null;
 $bestTokensDetails = null;
-if (file_exists($tokensFilename))
+
+if (file_exists(strtolower($tokensFilename))) $tokensFilename = strtolower($tokensFilename);
+if (file_exists($tokensFilename)) 
 {
-    $hasTokens = true;
-    if (file_exists(strtolower($tokensFilename))) $tokensFilename = strtolower($tokensFilename);
-    if (file_exists($tokensFilename)) 
+    if ($adventure->verbose) echo "Loading $tokensFilename.\n";
+    $compressionJSON = file_get_contents($tokensFilename);
+}
+else 
+{
+    if ($adventure->verbose) echo "Loading default compression tokens for '$language'.\n";
+    switch ($language)
     {
-        if ($adventure->verbose) echo "Loading $tokensFilename.\n";
-        $compressionJSON = file_get_contents($tokensFilename);
+        case 'EN': $compressionJSON = $compressionJSON_EN; break;
+        default : $compressionJSON = $compressionJSON_ES; break;
     }
-    else 
-    {
-        if ($adventure->verbose) echo "Loading default compression tokens for '$language'.\n";
-        switch ($language)
-        {
-            
-            case 'EN': $compressionJSON = $compressionJSON_EN; break;
-            default : $compressionJSON = $compressionJSON_ES; break;
-        }
-    }
+}
     
-    $compressionData = json_decode($compressionJSON);
-    if (!$compressionData) Error('Invalid tokens file');
-    for ($j=0;$j<sizeof($compressionData->tokenDetails->tokens);$j++)
-    {
-        $compressionData->tokenDetails->tokens[$j]->token = hex2str($compressionData->tokenDetails->tokens[$j]->hexToken);
-    }
+$compressionData = json_decode($compressionJSON);
+
+
+if (!$compressionData) Error('Invalid tokens file');
+$hasTokens = ($compressionData->compression!='none');
+
+for ($j=0;$j<sizeof($compressionData->tokenDetails->tokens);$j++)
+{
+    $compressionData->tokenDetails->tokens[$j]->token = hex2str($compressionData->tokenDetails->tokens[$j]->hexToken);
 }
 
 // DumpExterns
