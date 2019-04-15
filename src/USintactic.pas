@@ -284,7 +284,7 @@ BEGIN
 		BEGIN
 			IF (CurrentTokenID <> T_LIST_ENTRY) THEN SyntaxError('Object entry expected');
 			IF CurrentIntVal<>CurrentObj THEN SyntaxError('Definition for object #' + IntToStr(Currentobj) + ' expected but object #' + IntToStr(CurrentIntVal) + ' found');
-			IF (CurrentIntVal>=LTXCount) THEN SyntaxError ('Object #' + IntToStr(CurrentIntVal) + ' not defined');
+			IF (CurrentIntVal>=OTX Count) THEN SyntaxError ('Object #' + IntToStr(CurrentIntVal) + ' not defined');
 
 			Scan(); // Get Initialy At
 			IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_UNDERSCORE) THEN SyntaxError('Object initial location expected');
