@@ -14,7 +14,7 @@ BEGIN
   WriteLn();
 	WriteLn('file.DSF is a DAAD', ' ', Version, '.', Minor, ' source file.');
   WriteLn();
-	WriteLn('<define> is a symbol that is automatically defined when compiling. Main use is writing there the target machine, and then add #ifdefs in the code. If you don''t understand what that is for, just write any word there, for instance "dummy"');
+	WriteLn('is an automatically defined symbol at compiling time. Its main use is to be able to target a specific machine adding #ifdefs code blocks for such machine. If you don''t understand what it is for, just type any word there, for instance "dummy".');
   WriteLn();
 	WriteLn('[output.json] is optional file name for output json file, if missing same base name as DSF file will be used.');
 	Halt(1);
