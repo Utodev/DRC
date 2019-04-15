@@ -84,7 +84,7 @@ function generateTokens(&$adventure, &$currentAddress, $outputFileHandler, $hasT
     }
     else
     {
-        // Compress the mesage tables
+        // Compress the message tables
         $totalSaving = 0;
         $compressableTables = getCompressableTables($compressionData->compression,$adventure);
         foreach ($compressableTables as $compressableTable)
@@ -106,7 +106,7 @@ function generateTokens(&$adventure, &$currentAddress, $outputFileHandler, $hasT
         {
             $tokenStr = $token->token;
             $tokenLength = strlen($tokenStr);
-            for ($i=0;$i<$tokenLength;$i++)
+            for ($i=0;$i<$tokenLength;$i++) 
             {
                 $shift = ($i == $tokenLength-1) ? 128 : 0;
                 $c = $tokenStr[$i];
@@ -168,6 +168,7 @@ function hex2str($hex)
 
 function getCompressableTables($compression, &$adventure)
 {
+    $compressableTables = array();
     switch ($compression)
     {
      case 'basic': $compressableTables = array($adventure->locations); break;
@@ -665,7 +666,7 @@ if (!$outputFileHandler) Error('Can\'t create output file');
 $adventure->classicMode = $adventure->settings[0]->classic_mode;
 if ($adventure->classicMode) echo "Warning: Compiling in classic mode, optimization disabled.\n";
 // Just for development, set to true for verbose info
-$adventure->verbose = true;
+$adventure->verbose = false;
 
 
 // **** DUMP DATA TO DDB ****
@@ -743,7 +744,7 @@ else
         default : $compressionJSON = $compressionJSON_ES; break;
     }
 }
-    
+  
 $compressionData = json_decode($compressionJSON);
 
 
@@ -760,61 +761,61 @@ generateExterns($adventure, $currentAddress, $outputFileHandler);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Dump Vocabulary
 $vocabularyOffset = $currentAddress;
-if ($adventure->verbose) echo "Vocabulary        [" . prettyFormat($vocabularyOffset) . "]\n";
+echo "Vocabulary        [" . prettyFormat($vocabularyOffset) . "]\n";
 generateVocabulary($adventure, $currentAddress, $outputFileHandler);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Dump tokens for compression and compress text sections (if possible)
 if ($hasTokens) $compressedTextOffset = $currentAddress; else $compressedTextOffset = 0; // If no compression, the header should have 0x0000 in the compression pointer
-if ($adventure->verbose) echo "Tokens            [" . prettyFormat($compressedTextOffset) . "]\n";
+echo "Tokens            [" . prettyFormat($compressedTextOffset) . "]\n";
 generateTokens($adventure, $currentAddress, $outputFileHandler, $hasTokens, $compressionData, $textSavings);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Sysmess
 generateSTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
 $sysmessLookupOffset = $currentAddress - 2 * sizeof($adventure->sysmess);;
-if ($adventure->verbose) echo "Sysmess           [" . prettyFormat($sysmessLookupOffset) . "]\n";
+echo "Sysmess           [" . prettyFormat($sysmessLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Messages
 generateMTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
 $messageLookupOffset = $currentAddress - 2 * sizeof($adventure->messages);
-if ($adventure->verbose) echo "Messages          [" . prettyFormat($messageLookupOffset) . "]\n";
+echo "Messages          [" . prettyFormat($messageLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Object Texts
 generateOTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
 $objectLookupOffset = $currentAddress - 2 * sizeof($adventure->object_data);
-if ($adventure->verbose) echo "Object texts      [" . prettyFormat($objectLookupOffset) . "]\n";
+echo "Object texts      [" . prettyFormat($objectLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Location texts
 generateLTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
 $locationLookupOffset =  $currentAddress - 2 * sizeof($adventure->locations);
-if ($adventure->verbose) echo "Locations         [" . prettyFormat($locationLookupOffset) . "]\n";
+echo "Locations         [" . prettyFormat($locationLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Connections
 generateConnections($adventure, $currentAddress, $outputFileHandler,$isLittleEndian);
 $connectionsLookupOffset = $currentAddress - 2 * sizeof($adventure->locations) ;
-if ($adventure->verbose) echo "Connections       [" . prettyFormat($connectionsLookupOffset) . "]\n";
+echo "Connections       [" . prettyFormat($connectionsLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Object names
 $objectNamesOffset = $currentAddress;
-if ($adventure->verbose) echo "Object words      [" . prettyFormat($objectNamesOffset) . "]\n";
+echo "Object words      [" . prettyFormat($objectNamesOffset) . "]\n";
 generateObjectNames($adventure, $currentAddress, $outputFileHandler);
 // Weight & standard Attr
 $objectWeightAndAttrOffset = $currentAddress;
-if ($adventure->verbose) echo "Weight & std attr [" . prettyFormat($objectWeightAndAttrOffset) . "]\n";
+"Weight & std attr [" . prettyFormat($objectWeightAndAttrOffset) . "]\n";
 generateObjectWeightAndAttr($adventure, $currentAddress, $outputFileHandler);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Extra Attr
 $objectExtraAttrOffset = $currentAddress;
-if ($adventure->verbose) echo "Extra attr        [" . prettyFormat($objectExtraAttrOffset) . "]\n";
+echo "Extra attr        [" . prettyFormat($objectExtraAttrOffset) . "]\n";
 generateObjectExtraAttr($adventure, $currentAddress, $outputFileHandler, $isLittleEndian);
 // InitiallyAt
 $initiallyAtOffset = $currentAddress;
-if ($adventure->verbose) echo "Initially at      [" . prettyFormat($initiallyAtOffset) . "]\n";
+echo "Initially at      [" . prettyFormat($initiallyAtOffset) . "]\n";
 generateObjectInitially($adventure, $currentAddress, $outputFileHandler);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Dump Processes
 generateProcesses($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
 $processListOffset = $currentAddress - sizeof($adventure->processes) * 2;
-if ($adventure->verbose) echo "Processes         [" . prettyFormat($processListOffset) . "]\n";
+echo "Processes         [" . prettyFormat($processListOffset) . "]\n";
 
 
 // *********************************************
@@ -852,7 +853,7 @@ writeWord($outputFileHandler, $fileSize, $isLittleEndian);
 fclose($outputFileHandler);
 echo "$outputFileName for $target created.\n";
 if ($currentAddress>0xFFFF) echo "Warning: DDB file goes over the 65535 memory address boundary.\n";
-echo "Done. DDB size is " . ($fileSize - $baseAddress) . " bytes.\nDatabase ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
+echo "DDB size is " . ($fileSize - $baseAddress) . " bytes.\nDatabase ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
 if ($textSavings>0) echo "Text compression saving: $textSavings bytes.\n";
 
 
