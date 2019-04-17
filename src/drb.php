@@ -72,8 +72,18 @@ function generateExterns($adventure, &$currentAddress, $outputFileHandler)
 
 //================================================================= tokens ========================================================
 
-$compressionJSON_ES  = '{ "compression": "full","tokenDetails": {"tokens": [{"saving":9,"hexToken":"2020202020"},{"saving":9,"hexToken":"2071756520"},{"saving":9,"hexToken":"6120646520"},{"saving":9,"hexToken":"6f20646520"},{"saving":9,"hexToken":"20756e6120"},{"saving":9,"hexToken":"2064656c20"},{"saving":9,"hexToken":"7320646520"},{"saving":9,"hexToken":"206465206c"},{"saving":9,"hexToken":"20636f6e20"},{"saving":9,"hexToken":"656e746520"},{"saving":9,"hexToken":"20706f7220"},{"saving":9,"hexToken":"20657374a0"},{"saving":9,"hexToken":"7469656e65"},{"saving":9,"hexToken":"7320756e20"},{"saving":9,"hexToken":"616e746520"},{"saving":9,"hexToken":"2070617261"},{"saving":9,"hexToken":"206c617320"},{"saving":9,"hexToken":"656e747261"},{"saving":9,"hexToken":"6e20656c20"},{"saving":9,"hexToken":"6520646520"},{"saving":9,"hexToken":"61206c6120"},{"saving":9,"hexToken":"6572696f72"},{"saving":9,"hexToken":"6369a26e20"},{"saving":9,"hexToken":"616e646f20"},{"saving":9,"hexToken":"69656e7465"},{"saving":9,"hexToken":"20656c20"},{"saving":9,"hexToken":"206c6120"},{"saving":9,"hexToken":"20646520"},{"saving":9,"hexToken":"20636f6e"},{"saving":9,"hexToken":"20656e20"},{"saving":9,"hexToken":"6c6f7320"},{"saving":9,"hexToken":"61646f20"},{"saving":9,"hexToken":"20736520"},{"saving":9,"hexToken":"65737461"},{"saving":9,"hexToken":"20756e20"},{"saving":9,"hexToken":"6c617320"},{"saving":9,"hexToken":"656e7461"},{"saving":9,"hexToken":"20646573"},{"saving":9,"hexToken":"20616c20"},{"saving":9,"hexToken":"61646120"},{"saving":9,"hexToken":"617320"},{"saving":9,"hexToken":"657320"},{"saving":9,"hexToken":"6f7320"},{"saving":9,"hexToken":"207920"},{"saving":9,"hexToken":"61646f"},{"saving":9,"hexToken":"746520"},{"saving":9,"hexToken":"616461"},{"saving":9,"hexToken":"6c6120"},{"saving":9,"hexToken":"656e74"},{"saving":9,"hexToken":"726573"},{"saving":9,"hexToken":"717565"},{"saving":9,"hexToken":"616e20"},{"saving":9,"hexToken":"6f2070"},{"saving":9,"hexToken":"726563"},{"saving":9,"hexToken":"69646f"},{"saving":9,"hexToken":"732c20"},{"saving":9,"hexToken":"616e74"},{"saving":9,"hexToken":"696e61"},{"saving":9,"hexToken":"696461"},{"saving":9,"hexToken":"6c6172"},{"saving":9,"hexToken":"65726f"},{"saving":9,"hexToken":"6d706c"},{"saving":9,"hexToken":"6120"},{"saving":9,"hexToken":"6f20"},{"saving":9,"hexToken":"6572"},{"saving":9,"hexToken":"6573"},{"saving":9,"hexToken":"6f72"},{"saving":9,"hexToken":"6172"},{"saving":9,"hexToken":"616c"},{"saving":9,"hexToken":"656e"},{"saving":9,"hexToken":"6173"},{"saving":9,"hexToken":"6f73"},{"saving":9,"hexToken":"6520"},{"saving":9,"hexToken":"616e"},{"saving":9,"hexToken":"656c"},{"saving":9,"hexToken":"6f6e"},{"saving":9,"hexToken":"696e"},{"saving":9,"hexToken":"6369"},{"saving":9,"hexToken":"756e"},{"saving":9,"hexToken":"2e20"},{"saving":9,"hexToken":"636f"},{"saving":9,"hexToken":"7265"},{"saving":9,"hexToken":"6469"},{"saving":9,"hexToken":"2c20"},{"saving":9,"hexToken":"7572"},{"saving":9,"hexToken":"7472"},{"saving":9,"hexToken":"6465"},{"saving":9,"hexToken":"7375"},{"saving":9,"hexToken":"6162"},{"saving":9,"hexToken":"6f6c"},{"saving":9,"hexToken":"616d"},{"saving":9,"hexToken":"7374"},{"saving":9,"hexToken":"6375"},{"saving":9,"hexToken":"7320"},{"saving":9,"hexToken":"6163"},{"saving":9,"hexToken":"696c"},{"saving":9,"hexToken":"6772"},{"saving":9,"hexToken":"6164"},{"saving":9,"hexToken":"7465"},{"saving":9,"hexToken":"7920"},{"saving":9,"hexToken":"696d"},{"saving":9,"hexToken":"746f"},{"saving":9,"hexToken":"7565"},{"saving":9,"hexToken":"7069"},{"saving":9,"hexToken":"6775"},{"saving":9,"hexToken":"6368"},{"saving":9,"hexToken":"6361"},{"saving":9,"hexToken":"6c61"},{"saving":9,"hexToken":"6e20"},{"saving":9,"hexToken":"726f"},{"saving":9,"hexToken":"7269"},{"saving":9,"hexToken":"6c6f"},{"saving":9,"hexToken":"6d69"},{"saving":9,"hexToken":"6c20"},{"saving":9,"hexToken":"7469"},{"saving":9,"hexToken":"6f62"},{"saving":9,"hexToken":"6d65"},{"saving":9,"hexToken":"7369"},{"saving":9,"hexToken":"7065"},{"saving":9,"hexToken":"206e"},{"saving":9,"hexToken":"7475"},{"saving":9,"hexToken":"6174"},{"saving":9,"hexToken":"6669"},{"saving":9,"hexToken":"646f"},{"saving":9,"hexToken":"656d"},{"saving":9,"hexToken":"6179"},{"saving":9,"hexToken":"222e"},{"saving":9,"hexToken":"6c6c"}], "saving": 99999}}';
+$compressionJSON_ES  = '{ "compression": "full","tokenDetails": {"tokens": [{"saving":9,"hexToken":"2020202020"},{"saving":9,"hexToken":"2071756520"},{"saving":9,"hexToken":"6120646520"},{"saving":9,"hexToken":"6f20646520"},{"saving":9,"hexToken":"20756e6120"},{"saving":9,"hexToken":"2064656c20"},{"saving":9,"hexToken":"7320646520"},{"saving":9,"hexToken":"206465206c"},{"saving":9,"hexToken":"20636f6e20"},{"saving":9,"hexToken":"656e746520"},{"saving":9,"hexToken":"20706f7220"},{"saving":9,"hexToken":"2065737415"},{"saving":9,"hexToken":"7469656e65"},{"saving":9,"hexToken":"7320756e20"},{"saving":9,"hexToken":"616e746520"},{"saving":9,"hexToken":"2070617261"},{"saving":9,"hexToken":"206c617320"},{"saving":9,"hexToken":"656e747261"},{"saving":9,"hexToken":"6e20656c20"},{"saving":9,"hexToken":"6520646520"},{"saving":9,"hexToken":"61206c6120"},{"saving":9,"hexToken":"6572696f72"},{"saving":9,"hexToken":"6369186e20"},{"saving":9,"hexToken":"616e646f20"},{"saving":9,"hexToken":"69656e7465"},{"saving":9,"hexToken":"20656c20"},{"saving":9,"hexToken":"206c6120"},{"saving":9,"hexToken":"20646520"},{"saving":9,"hexToken":"20636f6e"},{"saving":9,"hexToken":"20656e20"},{"saving":9,"hexToken":"6c6f7320"},{"saving":9,"hexToken":"61646f20"},{"saving":9,"hexToken":"20736520"},{"saving":9,"hexToken":"65737461"},{"saving":9,"hexToken":"20756e20"},{"saving":9,"hexToken":"6c617320"},{"saving":9,"hexToken":"656e7461"},{"saving":9,"hexToken":"20646573"},{"saving":9,"hexToken":"20616c20"},{"saving":9,"hexToken":"61646120"},{"saving":9,"hexToken":"617320"},{"saving":9,"hexToken":"657320"},{"saving":9,"hexToken":"6f7320"},{"saving":9,"hexToken":"207920"},{"saving":9,"hexToken":"61646f"},{"saving":9,"hexToken":"746520"},{"saving":9,"hexToken":"616461"},{"saving":9,"hexToken":"6c6120"},{"saving":9,"hexToken":"656e74"},{"saving":9,"hexToken":"726573"},{"saving":9,"hexToken":"717565"},{"saving":9,"hexToken":"616e20"},{"saving":9,"hexToken":"6f2070"},{"saving":9,"hexToken":"726563"},{"saving":9,"hexToken":"69646f"},{"saving":9,"hexToken":"732c20"},{"saving":9,"hexToken":"616e74"},{"saving":9,"hexToken":"696e61"},{"saving":9,"hexToken":"696461"},{"saving":9,"hexToken":"6c6172"},{"saving":9,"hexToken":"65726f"},{"saving":9,"hexToken":"6d706c"},{"saving":9,"hexToken":"6120"},{"saving":9,"hexToken":"6f20"},{"saving":9,"hexToken":"6572"},{"saving":9,"hexToken":"6573"},{"saving":9,"hexToken":"6f72"},{"saving":9,"hexToken":"6172"},{"saving":9,"hexToken":"616c"},{"saving":9,"hexToken":"656e"},{"saving":9,"hexToken":"6173"},{"saving":9,"hexToken":"6f73"},{"saving":9,"hexToken":"6520"},{"saving":9,"hexToken":"616e"},{"saving":9,"hexToken":"656c"},{"saving":9,"hexToken":"6f6e"},{"saving":9,"hexToken":"696e"},{"saving":9,"hexToken":"6369"},{"saving":9,"hexToken":"756e"},{"saving":9,"hexToken":"2e20"},{"saving":9,"hexToken":"636f"},{"saving":9,"hexToken":"7265"},{"saving":9,"hexToken":"6469"},{"saving":9,"hexToken":"2c20"},{"saving":9,"hexToken":"7572"},{"saving":9,"hexToken":"7472"},{"saving":9,"hexToken":"6465"},{"saving":9,"hexToken":"7375"},{"saving":9,"hexToken":"6162"},{"saving":9,"hexToken":"6f6c"},{"saving":9,"hexToken":"616d"},{"saving":9,"hexToken":"7374"},{"saving":9,"hexToken":"6375"},{"saving":9,"hexToken":"7320"},{"saving":9,"hexToken":"6163"},{"saving":9,"hexToken":"696c"},{"saving":9,"hexToken":"6772"},{"saving":9,"hexToken":"6164"},{"saving":9,"hexToken":"7465"},{"saving":9,"hexToken":"7920"},{"saving":9,"hexToken":"696d"},{"saving":9,"hexToken":"746f"},{"saving":9,"hexToken":"7565"},{"saving":9,"hexToken":"7069"},{"saving":9,"hexToken":"6775"},{"saving":9,"hexToken":"6368"},{"saving":9,"hexToken":"6361"},{"saving":9,"hexToken":"6c61"},{"saving":9,"hexToken":"6e20"},{"saving":9,"hexToken":"726f"},{"saving":9,"hexToken":"7269"},{"saving":9,"hexToken":"6c6f"},{"saving":9,"hexToken":"6d69"},{"saving":9,"hexToken":"6c20"},{"saving":9,"hexToken":"7469"},{"saving":9,"hexToken":"6f62"},{"saving":9,"hexToken":"6d65"},{"saving":9,"hexToken":"7369"},{"saving":9,"hexToken":"7065"},{"saving":9,"hexToken":"206e"},{"saving":9,"hexToken":"7475"},{"saving":9,"hexToken":"6174"},{"saving":9,"hexToken":"6669"},{"saving":9,"hexToken":"646f"},{"saving":9,"hexToken":"656d"},{"saving":9,"hexToken":"6179"},{"saving":9,"hexToken":"222e"},{"saving":9,"hexToken":"6c6c"}], "saving": 99999}}';
 $compressionJSON_EN  = '{"compression": "full","tokenDetails": {"tokens": [{"saving":9,"hexToken":"2074686520"},{"saving":9,"hexToken":"20796f7520"},{"saving":9,"hexToken":"2061726520"},{"saving":9,"hexToken":"696e6720"},{"saving":9,"hexToken":"20746f20"},{"saving":9,"hexToken":"20616e64"},{"saving":9,"hexToken":"20697320"},{"saving":9,"hexToken":"596f7520"},{"saving":9,"hexToken":"616e6420"},{"saving":9,"hexToken":"54686520"},{"saving":9,"hexToken":"6e277420"},{"saving":9,"hexToken":"206f6620"},{"saving":9,"hexToken":"20796f75"},{"saving":9,"hexToken":"696e67"},{"saving":9,"hexToken":"656420"},{"saving":9,"hexToken":"206120"},{"saving":9,"hexToken":"206f70"},{"saving":9,"hexToken":"697468"},{"saving":9,"hexToken":"6f7574"},{"saving":9,"hexToken":"656e74"},{"saving":9,"hexToken":"20746f"},{"saving":9,"hexToken":"20696e"},{"saving":9,"hexToken":"616c6c"},{"saving":9,"hexToken":"207468"},{"saving":9,"hexToken":"206974"},{"saving":9,"hexToken":"746572"},{"saving":9,"hexToken":"617665"},{"saving":9,"hexToken":"206265"},{"saving":9,"hexToken":"766572"},{"saving":9,"hexToken":"686572"},{"saving":9,"hexToken":"616e64"},{"saving":9,"hexToken":"656172"},{"saving":9,"hexToken":"596f75"},{"saving":9,"hexToken":"206f6e"},{"saving":9,"hexToken":"656e20"},{"saving":9,"hexToken":"6f7365"},{"saving":9,"hexToken":"6e6f"},{"saving":9,"hexToken":"6963"},{"saving":9,"hexToken":"6170"},{"saving":9,"hexToken":"2062"},{"saving":9,"hexToken":"6768"},{"saving":9,"hexToken":"2020"},{"saving":9,"hexToken":"6164"},{"saving":9,"hexToken":"6973"},{"saving":9,"hexToken":"2063"},{"saving":9,"hexToken":"6972"},{"saving":9,"hexToken":"6179"},{"saving":9,"hexToken":"7572"},{"saving":9,"hexToken":"756e"},{"saving":9,"hexToken":"6f6f"},{"saving":9,"hexToken":"2064"},{"saving":9,"hexToken":"6c6f"},{"saving":9,"hexToken":"726f"},{"saving":9,"hexToken":"6163"},{"saving":9,"hexToken":"7365"},{"saving":9,"hexToken":"7269"},{"saving":9,"hexToken":"6c69"},{"saving":9,"hexToken":"7469"},{"saving":9,"hexToken":"6f6d"},{"saving":9,"hexToken":"626c"},{"saving":9,"hexToken":"636b"},{"saving":9,"hexToken":"4920"},{"saving":9,"hexToken":"6564"},{"saving":9,"hexToken":"6565"},{"saving":9,"hexToken":"2066"},{"saving":9,"hexToken":"6861"},{"saving":9,"hexToken":"7065"},{"saving":9,"hexToken":"6520"},{"saving":9,"hexToken":"7420"},{"saving":9,"hexToken":"696e"},{"saving":9,"hexToken":"7320"},{"saving":9,"hexToken":"7468"},{"saving":9,"hexToken":"2c20"},{"saving":9,"hexToken":"6572"},{"saving":9,"hexToken":"6420"},{"saving":9,"hexToken":"6f6e"},{"saving":9,"hexToken":"746f"},{"saving":9,"hexToken":"616e"},{"saving":9,"hexToken":"6172"},{"saving":9,"hexToken":"656e"},{"saving":9,"hexToken":"6f75"},{"saving":9,"hexToken":"6f72"},{"saving":9,"hexToken":"7374"},{"saving":9,"hexToken":"2e20"},{"saving":9,"hexToken":"6f77"},{"saving":9,"hexToken":"6c65"},{"saving":9,"hexToken":"6174"},{"saving":9,"hexToken":"616c"},{"saving":9,"hexToken":"7265"},{"saving":9,"hexToken":"7920"},{"saving":9,"hexToken":"6368"},{"saving":9,"hexToken":"616d"},{"saving":9,"hexToken":"656c"},{"saving":9,"hexToken":"2077"},{"saving":9,"hexToken":"6173"},{"saving":9,"hexToken":"6573"},{"saving":9,"hexToken":"6974"},{"saving":9,"hexToken":"2073"},{"saving":9,"hexToken":"6c6c"},{"saving":9,"hexToken":"646f"},{"saving":9,"hexToken":"6f70"},{"saving":9,"hexToken":"7368"},{"saving":9,"hexToken":"6d65"},{"saving":9,"hexToken":"6865"},{"saving":9,"hexToken":"626f"},{"saving":9,"hexToken":"6869"},{"saving":9,"hexToken":"6361"},{"saving":9,"hexToken":"706c"},{"saving":9,"hexToken":"696c"},{"saving":9,"hexToken":"636c"},{"saving":9,"hexToken":"2061"},{"saving":9,"hexToken":"6f66"},{"saving":9,"hexToken":"2068"},{"saving":9,"hexToken":"7474"},{"saving":9,"hexToken":"6d6f"},{"saving":9,"hexToken":"6b65"},{"saving":9,"hexToken":"7665"},{"saving":9,"hexToken":"736f"},{"saving":9,"hexToken":"652e"},{"saving":9,"hexToken":"642e"},{"saving":9,"hexToken":"742e"},{"saving":9,"hexToken":"7669"},{"saving":9,"hexToken":"6c79"},{"saving":9,"hexToken":"6964"},{"saving":9,"hexToken":"7363"},{"saving":9,"hexToken":"2070"},{"saving":9,"hexToken":"656d"},{"saving":9,"hexToken":"7220"},{"saving":9,"hexToken":""},], "saving": 1000}}';
+
+function extecho($message)
+{
+    $str = '';
+    for($n=0;$n<strlen($message);$n++)
+        if ((ord($message[$n])>127) || (ord($message[$n])<32)) $str .= ( '#('. ord($message[$n]) .')'); else $str .= ($message[$n]);
+
+    return $str;
+
+}
 
 function generateTokens(&$adventure, &$currentAddress, $outputFileHandler, $hasTokens, $compressionData, &$savings)
 {
@@ -87,29 +97,31 @@ function generateTokens(&$adventure, &$currentAddress, $outputFileHandler, $hasT
         // Compress the message tables
         $totalSaving = 0;
         $compressableTables = getCompressableTables($compressionData->compression,$adventure);
-        foreach ($compressableTables as $compressableTable)
-            for ($i=0;$i<sizeof($compressableTable);$i++)
-            {
-                $message = $compressableTable[$i]->Text;
-                for ($j=0;$j<sizeof($compressionData->tokenDetails->tokens);$j++)
-                {
-                    $token = $compressionData->tokenDetails->tokens[$j];
-                    $newMessage = str_replace($token->token,chr($j+127), $message);
-                    $totalSaving += (strlen($message) - strlen($newMessage));
-                    $message = $newMessage;
-                }
-                $compressableTable[$i]->Text = $message;
-            }
-        if ($totalSaving == 0) Error('Could not apply any text compression, TOK file maybe not for this game?. Stopping');
-        // Dump tokens to file
-        foreach ($compressionData->tokenDetails->tokens as $token)
+        for ($j=0;$j<sizeof($compressionData->tokenDetails->tokens);$j++)
         {
+            $token = $compressionData->tokenDetails->tokens[$j];
+            foreach ($compressableTables as $compressableTable)
+                for ($i=0;$i<sizeof($compressableTable);$i++)
+                {
+                    $message = $compressableTable[$i]->Text;
+                    $parts = explode($token->token, $message);
+                    $newMessage = implode(chr($j+127), $parts);
+                    if ($message!=$newMessage) extecho("$message   ==> $newMessage\n");
+                    $totalSaving += (strlen($message) - strlen($newMessage));
+                    $compressableTable[$i]->Text = $newMessage;;
+                }
+        }
+        // Dump tokens to file
+        for ($j=0;$j<sizeof($compressionData->tokenDetails->tokens);$j++)
+        {
+            $token = $compressionData->tokenDetails->tokens[$j];
             $tokenStr = $token->token;
             $tokenLength = strlen($tokenStr);
+            
             for ($i=0;$i<$tokenLength;$i++) 
             {
                 $shift = ($i == $tokenLength-1) ? 128 : 0;
-                $c = $tokenStr[$i];
+                $c = substr($tokenStr, $i, 1);
                 writeByte($outputFileHandler, ord($c) + $shift);
                 $currentAddress++;
             }
@@ -201,7 +213,7 @@ function replaceChars($str)
     // Add #A to #P to replacements array
     for ($i=ord('A');$i<=ord('P');$i++) $replacements["#" . chr($i)]= $i + 0x10 - ord('A');
 
-    $oldSequenceWarning = false;
+    $oldSequenceWarnRFing = false;
     foreach ($replacements as $search=>$replace)
     {
         // Check the string does not contain old escape sequences using baskslash, print warning otherwise
@@ -244,7 +256,7 @@ function generateMessages($messageList, &$currentAddress, $outputFileHandler,  $
         $messageOffsets[$messageID] = $currentAddress;
         $message = $messageList[$messageID];
         for ($i=0;$i<strlen($message->Text);$i++)
-        {
+        {   
             writeByte($outputFileHandler, ord($message->Text[$i]) ^ OFUSCATE_VALUE);
             $currentAddress++;
         }
@@ -562,22 +574,23 @@ function isValidTarget($target)
 
 function getMachineIDByTarget($target)
 {
-  if ($target=='PC') return 0; else
-  if ($target=='ZX') return 1; else
-  if ($target=='C64') return 2; else
-  if ($target=='CPC') return 3; else
-  if ($target=='MSX') return 4; else
-  if ($target=='ST') return 6; else
-  if ($target=='AMIGA') return 7; else
-  if ($target=='MSX2') return 100; else
-  if ($target=='PCW') return 8;
+  if ($target=='PC')    return 0x00; else
+  if ($target=='ZX')    return 0x01; else
+  if ($target=='C64')   return 0x02; else
+  if ($target=='CPC')   return 0x03; else
+  if ($target=='MSX')   return 0x04; else
+  if ($target=='ST')    return 0x05; else
+  if ($target=='AMIGA') return 0x06; else
+  if ($target=='PCW')   return 0x07; else
+  if ($target=='MSX2')  return 0x80;        // New target for @ishwin interpreter
 };  
 
 function getBaseAddressByTarget($target)
 {
-  if ($target=='ZX') return 0x8400; else
-  if ($target=='MSX') return 0x100; else
+  if ($target=='ZX')  return 0x8400; else
+  if ($target=='MSX') return 0x0100; else
   if ($target=='CPC') return 0x2880; else
+  if ($target=='PCW') return 0x100; else
   if ($target=='C64') return 0x3880; else return 0;
 };
 
@@ -753,7 +766,9 @@ $hasTokens = ($compressionData->compression!='none');
 
 for ($j=0;$j<sizeof($compressionData->tokenDetails->tokens);$j++)
 {
-    $compressionData->tokenDetails->tokens[$j]->token = hex2str($compressionData->tokenDetails->tokens[$j]->hexToken);
+    $token = $compressionData->tokenDetails->tokens[$j]->hexToken;
+    $token = hex2str($token);
+    $compressionData->tokenDetails->tokens[$j]->token = $token;
 }
 
 // DumpExterns
@@ -767,7 +782,7 @@ addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Dump tokens for compression and compress text sections (if possible)
 if ($hasTokens) $compressedTextOffset = $currentAddress; else $compressedTextOffset = 0; // If no compression, the header should have 0x0000 in the compression pointer
 echo "Tokens            [" . prettyFormat($compressedTextOffset) . "]\n";
-generateTokens($adventure, $currentAddress, $outputFileHandler, $hasTokens, $compressionData, $textSavings);
+generateTokens($adventure , $currentAddress, $outputFileHandler, $hasTokens, $compressionData, $textSavings);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Sysmess
 generateSTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
