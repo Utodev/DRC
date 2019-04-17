@@ -35,6 +35,7 @@ END;
 PROCEDURE Scan();
 VAR MyDefine : AnsiString;
 	Evaluation : Boolean;
+	Label NextIfdef;
 BEGIN
 	IF (CurrTokenPTR=nil) then SyntaxError('Unexpected end of file');
 	CurrentTokenID := CurrTokenPTR^.TokenID;
@@ -42,7 +43,8 @@ BEGIN
 	// Apply IFDEF/IFNDEF
 	IF (CurrentTokenID=T_IFDEF) OR (CurrentTokenID=T_IFNDEF) THEN
 	BEGIN
-	 if CurrTokenPTR^.Next = nil THEN SyntaxError('Unexpected end of file');
+	 NextIfdef:
+	 if CurrTokenPTR^.Next = nil THEN SyntaxError('Unexpected end of file just after #ifdef/#ifndef');
 	 CurrTokenPTR := CurrTokenPTR^.Next;
 	 if CurrTokenPTR^.TokenID <> T_STRING THEN SyntaxError('Invalid #ifdef/#ifndef label, please include the label in betwween quotes');
 	 MyDefine := CurrTokenPTR^.Text;
@@ -53,19 +55,20 @@ BEGIN
 	 // IF directive failed, skip code until ENDIF
 	 IF NOT Evaluation THEN
 	 BEGIN
-	 	IF CurrentTokenID = T_IFDEF THEN Write('#ifdef') ELSE Write('#ifndef');
-	 	WriteLn(' for "' + MyDefine + '" failed.');
-	 	WHILE (CurrTokenPTR<>nil) AND (CurrTokenPTR^.TokenID<>T_ENDIF) DO  CurrTokenPTR := CurrTokenPTR^.Next;
-	 	IF (CurrTokenPTR=nil) THEN SyntaxError('Unexpected end of file');
+	 	WHILE (CurrTokenPTR<>nil) AND (CurrTokenPTR^.TokenID<>T_ENDIF) DO  
+		 BEGIN
+		 CurrTokenPTR := CurrTokenPTR^.Next;
+		 END;
+	 	IF (CurrTokenPTR=nil) THEN SyntaxError('Unexpected end of file. #ifdef/#ifndef couldn''t find #endif while in failed condition');
 	 	CurrTokenPTR:= CurrTokenPTR^.Next;
-	 	IF (CurrTokenPTR=nil) THEN SyntaxError('Unexpected end of file');
+	 	IF (CurrTokenPTR=nil) THEN SyntaxError('Unexpected end of file. #ifdef/#ifndef couldn''t find #endif while in failed condition');
 	 	CurrentTokenID := CurrTokenPTR^.TokenID;
-	 END ELSE
+		if ((CurrentTokenID = T_IFDEF) OR (CurrentTokenID = T_IFNDEF)) THEN goto NextIfdef;
+	 END 
+	 ELSE
 	 BEGIN
-	 	IF CurrentTokenID = T_IFDEF THEN Write('#ifdef') ELSE Write('#ifndef');
-	 	WriteLn(' for "' + MyDefine + '" succeeded.');
 	 	CurrTokenPTR:= CurrTokenPTR^.Next;
-	 	IF (CurrTokenPTR=nil) THEN SyntaxError('Unexpected end of file');
+	 	IF (CurrTokenPTR=nil) THEN SyntaxError('Unexpected end of file. #ifdef/#ifndef couldn''t find #endif while in successful condition');
 	 	CurrentTokenID := CurrTokenPTR^.TokenID;
 	 	OnIfdefMode := true;
 	 END;
@@ -76,9 +79,10 @@ BEGIN
 	BEGIN
 	  IF  OnIfdefMode THEN 
 	  BEGIN
-	 	CurrTokenPTR:= CurrTokenPTR^.Next;
-	 	CurrentTokenID := CurrTokenPTR^.TokenID;
-	  	OnIfdefMode:=false
+	 		CurrTokenPTR:= CurrTokenPTR^.Next;
+	 		CurrentTokenID := CurrTokenPTR^.TokenID;
+	  	OnIfdefMode:=false;
+			if ((CurrentTokenID = T_IFDEF) OR (CurrentTokenID = T_IFNDEF)) THEN goto NextIfdef;
 	  END ELSE SyntaxError('#endif without #ifdef/#ifndef');
 	END;
 
@@ -186,7 +190,7 @@ BEGIN
 		Scan();
 		IF (CurrentTokenID <> TerminatorToken)  THEN
 		BEGIN
-			IF (CurrentTokenID<>T_LIST_ENTRY) THEN SyntaxError('Entry number expected');
+			IF (CurrentTokenID<>T_LIST_ENTRY) THEN SyntaxError('Entry number expected' + IntToStr(CurrentTokenID));
 			Value := CurrentIntVal;
 			Scan();
 			IF (CurrentTokenID<>T_STRING) THEN SyntaxError('String between quotes expected');
