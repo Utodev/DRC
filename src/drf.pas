@@ -41,6 +41,7 @@ VAR Target: String;
 
 
 PROCEDURE CompileForTarget(Target: String; OutputFileName: String);
+var machine : AnsiString;
 BEGIN
  Writeln('Opening ' + InputFileName);
   AssignFile(yyinput, InputFileName);
@@ -50,14 +51,19 @@ BEGIN
   WriteLn('Checking Lexer...');
   yylex();
   // Create some useful built-in symbols
+  // The target
   AddSymbol(SymbolTree, Target, 1);
+  machine :=AnsiUpperCase(Target);
+  // The target superset BIT8 or BIT16
+  if (machine='ZX') OR (machine='CPC') OR (machine='PCW') OR (machine='MSX') OR (machine='C64') or (MACHINE='MSX2') THEN AddSymbol(SymbolTree, 'BIT8', 1);
+  if (machine='PC') OR (machine='AMIGA') OR (machine='ST') THEN   AddSymbol(SymbolTree, 'BIT16', 1);
   AddSymbol(SymbolTree, 'CARRIED', LOC_CARRIED);
   AddSymbol(SymbolTree, 'NOT_CREATED', LOC_NOT_CREATED);
   AddSymbol(SymbolTree, 'NON_CREATED', LOC_NOT_CREATED);
   AddSymbol(SymbolTree, 'WORN', LOC_WORN);
   AddSymbol(SymbolTree, 'HERE', LOC_HERE);
   AddSymbol(SymbolTree, 'HERE', LOC_HERE);
- 
+  
   WriteLn('Checking Syntax...');
   Sintactic();
   WriteLn('Generating output...');
