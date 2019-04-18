@@ -96,6 +96,7 @@ function generateTokens(&$adventure, &$currentAddress, $outputFileHandler, $hasT
     {
         // Compress the message tables
         $totalSaving = 0;
+        $usedTokens = array();
         $compressableTables = getCompressableTables($compressionData->compression,$adventure);
         for ($j=0;$j<sizeof($compressionData->tokenDetails->tokens);$j++)
         {
@@ -105,6 +106,7 @@ function generateTokens(&$adventure, &$currentAddress, $outputFileHandler, $hasT
                 {
                     $message = $compressableTable[$i]->Text;
                     $parts = explode($token->token, $message);
+                    if (sizeof($parts)>1) $usedTokens[] = $j;
                     $newMessage = implode(chr($j+127), $parts);
                     if ($message!=$newMessage) extecho("$message   ==> $newMessage\n");
                     $totalSaving += (strlen($message) - strlen($newMessage));
@@ -117,6 +119,8 @@ function generateTokens(&$adventure, &$currentAddress, $outputFileHandler, $hasT
             $token = $compressionData->tokenDetails->tokens[$j];
             $tokenStr = $token->token;
             $tokenLength = strlen($tokenStr);
+            // If a given token was not used at all cause the token was not included in any text, we dump a fake token with just one character (won't ever be used anyway) to save space
+            if (!in_array($j, $usedTokens)) $tokenLength=1;
             
             for ($i=0;$i<$tokenLength;$i++) 
             {
