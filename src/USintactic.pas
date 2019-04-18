@@ -211,7 +211,7 @@ BEGIN
 		Scan();
 		IF (CurrentTokenID <> TerminatorToken)  THEN
 		BEGIN
-			IF (CurrentTokenID<>T_LIST_ENTRY) THEN SyntaxError('Entry number expected' + IntToStr(CurrentTokenID));
+			IF (CurrentTokenID<>T_LIST_ENTRY) THEN SyntaxError('Entry number expected');
 			Value := CurrentIntVal;
 			Scan();
 			IF (CurrentTokenID<>T_STRING) THEN SyntaxError('String between quotes expected');
