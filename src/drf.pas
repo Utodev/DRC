@@ -31,6 +31,19 @@ BEGIN
 	Halt(2);
 END;	
 
+FUNCTION getColsByTarget(Target:String):Byte;
+BEGIN
+ IF Target = 'PC' THEN Result := 53 ELSE
+ IF Target = 'ZX' THEN Result := 42 ELSE
+ IF Target = 'C64' THEN Result := 40 ELSE
+ IF Target = 'CPC' THEN Result := 40 ELSE
+ IF Target = 'MSX' THEN Result := 42 ELSE
+ IF Target = 'ST' THEN Result := 53 ELSE
+ IF Target = 'AMIGA' THEN Result := 53 ELSE
+ IF Target = 'PCW' THEN Result := 90 
+ ELSE Result :=42;  // Conservative
+ END;
+
 // Global vars
 
 VAR Target: String;
@@ -42,6 +55,7 @@ VAR Target: String;
 
 PROCEDURE CompileForTarget(Target: String; OutputFileName: String);
 var machine : AnsiString;
+   cols: byte;
 BEGIN
  Writeln('Opening ' + InputFileName);
   AssignFile(yyinput, InputFileName);
@@ -57,7 +71,10 @@ BEGIN
   // The target superset BIT8 or BIT16
   if (machine='ZX') OR (machine='CPC') OR (machine='PCW') OR (machine='MSX') OR (machine='C64') or (MACHINE='MSX2') THEN AddSymbol(SymbolTree, 'BIT8', 1);
   if (machine='PC') OR (machine='AMIGA') OR (machine='ST') THEN   AddSymbol(SymbolTree, 'BIT16', 1);
-  AddSymbol(SymbolTree, 'CARRIED', LOC_CARRIED);
+  // add COLS Symbol
+  cols := getColsByTarget(Target);
+  if (cols<>0) THEN AddSymbol(SymbolTree, 'COLS', cols);
+    AddSymbol(SymbolTree, 'CARRIED', LOC_CARRIED);
   AddSymbol(SymbolTree, 'NOT_CREATED', LOC_NOT_CREATED);
   AddSymbol(SymbolTree, 'NON_CREATED', LOC_NOT_CREATED);
   AddSymbol(SymbolTree, 'WORN', LOC_WORN);
