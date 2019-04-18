@@ -20,6 +20,7 @@
 #ifdef			BEGIN  AddToken(TokenList, T_IFDEF, yytext, MaxLongInt, yylineno, yycolno); END;
 #ifndef			BEGIN  AddToken(TokenList, T_IFNDEF, yytext, MaxLongInt, yylineno, yycolno); END;
 #endif			BEGIN  AddToken(TokenList, T_ENDIF, yytext, MaxLongInt, yylineno, yycolno); END;
+#else           BEGIN  AddToken(TokenList, T_ELSE, yytext, MaxLongInt, yylineno, yycolno); END;
 #db				BEGIN  AddToken(TokenList, T_DB, yytext, MaxLongInt, yylineno, yycolno); END;
 #extern			BEGIN  AddToken(TokenList, T_EXTERN, yytext, MaxLongInt, yylineno, yycolno); END;
 #incbin			BEGIN  AddToken(TokenList, T_INCBIN, yytext, MaxLongInt, yylineno, yycolno); END;

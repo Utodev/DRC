@@ -29,6 +29,7 @@ const T_DB=278;
 const T_INCBIN=279;
 const T_EXTERN=280;
 const T_CLASSIC=281;
+const T_ELSE=282;
 
 IMPLEMENTATION
 END.

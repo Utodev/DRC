@@ -22,6 +22,7 @@ VAR CurrentText: AnsiString;
 	CurrColno : Word;
 	CurrTokenPTR: TPTokenList;
 	OnIfdefMode : boolean;
+	OnElse : boolean;
 
 
 
@@ -35,10 +36,11 @@ END;
 PROCEDURE Scan();
 VAR MyDefine : AnsiString;
 	Evaluation : Boolean;
-	Label NextIfdef;
+	Label NextIfdef, ElsePoint,ELSEDoNotProcess ;
 BEGIN
 	IF (CurrTokenPTR=nil) then SyntaxError('Unexpected end of file');
 	CurrentTokenID := CurrTokenPTR^.TokenID;
+
 
 	// Apply IFDEF/IFNDEF
 	IF (CurrentTokenID=T_IFDEF) OR (CurrentTokenID=T_IFNDEF) THEN
@@ -52,27 +54,45 @@ BEGIN
 	 Evaluation:= GetSymbolValue(SymbolTree, MyDefine)<>MAXINT;
 	 IF CurrentTokenID = T_IFNDEF THEN Evaluation:= not Evaluation;
 
-	 // IF directive failed, skip code until ENDIF
+	 // IF directive failed, skip code until ENDIF or ELSE
 	 IF NOT Evaluation THEN
 	 BEGIN
-	 	WHILE (CurrTokenPTR<>nil) AND (CurrTokenPTR^.TokenID<>T_ENDIF) DO  
+	 	ELSEDoNotProcess:
+		CurrTokenPTR := CurrTokenPTR^.Next;
+	 	WHILE (CurrTokenPTR<>nil) AND (CurrTokenPTR^.TokenID<>T_ENDIF)  AND (CurrTokenPTR^.TokenID<>T_ELSE) DO 
 		 BEGIN
-		 CurrTokenPTR := CurrTokenPTR^.Next;
-		 END;
-	 	IF (CurrTokenPTR=nil) THEN SyntaxError('Unexpected end of file. #ifdef/#ifndef couldn''t find #endif while in failed condition');
+		 	CurrTokenPTR := CurrTokenPTR^.Next;
+			CurrentTokenID := CurrTokenPTR^.TokenID;
+		END;	 
+		IF (CurrTokenPTR=nil) THEN SyntaxError('Unexpected end of file. #ifdef/#ifndef couldn''t find #endif while in failed condition');
+		
+		IF (CurrentTokenID=T_ELSE) AND (NOT OnElse) THEN 
+		BEGIN
+		 OnElse := true;
+		 GOTO ElsePoint;
+		END; 
+		IF (CurrentTokenID=T_ELSE) AND (OnElse) THEN SyntaxError('Nested #else');			
 	 	CurrTokenPTR:= CurrTokenPTR^.Next;
 	 	IF (CurrTokenPTR=nil) THEN SyntaxError('Unexpected end of file. #ifdef/#ifndef couldn''t find #endif while in failed condition');
 	 	CurrentTokenID := CurrTokenPTR^.TokenID;
-		if ((CurrentTokenID = T_IFDEF) OR (CurrentTokenID = T_IFNDEF)) THEN goto NextIfdef;
+		IF ((CurrentTokenID = T_IFDEF) OR (CurrentTokenID = T_IFNDEF)) THEN goto NextIfdef;
 	 END 
 	 ELSE
 	 BEGIN
+	  ElsePoint:
 	 	CurrTokenPTR:= CurrTokenPTR^.Next;
-	 	IF (CurrTokenPTR=nil) THEN SyntaxError('Unexpected end of file. #ifdef/#ifndef couldn''t find #endif while in successful condition');
+	 	IF (CurrTokenPTR=nil) THEN SyntaxError('Unexpected end of file. #ifdef/#ifndef(#else) couldn''t find #endif while in successful condition');
 	 	CurrentTokenID := CurrTokenPTR^.TokenID;
 	 	OnIfdefMode := true;
 	 END;
 	END;
+
+	//Apply ELSE
+	IF (CurrentTokenID=T_ELSE) THEN 
+	BEGIN
+    OnElse := true;
+	  Goto ELSEDoNotProcess;
+	END;	
 
 	// Apply ENDIF
 	IF (CurrentTokenID=T_ENDIF) THEN
@@ -82,6 +102,7 @@ BEGIN
 	 		CurrTokenPTR:= CurrTokenPTR^.Next;
 	 		CurrentTokenID := CurrTokenPTR^.TokenID;
 	  	OnIfdefMode:=false;
+			OnElse := false;
 			if ((CurrentTokenID = T_IFDEF) OR (CurrentTokenID = T_IFNDEF)) THEN goto NextIfdef;
 	  END ELSE SyntaxError('#endif without #ifdef/#ifndef');
 	END;
@@ -519,6 +540,7 @@ BEGIN
 	CurrTokenPTR := TokenList;
 	ClassicMode := false;
 	OnIfdefMode := false;
+	OnElse := false;
 	MTXCount := 0;
 	STXCount := 0;
 	LTXCount := 0;
