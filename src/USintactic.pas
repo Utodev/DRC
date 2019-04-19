@@ -217,6 +217,7 @@ BEGIN
 			IF (CurrentTokenID<>T_STRING) THEN SyntaxError('String between quotes expected');
 			Message := Copy(CurrentText, 2, Length(CurrentText)-2);
 			if (Value<>AMessageCOunter) THEN SyntaxError('Message/Locations/Object numbers must be consecutive');
+			if (Value>=MAX_MESSAGES_PER_TABLE) THEN SyntaxError('Message number too high. Maximum message number is ' + IntToStr(MAX_MESSAGES_PER_TABLE-1));
 			AddMessage(AMessageList,  Value, Message);
 			Inc(AMessageCOunter);
 		END;
@@ -563,7 +564,8 @@ BEGIN
 	ParseOBJ();
 	WriteLn('PRO...');
 	ParsePRO();
-	WriteLn('Input file parse completed...');
+  WriteLn('Input file parse completed...');
+
 END;
 
 END.
