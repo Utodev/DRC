@@ -14,8 +14,8 @@ USES sysutils, UConstants, UVocabularyTree, UMessageList, UConnections, UObjects
 
 VAR Indent : Byte;
 
-FUNCTION tabs(): String;
-VAR AuxStr : String;
+FUNCTION tabs(): AnsiString;
+VAR AuxStr : AnsiString;
     i : integer;
 BEGIN
     AuxStr:='';
