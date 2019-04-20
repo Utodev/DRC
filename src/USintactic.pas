@@ -395,7 +395,7 @@ BEGIN
 		Scan(); // Get Condact
 		IF (CurrentTokenID <> T_IDENTIFIER)  AND (CurrentTokenID<>T_UNDERSCORE) 
 		    AND (CurrentTokenID<>T_SECTION_PRO) AND (CurrentTokenID<>T_SECTION_END) 
-		    AND (CurrentTokenID<>T_INCBIN) AND (CurrentTokenID<>T_DB) THEN SyntaxError('Condact or new process entry expected');
+		    AND (CurrentTokenID<>T_INCBIN) AND (CurrentTokenID<>T_DB) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Condact or new process entry expected');
 		IF (CurrentTokenID<>T_INCBIN) AND (CurrentTokenID<>T_DB) THEN
 		BEGIN
 			Opcode := GetCondact(CurrentText);
@@ -481,9 +481,9 @@ VAR TheWord: AnsiString;
 BEGIN
 	Scan(); // Get Verb
 	REPEAT
-		IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_UNDERSCORE) AND (CurrentTokenID<>T_SECTION_PRO) THEN SyntaxError('Vocabulary verb expected');
-                IF (CurrentTokenID <> T_SECTION_PRO) THEN
-                BEGIN
+		IF (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_UNDERSCORE) AND (CurrentTokenID<>T_SECTION_PRO) THEN SyntaxError('Vocabulary verb expected');
+      IF (CurrentTokenID <> T_SECTION_PRO) THEN
+      BEGIN
 		  IF (CurrentTokenID = T_UNDERSCORE) THEN Verb := NO_WORD
 		  ELSE
 		  BEGIN
@@ -500,7 +500,7 @@ BEGIN
 		  END;
 
 		  Scan(); // Get Noun
-		  IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_UNDERSCORE) THEN SyntaxError('Vocabulary noun expected');
+		  IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_UNDERSCORE) THEN SyntaxError('Vocabulary noun expected');
 		  IF (CurrentTokenID = T_UNDERSCORE) THEN Noun := NO_WORD
 		  ELSE
 		  BEGIN
