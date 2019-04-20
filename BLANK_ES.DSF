@@ -1,46 +1,56 @@
-; Este es el fichero de inicio de la librerÌa para DAAD Reborn Compiler en espa√±ol
+; Este es el fichero de inicio de la librer√≠a para DAAD Reborn Compiler en espa√±ol
 
 
-/CTL    ;Secci¬¢n de control
-#extern "MLV_ESX.BIN"
+/CTL
+_
+;#extern "MLV_ESX.BIN"
 ;#classic
+
 #define TIMEOUT   87            ;If Timeout last frame
 
 ; System flags 0-63
-#define fDark      0
-#define fDarkF    28
-#define fGFlags   29     ; This is best tested using HASAT GMODE
-#define fTurns    31     ; 2 bytes
-#define fTurnsHi  32
+#define fDark               0
+#define fObjectsCarried     1
 
-#define fVerb     33
-#define fMaxCarr  37
-#define fPlayer   38
-#define fCPNoun   46
-#define fCPAdject 47
-#define fTime     48
-#define fTIFlags  49
-#define fDAObjNo  50
-#define fCONum    51
-#define fStrength 52
-#define fOFlags   53
-#define fCOLoc    54
-#define fCOWei    55
-#define fCOCon    56
-#define fCOWR     57
-#define fCOAtt    58
-#define fKey1     60
-#define fKey2     61
-#define fScMode   62     ; 2=Text, 4=CGA, 13=EGA, 141=VGA
-#define fCurWin   63     ; Which window is active at the moment
-#define kk fCurWIn
+#define fDarkF              28
+#define fGFlags             29     ; This is best tested using HASAT GMODE
+#define fScore              30
+#define fTurns              31    ; 2 bytes
+#define fTurnsHi            32
+
+#define fVerb               33
+#define fNoun               34
+#define fAdject1            35
+#define fAdverb             36
+#define fMaxCarr            37
+#define fPlayer             38
+#define fPrep               43
+#define fNoun2              44
+#define fAdject2            45
+#define fCPronounNoun       46
+#define fCPronounAdject     47
+#define fTimeout            48
+#define fTimeoutFlags       49
+#define fDoallObjNo         50
+#define fRefObject          51
+#define fStrength           52
+#define fObjFlags           53
+#define fRefObjLoc          54
+#define fRefObjWeight       55
+#define fRefObjIsContainer  56
+#define fRefObjisWearable   57
+#define fRefObjAttr1        58
+#define fRefObjAttr2        59
+#define fInkeyKey1          60
+#define fInkeyKey2          61
+#define fScreenMode         62     ; 2=Text, 4=CGA, 13=EGA, 141=VGA
+#define fCurrentWindow      63     ; Which window is active at the moment
 ;
 ;
 ;------------------------------------------------------------------------------
-/VOC    ;Vocabulario
+/VOC
 ;                       Movimiento: verbos y nombres < 14
 N       2       noun
-NÛ      2  noun
 NORTE   2       noun
 S       3       noun
 SUR     3       noun
@@ -67,7 +77,7 @@ TODOS   20      noun
 TODAS   20      noun
 ;
 LINTER  100     noun
-CAZO    101     noun
+
 ;                       Verbs
 COGER   20      verb
 DEJAR   21      verb
@@ -76,15 +86,13 @@ QUITAR  22      verb
 PONER   23      verb
 R       24      verb
 REDES   24      verb
-F       25      verb
+MIRAR   24      verb
+M       24      verb
 FIN     25      verb
 SAVE    26      verb
-SV      26      verb
 LOAD    27      verb
-LD      27      Verb
 RAMSA   28      verb
 RAMLO   29      verb
-MIRAR   30      verb
 EX      30      verb
 EXAMI   30      verb
 DECIR   31      verb
@@ -126,8 +134,8 @@ ENTONCE 2       conjugation
 LUEGO   2       conjugation
 ;
 ;------------------------------------------------------------------------------
-/STX    ;Mensajes del sistema
-/0 "Esta demasiado oscuro para ver nada."
+/STX
+/0 "Est· demasiado oscuro para ver nada."
 /1 "TambiÈn puedo ver:"
 /2 "#n"
 /3 "#n"
@@ -170,7 +178,7 @@ LUEGO   2       conjugation
 /40 "No puedo ponerme _."
 /41 "No puedo quitarme _."
 /42 "No puedo quitarme _.  No puedo llevar nada m·s en las manos."
-/43 "@ pesa demasiado para mÌ."
+/43 "@ pesa demasiado para mi."
 /44 "@ est· en"
 /45 "@ no est· en"
 /46 ", "
@@ -191,54 +199,40 @@ LUEGO   2       conjugation
 /61 "Pon en marcha la cinta."
 /62 "øCinta o disco?"
 ;------------------------------------------------------------------------------
-/MTX    ;Mensajes
-/0 "PRUEBA: Ò—·ÈÌÛ˙¸Á«°ø"
-/1 "BEGIN En un lugar de la Mancha, de cuyo nombre no quiero acordarme, no ha mucho tiempo que vivÌa un hidalgo de los de lanza en astillero, adarga antigua, rocÌn flaco y galgo corredor. Una olla de algo m·s vaca que carnero, salpicÛn las m·s noches, duelos y quebrantos los s·bados, lentejas los viernes, alg˙n palomino de aÒadidura los domingos, consumÌan las tres partes de su hacienda. El resto della concluÌan sayo de velarte, calzas de velludo para las fiestas con sus pantuflos de lo mismo, los dÌas de entre semana se honraba con su vellori de lo m·s fino. TenÌa en su casa una ama que pasaba de los cuarenta, y una sobrina que no llegaba a los veinte, y un mozo de campo y plaza, que asÌ ensillaba el rocÌn como tomaba la podadera. Frisaba la edad de nuestro hidalgo con los cincuenta aÒos, era de complexiÛn recia, seco de carnes, enjuto de rostro; gran madrugador y amigo de la caza. Quieren decir que tenÌa el sobrenombre de Quijada o Quesada (que en esto hay alguna diferencia en los autores que deste caso escriben), aunque por conjeturas verosÌmiles se deja entender que se llama Quijana; pero esto importa poco a nuestro cuento; basta que en la narraciÛn dÈl no se salga un punto de la verdad. Es, pues, de saber, que este sobredicho hidalgo, los ratos que estaba ocioso (que eran los m·s del aÒo) se daba a leer libros de caballerÌas con tanta aficiÛn y gusto, que olvidÛ casi de todo punto el ejercicio de la caza, y aun la administraciÛn de su hacienda; y llegÛ a tanto su curiosidad y desatino en esto, que vendiÛ muchas hanegas de tierra de sembradura, para comprar libros de caballerÌas en que leer; y asÌ llevÛ a su casa todos cuantos pudo haber dellos; y de todos ningunos le parecÌan tan bien como los que compuso el famoso Feliciano de Silva: porque la claridad de su prosa, y aquellas intrincadas razones suyas, le parecÌan de perlas; y m·s cuando llegaba a leer aquellos requiebros y cartas de desafÌo, donde en muchas partes hallaba escrito: la razÛn de la sinrazÛn que a mi razÛn se hace, de tal manera mi razÛn enflaquece, que con razÛn me quejo de la vuestra fermosura, y tambiÈn cuando leÌa: los altos cielos que de vuestra divinidad divinamente con las estrellas se fortifican, y os hacen merecedora del merecimiento que merece la vuestra grandeza. END"
-/2 "Otro dÌa"
-/3 "mensaje de otros"
-/4 "Hello world"
-/5 "Hello"
-;       -       -       -       -       -       -       -       -       -
-/OTX    ;Object Texts
-/0 "Una linterna.(encendida)"
-/1 "Un cazo"
-;       -       -       -       -       -       -       -       -       -
-/LTX    ;Location Texts
-/0 "BASE DE DATOS VACIA - DAAD V2.\nGeneraciÛn de cÛdigo por compilador caÒero traido por la cig¸eÒa."
-/1 "Has entrado a la mazmorra, m˙ltiples peligros te esperan, pero tambiÈn grandes logros y enormes tesoros. "
-/2 "Estoy en la localidad numero dos. Un camino lleva al sur."
+/MTX
+;0/ "un mensaje"
 ;------------------------------------------------------------------------------
-/CON    ;Conexiones
+/OTX
+/0 "Una linterna.(encendida)"
+;------------------------------------------------------------------------------
+/LTX
+/0 "BASE DE DATOS VACIA - DAAD V2."
+/1 "Has entrado a la mazmorra, m˙ltiples peligros te esperan, pero tambiÈn grandes logros y enormes tesoros. "
+;------------------------------------------------------------------------------
+/CON
 /0
 /1
-N 2
-E 2
-S 1
-/2
-S 1
-E 1
 ;------------------------------------------------------------------------------
-/OBJ    ;Objetos
+/OBJ
 ;obj  starts  weight    c w  5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0    noun   adjective
 ;num    at
-/0      CARRIED 1       _ _  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _    LINTER  _
-/1      2       1       Y _  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _    CAZO  _
+/0      _  1       _ _  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _    LINTER  _
 ;------------------------------------------------------------------------------
-/PRO 0       ;Bucle principal de localidades
+/PRO 0
 
 
 _       _       AT      0               ; Empezamos una partida
-                PROCESS 6               ; El proceso de inicializaciÛn
+                PROCESS 6               ; El proceso de inicializaci√≥n
                 
                 
 
-_       _       WINDOW  0               ; Ventana de gr·ficos
+_       _       WINDOW  0               ; Ventana de gr√°ficos
                 CLEAR   fDarkF           ; Asume que hay luz
                 NOTZERO 0
                 ABSENT  0
                 SET     fDarkF           ; Oscuro
 
-_       _       PICTURE @fPlayer        ; Si hay gr·fico, c√°rgalo
+_       _       PICTURE @fPlayer        ; Si hay gr√°fico, c√°rgalo
                 DISPLAY @fDarkF         ; Muestralo si no oscuro; si oscuro
                                         ; hace un CLS
 _       _       WINDOW  1
@@ -251,7 +245,7 @@ _       _       ZERO    fDarkF
 _       _       PROCESS 3
 
 ; Ahora usamos el proceso 1 como el bucle principal del juego. Un retorno desde
-; aquÌ significa el fin del juego
+; aqu√≠ significa el fin del juego
 
 _       _       PROCESS 1
 
@@ -260,11 +254,11 @@ _       _       PROCESS 1
 
 _       _       PROCESS 4               ; Lo que en el PAW era el proceso 2
 
-_       _       PARSE   0               ; Toma sentencia lÛgica del buffer
-                PROCESS 2               ; Sentencia no v·lida o timeout
+_       _       PARSE   0               ; Toma sentencia l√≥gica del buffer
+                PROCESS 2               ; Sentencia no v√°lida o timeout
                 REDO
 
-_       _       EQ      fTurns   255     ; El valo m·ximo de un byte
+_       _       EQ      fTurns   255     ; El valo m√°ximo de un byte
                 PLUS    fTurnsHi   1
                 CLEAR   fTurns
                 SKIP    1
@@ -273,7 +267,7 @@ _       _       PLUS    fTurns   1
 
 _       _       PROCESS 5               ; La antigua tabla de respuestas
                 ISDONE                  ; Ha hecho algo?
-                REDO                    ; SÌ≠: pedimos otra orden del jugador
+                REDO                    ; S√≠¬≠: pedimos otra orden del jugador
 
 _       _       MOVE    fPlayer          ; No: intentamos mover al jugador
                 RESTART                 ;Lo movimos: salta al principio de PRO 0
@@ -296,25 +290,22 @@ _       _       HASAT TIMEOUT
 _       _       SYSMESS 6               ; No te entiendo
 
 ;------------------------------------------------------------------------------
-/PRO 3 ; Antiguo proceso 1 del PAW. (NÛtese que tanto la tabla de respuestas como los
+/PRO 3
 ; antiguos procesos 1 y 2 del PAW ahora pueden estar en cualquer parte; o no
-; existir en absoluto, ya que ya no hay nada autom·tico al haberse implementado
+; existir en absoluto, ya que ya no hay nada autom√°tico al haberse implementado
 ; todo en el propio lenguaje del DAAD)
 
 _       _       NEWLINE
-                ZERO    fDarkF            ; No est· oscuro
+                ZERO    fDarkF            ; No est√° oscuro
                 LISTOBJ
 
 
 ;------------------------------------------------------------------------------
-/PRO 4 ; Antiguo proceso 2 del PAW
+/PRO 4
 
-/PRO 5 ; Interpretamos los comando como en la antigua tabla de respuestas
+/PRO 5
 
-
-I       _       MESSAGE 0
-                MESSAGE 1
-                SYSMESS 9
+I       _       SYSMESS 9
                 LISTAT  CARRIED
                 SYSMESS 10
                 LISTAT  WORN
@@ -340,17 +331,17 @@ PONER   TODO    DOALL   CARRIED
 PONER   _       AUTOW
                 DONE
 
-R       _       RESTART
+MIRAR   _       RESTART
 
 FIN     _       QUIT
                 END
 
 FIN     _       DONE                    
 
-SV      _       SAVE 0                  
+SAVE    _       SAVE 0                  
                 RESTART
 
-LD      _       LOAD 0
+LOAD    _       LOAD 0
                 RESTART
 
 RAMSA   _       RAMSAVE
@@ -362,13 +353,13 @@ RAMLO   _
 
 MIRAR   _       RESTART
 
-/PRO 6 ; InicializaciÛn
+/PRO 6
 
 _       _       WINDOW  1               ; Inicializamos las ventanas
                 WINAT   14       0
-                WINSIZE 25      127     ; TamaÒo m·ximo
+                WINSIZE 25      127     ; Tama√±o m√°ximo
                 CLS
-                DESC    0               ; IntroducciÛn
+                DESC    0               ; Introducci√≥n
                 ANYKEY
                 CLS
                 CLEAR   255             ; Pone a cero todas las banderas
@@ -383,7 +374,7 @@ _       _       PLUS    255     1
 _       _       RESET                   ; Objetos a su loc. inicial / Flag 1
                 LET     fStrength 10
                 LET     fMaxCarr  4
-                SET     fCPNoun
-                SET     fCPAdject
+                SET     fCPronounNoun
+                SET     fCPronounAdject
                 GOTO    1               ; Primera localidad del juego
 /END
