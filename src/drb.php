@@ -144,7 +144,7 @@ class daadToChr
 var $conversions = array('ª', '¡', '¿', '«', '»', 'á', 'é', 'í', 'ó', 'ú', 'ñ', 'Ñ', 'ç', 'Ç', 'ü', 'Ü');
 }
 define('VERSION_HI',0);
-define('VERSION_LO',1);
+define('VERSION_LO',2);
 
 
 function prettyFormat($value)
@@ -381,20 +381,58 @@ function generateConnections($adventure, &$currentAddress, $outputFileHandler, $
 
 function generateVocabulary($adventure, &$currentAddress, $outputFileHandler)
 {
-    $vocabularyUpper = array('á'=>225, 'é'=>233, 'í'=>237, 'ó'=>243,'ú'=>250,'Á'=>225, 'É'=>233, 'Í'=>237, 'Ó'=>243,'Ú'=>250,'ñ'=>209, 'Ñ'=>209,'ü'=>252,'Ü'=>252,'ç'=>199, 'Ç'=>199);
     
+  //         16        18        20         22      24        26        28         30
+    //array('ª', '¡', '¿', '«', '»', 'á', 'é', 'í', 'ó', 'ú', 'ñ', 'Ñ', 'ç', 'Ç', 'ü', 'Ü');
     $daad_to_chr = new daadToChr();
     foreach ($adventure->vocabulary as $word)
     {
-        $vocWord = substr(str_pad(replaceChars($word->VocWord),5),0,5);
+        // Clean the string from unexpected, unwanted, UFT-8 characters which are valid for vocabualary. Convert to ISO-8859-1
+        $tempWord = $word->VocWord;
+        $finalVocWord = '' ;
+        $daad_to_chr = new daadToChr();
+        for ($i = 0;$i<strlen($tempWord);$i++)
+        {
+            if (in_array($tempWord[$i], $daad_to_chr->conversions))
+            {
+                $tempWord[$i] = chr(16+array_search($tempWord[$i],$daad_to_chr->conversions));
+            }
+            else if (ord($tempWord[$i])<128) $finalVocWord.=$tempWord[$i];  
+            else if (ord($tempWord[$i])==195)  // Look for UTF enconded characters
+            {
+                $i++;
+                switch (ord($tempWord[$i]))
+                {
+                    case 161 : $finalVocWord.= chr(21); break; //á
+                    case 169 : $finalVocWord.= chr(22); break; //é
+                    case 173 : $finalVocWord.= chr(23); break; //í
+                    case 179 : $finalVocWord.= chr(24); break; //ó
+                    case 186 : $finalVocWord.= chr(25); break; //ú
+                    case 129 : $finalVocWord.= chr(21); break; //Á
+                    case 137 : $finalVocWord.= chr(22); break; //Ë
+                    case 141 : $finalVocWord.= chr(23); break; //Í
+                    case 147 : $finalVocWord.= chr(24); break; //Ó
+                    case 154 : $finalVocWord.= chr(25); break; //ú
+
+                    case 145 : $finalVocWord.= chr(27); break; //Ñ
+                    case 177 : $finalVocWord.= chr(27); break; //ñ
+
+                    case 156 : $finalVocWord.= chr(31); break; //Ü
+                    case 188 : $finalVocWord.= chr(31); break; //ü
+
+                    case 135 : $finalVocWord.= chr(29); break; //Ç
+                    case 167 : $finalVocWord.= chr(29); break; //ç
+                    default: echo "Warning: Found invalid 195-" . ord($tempWord[$i]) . " UTF encoding string in $tempWord.\n";
+                }
+            } else 
+            if (ord($tempWord[$i])>128) $finalVocWord.=$tempWord[$i];
+        }
+        // Now let's save it
+        $vocWord = substr(str_pad($finalVocWord,5),0,5);
         for ($i=0;$i<5;$i++)
         {
             $character =$vocWord[$i];
-            if (ord($character)>=32) $character = strtoupper($character);
-            if (ord($character)>=128) 
-            {
-                if (array_key_exists("$character", $vocabularyUpper))  $character =  $vocabularyUpper["$character"] ^OFUSCATE_VALUE; else Error("Invalid character in vocabulary: $vocWord");
-            }
+            if ((ord($character)>=32) && (ord($character)<128)) $character = strtoupper($character);
             $character = ord($character) ^ OFUSCATE_VALUE;
             writeByte($outputFileHandler, $character);
         }
@@ -617,19 +655,25 @@ function isValidTarget($target)
 
 function isValidSubtarget($target, $subtarget)
 {
-    if ($target!='MSX2') return false;
-    return ($subtarget == '5_6') || ($subtarget == '5_8') ||  ($subtarget == '6_6') ||  ($subtarget == '6_8') ||  ($subtarget == '7_6') ||  ($subtarget == '7_8') ||  ($target == '8_6') ||  ($target == '8_8');
+    if (($target!='MSX2') && ($target!='PC')) return false;
+    if ($target=='MSX2') return ($subtarget == '5_6') || ($subtarget == '5_8') ||  ($subtarget == '6_6') ||  ($subtarget == '6_8') ||  ($subtarget == '7_6') ||  ($subtarget == '7_8') ||  ($target == '8_6') ||  ($target == '8_8');
+    // In fact, drb doesn't care about PC subtargets, but just for coherence with drf, we make sure they are correct, despite we will not use them
+    if ($target=='PC') return ($subtarget == 'VGA') || ($subtarget == 'CGA') ||  ($subtarget == 'EGA') ||  ($subtarget == 'TEXT');
+
 }
 
 function getSubMachineIDByTarget($target, $subtarget)
 {
-    if ($target<>'MSX2') return 95; //Default value for legacy interpreters
-    $subtarget_parts = explode('_',$subtarget);
-    $mode = $subtarget_parts[0];
-    $charWidth = $subtarget_parts[1];
-    $submachineID = $mode - 5; // mode goes from 0 to 3 (for 5 to 8)
-    if ($charWidth == 8) $submachineID+=128; // Set bit 7
-    return $submachineID;
+    if ($target=='MSX2')
+    {
+        $subtarget_parts = explode('_',$subtarget);
+        $mode = $subtarget_parts[0];
+        $charWidth = $subtarget_parts[1];
+        $submachineID = $mode - 5; // mode goes from 0 to 3 (for 5 to 8)
+        if ($charWidth == 8) $submachineID+=128; // Set bit 7
+        return $submachineID;
+    }
+    return 95; //Default value for legacy interpreters
 }
 
 
@@ -643,7 +687,7 @@ function getMachineIDByTarget($target)
   if ($target=='ST')    return 0x05; else
   if ($target=='AMIGA') return 0x06; else
   if ($target=='PCW')   return 0x07; else
-  if ($target=='MSX2')  return 0x80;        // New target for @ishwin interpreter
+  if ($target=='MSX2')  return 0x0F;        // New target for @ishwin interpreter
 };  
 
 function getBaseAddressByTarget($target)
@@ -675,7 +719,7 @@ function Syntax()
     
     echo("SYNTAX: php drb <target> [subtarget] <language> <inputfile> [outputfile]\n\n");
     echo("<target>: target machine, should be 'ZX', 'CPC', 'C64', 'MSX', 'MSX2', 'PCW', 'PC', 'ST' or 'AMIGA'.\n");
-    echo ("[subtarget]: some targets need to specify a subtarget. MSX2 target have the following: 5_6, 5_8, 6_6, 6_8, 7_7  and 7_8 (being the video mode and the character with in pixels)");
+    echo ("[subtarget]: some targets need to specify a subtarget. MSX2 target have the following: 5_6, 5_8, 6_6, 6_8, 7_7  and 7_8 (being the video mode and the character with in pixels), and PC has VGA, EGA, CGA and TEXT as avaliable options.");
     echo("<language>: game language, should be 'EN' or 'ES' (english or spanish).\n\n");
     echo("<inputfile>: a json file generated by DRF.\n");
     echo("[outputfile] : (optional) name of output file. If absent, same name of json file would be used, with DDB extension.\n\n\n");
