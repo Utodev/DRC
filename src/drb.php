@@ -792,7 +792,8 @@ $outputFileHandler = fopen($outputFileName, "wr");
 if (!$outputFileHandler) Error('Can\'t create output file');
     // Check settings in JSON
 $adventure->classicMode = $adventure->settings[0]->classic_mode;
-echo "Classic mode ON, optimizations disabled.\n";
+if ($adventure->classicMode) echo "Classic mode ON, optimizations disabled.\n"; else echo "Classic mode OFF, optimizations enabled.\n";
+                            
 // Just for development, set to true for verbose info
 $adventure->verbose = false;
 
