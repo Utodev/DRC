@@ -229,11 +229,15 @@ END;
 PROCEDURE ParseOTX();
 BEGIN
 	ParseMessageList(OTX, OTXCount, T_SECTION_LTX);
+	AddSymbol(SymbolTree, 'LAST_OBJECT', OTXCount -1);
+	AddSymbol(SymbolTree, 'NUM_OBJECTS', OTXCount);
 END;
 
 PROCEDURE ParseLTX();
 BEGIN
 	ParseMessageList(LTX, LTXCount, T_SECTION_CON);
+	AddSymbol(SymbolTree, 'LAST_LOCATION', LTXCount -1);
+	AddSymbol(SymbolTree, 'NUM_LOCATIONS', LTXCount);
 END;
 
 

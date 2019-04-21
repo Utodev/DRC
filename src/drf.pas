@@ -67,6 +67,11 @@ BEGIN
  ELSE Result :=42;  // Conservative
  END;
 
+ FUNCTION targetUsesDstringsGraphics(Target:AnsiString): Boolean;
+ BEGIN
+  Result := (Target='ZX') OR (Target='CPC') OR (Target='C64') OR (Target='MSX');
+ END;
+
 // Global vars
 
 VAR Target, SubTarget: AnsiString;
@@ -91,6 +96,7 @@ BEGIN
   // Create some useful built-in symbols
   // The target
   AddSymbol(SymbolTree, Target, 1);
+  if (SubTarget<>'') THEN AddSymbol(SymbolTree, 'MODE_'+Subtarget, 1);
   machine :=AnsiUpperCase(Target);
   // The target superset BIT8 or BIT16
   if (machine='ZX') OR (machine='CPC') OR (machine='PCW') OR (machine='MSX') OR (machine='C64') or (MACHINE='MSX2') THEN AddSymbol(SymbolTree, 'BIT8', 1);
@@ -98,7 +104,10 @@ BEGIN
   // add COLS Symbol
   cols := getColsByTarget(Target, SubTarget);
   if (cols<>0) THEN AddSymbol(SymbolTree, 'COLS', cols);
-    AddSymbol(SymbolTree, 'CARRIED', LOC_CARRIED);
+  // Add Dstrings Symbol
+  if (targetUsesDstringsGraphics(Target)) THEN AddSymbol(SymbolTree, 'DSTRINGS', 1);
+  // Add common Symbols
+  AddSymbol(SymbolTree, 'CARRIED', LOC_CARRIED);
   AddSymbol(SymbolTree, 'NOT_CREATED', LOC_NOT_CREATED);
   AddSymbol(SymbolTree, 'NON_CREATED', LOC_NOT_CREATED);
   AddSymbol(SymbolTree, 'WORN', LOC_WORN);
