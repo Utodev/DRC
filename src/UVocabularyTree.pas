@@ -11,7 +11,7 @@ TYPE TVocType = (VOC_VERB,VOC_ADVERB,VOC_NOUN,  VOC_ADJECT, VOC_PREPOSITION, VOC
 	TPVocabularyTree = ^TVocabularyTree;
 
      TVocabularyTree = record
-				VocWord: String;
+				VocWord: AnsiString;
 				Value: Longint;
 				VocType : TVocType;
 				Right : TPVocabularyTree;
@@ -21,10 +21,10 @@ TYPE TVocType = (VOC_VERB,VOC_ADVERB,VOC_NOUN,  VOC_ADJECT, VOC_PREPOSITION, VOC
 VAR VocabularyTree : TPVocabularyTree;
 
 (* Adds a new Vocabulary and returns true if succcesful, otherwise (basically cause word already exists) returns false *)
-FUNCTION AddVocabulary(VAR AVocabularyTree: TPVocabularyTree; AVocabularyWord: String; AValue : Longint; AVocabularyType: TVocType):boolean;
+FUNCTION AddVocabulary(VAR AVocabularyTree: TPVocabularyTree; AVocabularyWord: AnsiString; AValue : Longint; AVocabularyType: TVocType):boolean;
 
 (* Returns a pointer to word or nil if does not exist *)
-FUNCTION GetVocabulary(AVocabularyTree: TPVocabularyTree; AVocabularyWord: String; AVocabularyType : TVocType): TPVocabularyTree;
+FUNCTION GetVocabulary(AVocabularyTree: TPVocabularyTree; AVocabularyWord: AnsiString; AVocabularyType : TVocType): TPVocabularyTree;
 
 (* Returns a pointer to word or nil if does not exist *)
 FUNCTION GetVocabularyByNumber(AVocabularyTree: TPVocabularyTree; AVocabularyValue: Longint; AVocabularyType : TVocType): TPVocabularyTree;
@@ -33,9 +33,8 @@ IMPLEMENTATION
 
 uses sysutils, USymbolTree;
 
-FUNCTION FixSpanishChars(S:String):String;
+FUNCTION FixSpanishChars(S:AnsiString):AnsiString;
 BEGIN
-
 		S := StringReplace(S,'Á','á',[rfReplaceAll]);
 		S := StringReplace(S,'É','é',[rfReplaceAll]);
 		S := StringReplace(S,'Í','í',[rfReplaceAll]);
@@ -44,11 +43,10 @@ BEGIN
 		S := StringReplace(S,'Ü','ü',[rfReplaceAll]);
 		S := StringReplace(S,'Ñ','ñ',[rfReplaceAll]);
 		S := StringReplace(S,'Ç','ç',[rfReplaceAll]);
-
 		Result := S;
 END;
 
-FUNCTION AddVocabulary(VAR AVocabularyTree: TPVocabularyTree; AVocabularyWord: String; AValue : Longint; AVocabularyType: TVocType):boolean;
+FUNCTION AddVocabulary(VAR AVocabularyTree: TPVocabularyTree; AVocabularyWord: AnsiString; AValue : Longint; AVocabularyType: TVocType):boolean;
 BEGIN
 	IF (AVocabularyTree <> nil) THEN
 	BEGIN
@@ -69,7 +67,7 @@ BEGIN
 	 END;
 END;
 
-FUNCTION GetVocabulary(AVocabularyTree: TPVocabularyTree; AVocabularyWord: String; AVocabularyType : TVocType): TPVocabularyTree;
+FUNCTION GetVocabulary(AVocabularyTree: TPVocabularyTree; AVocabularyWord: AnsiString; AVocabularyType : TVocType): TPVocabularyTree;
 BEGIN
 	AVocabularyWord := FixSpanishChars((AnsiUpperCase(AVocabularyWord)));
 	IF (AVocabularyTree = nil) THEN Result:= nil

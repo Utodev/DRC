@@ -16,9 +16,9 @@ BEGIN
   WriteLn();
 	WriteLn('<target> is the target machine, one of this list: ZX, CPC, C64, MSX, MSX2, PCW, PC, AMIGA or ST. The target machine will be added as if there were a ''#define <target> '' in the code, so you can make the code depend on target platform.');
   WriteLn();
-	WriteLn('[subtarget] is an parameter only required when the target is MSX2, its value can be 5_6, 5_8, 6_6, 6_8, 7_6, 7_8, 8_6 or 8_8. The first number is the video mode, the second one is the text characters width in pixels.');
+	WriteLn('[subtarget] is an parameter only required when the target is MSX2 or PC. Will define the internal variable COLS, which can later be used in DAAD processes. For MSX2 values can be 5_6, 5_8, 6_6, 6_8, 7_6, 7_8, 8_6 or 8_8. The first number is the video mode (5-8), the second one is the characters width in pixels (6 or 8). For PC values can be VGA, EGA, CGA or TEXT.');
   WriteLn();
-	WriteLn('[output.json] is optional file name for output json file, if missing same base name as DSF file will be used.');
+	WriteLn('[output.json] is optional file name for output json file, if missing, '+AppName+' will just use same name of input file, but with .json extension.');
 	Halt(1);
 END;
 
@@ -44,12 +44,18 @@ BEGIN
  IF Subtarget = '8_6' THEN Result := 42 ELSE
  IF Subtarget = '8_8' THEN Result := 32 
  ELSE Result :=42;  // Conservative
- 
 END;
+
+FUNCTION getPCColsBySubtarget(SubTarget:AnsiString):Byte;
+BEGIN
+ IF Subtarget = 'VGA' THEN Result := 80
+ ELSE Result :=53;  // Conservative
+END;
+
 
 FUNCTION getColsByTarget(Target:String;SubTarget:AnsiString):Byte;
 BEGIN
- IF Target = 'PC' THEN Result := 53 ELSE
+ IF Target = 'PC' THEN Result := getPCColsBySubtarget(SubTarget) ELSE
  IF Target = 'ZX' THEN Result := 42 ELSE
  IF Target = 'C64' THEN Result := 40 ELSE
  IF Target = 'CPC' THEN Result := 40 ELSE
@@ -106,6 +112,12 @@ BEGIN
 	GenerateOutput(OutputFileName, Target);
 END;  
 
+FUNCTION isValidSubTarget(Target, Subtarget: AnsiString): Boolean;
+BEGIN
+ if Target='MSX2' THEN  Result :=  (Subtarget = '5_6') OR (Subtarget = '5_8') OR  (Subtarget = '6_6') OR  (Subtarget = '6_8') OR  (Subtarget = '7_6') OR  (Subtarget = '7_8') OR  (Subtarget = '8_6') OR  (Subtarget = '8_8');
+ if Target='PC'   THEN Result := (Subtarget = 'VGA') OR (Subtarget = 'EGA') OR  (Subtarget = 'CGA') OR  (Subtarget = 'TEXT');
+END;
+
 BEGIN
   AppName := ChangeFileExt(ExtractFileName(ParamStr(0)),'');
   Write('DAAD Reborn Compiler Frontend', ' ', Version, '.', Minor, ' (C) Uto 2018');
@@ -113,16 +125,18 @@ BEGIN
   WriteLn();
   // Check Parameters
   IF (ParamCount()>4) OR (ParamCount()<2) THEN SYNTAX();
-  InputFileName := ParamStr(2);
-  IF (NOT FileExists(InputFileName)) THEN ParamError('Input file not found');
   Target := UpperCase(ParamStr(1));
-  NextParam := 3;
+  NextParam := 2;
   SubTarget := '';
-  IF Target='MSX2' THEN 
+  IF (Target='MSX2') OR (Target='PC') THEN 
   BEGIN
    SubTarget := UpperCase(ParamStr(NextParam));
+   if (NOT isValidSubTarget(Target,Subtarget)) THEN ParamError('"' + Subtarget + '" is not a valid subtarget for target "' + Target + '". Please specify a valid subtarget. Call DRF without parameters for more information.');
    Inc(NextParam);
   END;
+  InputFileName := ParamStr(NextParam);
+  Inc(NextParam);
+  IF (NOT FileExists(InputFileName)) THEN ParamError('Input file not found');
   IF  ParamCount>NextParam THEN OutputFileName := ParamStr(NextParam)
                           ELSE OutputFileName := ChangeFileExt(InputFileName, '.json');
   CompileForTarget(Target, SubTarget, OutputFileName);
