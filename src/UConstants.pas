@@ -4,7 +4,7 @@ UNIT UConstants;
 INTERFACE
 
 CONST Version = 0;
-	Minor = 2;
+	Minor = 3;
 
       LOC_CARRIED = 254;
       LOC_WORN = 253;       

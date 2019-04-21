@@ -9,7 +9,7 @@ PROCEDURE GenerateJSON(OutputFileName: string);
 IMPLEMENTATION
 
 
-USES sysutils, UConstants, UVocabularyTree, UMessageList, UConnections, UObjects, UProcess, UProcessCondactList, UCTLExtern, USymbolTree, strutils, UCondacts, USintactic;
+USES sysutils, UConstants, UVocabularyTree, UMessageList, UConnections, UObjects, UProcess, UProcessCondactList, UCTLExtern, USymbolList, strutils, UCondacts, USintactic;
 
 
 VAR Indent : Byte;
@@ -23,10 +23,10 @@ BEGIN
     tabs := AuxStr;
 END;    
 
-FUNCTION getSymbolsJSON(SymbolTree:TPSymbolTree): AnsiString;
+FUNCTION getSymbolsJSON(SymbolList:TPSymbolList): AnsiString;
 BEGIN
- IF (SymbolTree = nil) THEN getSymbolsJSON := ''
-                       ELSE getSymbolsJSON :=  getSymbolsJSON(SymbolTree^.Right) + tabs() + tabs() + '{"symbol":"' +  SymbolTree^.Symbol +'", "Value":' + IntToStr(SymbolTree^.Value) +'},'#10 +  getSymbolsJSON(SymbolTree^.Left);
+ IF (SymbolList = nil) THEN getSymbolsJSON := ''
+                       ELSE getSymbolsJSON :=  getSymbolsJSON(SymbolList^.Next) + tabs() + tabs() + '{"symbol":"' +  SymbolList^.Symbol +'", "Value":' + IntToStr(SymbolList^.Value) +'},'#10;
 END;
 
 FUNCTION getVocabularyJSON(VocabularyTree:TPVocabularyTree): AnsiString;
@@ -73,7 +73,7 @@ BEGIN
     WriteLn(JSON,tabs(),'"symbols":');
     INC(Indent);     
     WriteLn(JSON,tabs(),'[');
-    AuxAnsiString := getSymbolsJSON(SymbolTree);
+    AuxAnsiString := getSymbolsJSON(SymbolList);
     SetLength(AuxAnsiString, Length(AuxAnsiString) - 2);
     WriteLn(JSON,  AuxAnsiString);
     WriteLn(JSON,tabs(),'],');

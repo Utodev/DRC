@@ -31,7 +31,7 @@ FUNCTION GetVocabularyByNumber(AVocabularyTree: TPVocabularyTree; AVocabularyVal
 
 IMPLEMENTATION
 
-uses sysutils, USymbolTree;
+uses sysutils, USymbolList;
 
 FUNCTION FixSpanishChars(S:AnsiString):AnsiString;
 BEGIN
@@ -62,7 +62,7 @@ BEGIN
 	 	AVocabularyTree^.VocType := AVocabularyType;
 	 	AVocabularyTree^.Left := nil;
 	 	AVocabularyTree^.Right := nil;
-		IF NOT AddSymbol(SymbolTree, '_VOC_'+ AVocabularyTree^.VocWord, AValue) THEN Result := false
+		IF NOT AddSymbol(SymbolList, '_VOC_'+ AVocabularyTree^.VocWord, AValue) THEN Result := false
 		ELSE Result := true;
 	 END;
 END;

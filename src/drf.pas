@@ -3,7 +3,7 @@ PROGRAM DRC;
 {$I-}
 
 
-uses sysutils, ULexTokens, ULexLib, UTokenList, USintactic, UConstants, USymbolTree, UCodeGeneration;
+uses sysutils, ULexTokens, ULexLib, UTokenList, USintactic, UConstants, USymbolList, UCodeGeneration;
 
 
 PROCEDURE SYNTAX();
@@ -95,24 +95,24 @@ BEGIN
   yylex();
   // Create some useful built-in symbols
   // The target
-  AddSymbol(SymbolTree, Target, 1);
-  if (SubTarget<>'') THEN AddSymbol(SymbolTree, 'MODE_'+Subtarget, 1);
+  AddSymbol(SymbolList, Target, 1);
+  if (SubTarget<>'') THEN AddSymbol(SymbolList, 'MODE_'+Subtarget, 1);
   machine :=AnsiUpperCase(Target);
   // The target superset BIT8 or BIT16
-  if (machine='ZX') OR (machine='CPC') OR (machine='PCW') OR (machine='MSX') OR (machine='C64') or (MACHINE='MSX2') THEN AddSymbol(SymbolTree, 'BIT8', 1);
-  if (machine='PC') OR (machine='AMIGA') OR (machine='ST') THEN   AddSymbol(SymbolTree, 'BIT16', 1);
+  if (machine='ZX') OR (machine='CPC') OR (machine='PCW') OR (machine='MSX') OR (machine='C64') or (MACHINE='MSX2') THEN AddSymbol(SymbolList, 'BIT8', 1);
+  if (machine='PC') OR (machine='AMIGA') OR (machine='ST') THEN   AddSymbol(SymbolList, 'BIT16', 1);
   // add COLS Symbol
   cols := getColsByTarget(Target, SubTarget);
-  if (cols<>0) THEN AddSymbol(SymbolTree, 'COLS', cols);
+  if (cols<>0) THEN AddSymbol(SymbolList, 'COLS', cols);
   // Add Dstrings Symbol
-  if (targetUsesDstringsGraphics(Target)) THEN AddSymbol(SymbolTree, 'DSTRINGS', 1);
+  if (targetUsesDstringsGraphics(Target)) THEN AddSymbol(SymbolList, 'DSTRINGS', 1);
   // Add common Symbols
-  AddSymbol(SymbolTree, 'CARRIED', LOC_CARRIED);
-  AddSymbol(SymbolTree, 'NOT_CREATED', LOC_NOT_CREATED);
-  AddSymbol(SymbolTree, 'NON_CREATED', LOC_NOT_CREATED);
-  AddSymbol(SymbolTree, 'WORN', LOC_WORN);
-  AddSymbol(SymbolTree, 'HERE', LOC_HERE);
-  AddSymbol(SymbolTree, 'HERE', LOC_HERE);
+  AddSymbol(SymbolList, 'CARRIED', LOC_CARRIED);
+  AddSymbol(SymbolList, 'NOT_CREATED', LOC_NOT_CREATED);
+  AddSymbol(SymbolList, 'NON_CREATED', LOC_NOT_CREATED);
+  AddSymbol(SymbolList, 'WORN', LOC_WORN);
+  AddSymbol(SymbolList, 'HERE', LOC_HERE);
+  AddSymbol(SymbolList, 'HERE', LOC_HERE);
   
   WriteLn('Checking Syntax...');
   Sintactic();
@@ -145,7 +145,7 @@ BEGIN
   END;
   InputFileName := ParamStr(NextParam);
   Inc(NextParam);
-  IF (NOT FileExists(InputFileName)) THEN ParamError('Input file not found');
+  IF (NOT FileExists(InputFileName)) THEN ParamError('Input file not found: "'+InputFileName+'"');
   IF  ParamCount>NextParam THEN OutputFileName := ParamStr(NextParam)
                           ELSE OutputFileName := ChangeFileExt(InputFileName, '.json');
   CompileForTarget(Target, SubTarget, OutputFileName);

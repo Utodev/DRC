@@ -1,5 +1,6 @@
 UNIT USintactic;
 {$MODE OBJFPC}
+{$H+}{$R+}
 
 INTERFACE
 
@@ -13,7 +14,7 @@ var ClassicMode : Boolean;
 
 IMPLEMENTATION
 
-USES sysutils, UConstants, ULexTokens, USymbolTree, UVocabularyTree, UMessageList, UCondacts, UConnections, UObjects, UProcess, UProcessCondactList, UCTLExtern;
+USES sysutils, UConstants, ULexTokens, USymbolList, UVocabularyTree, UMessageList, UCondacts, UConnections, UObjects, UProcess, UProcessCondactList, UCTLExtern,fpexprpars, strings;
 
 VAR CurrentText: AnsiString;
 	CurrentIntVal : Longint;
@@ -51,7 +52,7 @@ BEGIN
 	 if CurrTokenPTR^.TokenID <> T_STRING THEN SyntaxError('Invalid #ifdef/#ifndef label, please include the label in betwween quotes');
 	 MyDefine := CurrTokenPTR^.Text;
 	 MyDefine := Copy(MyDefine, 2, Length(MyDefine) - 2);
-	 Evaluation:= GetSymbolValue(SymbolTree, MyDefine)<>MAXINT;
+	 Evaluation:= GetSymbolValue(SymbolList, MyDefine)<>MAXINT;
 	 IF CurrentTokenID = T_IFNDEF THEN Evaluation:= not Evaluation;
 
 	 // IF directive failed, skip code until ENDIF or ELSE
@@ -121,9 +122,43 @@ VAR Value : Longint;
 BEGIN
 	IF (CurrentTokenID = T_NUMBER) THEN Result := CurrentIntVal ELSE
 	BEGIN
-		Value := GetSymbolValue(SymbolTree,CurrentText);
+		Value := GetSymbolValue(SymbolList,CurrentText);
 		Result := Value;
 	END;
+END;
+
+FUNCTION GetExpressionValue():Longint;
+var Parser: TFPExpressionParser;
+		TempSymbolList: TPSymbolList;
+		parserResult: TFPExpressionResult;
+		AuxStr : ShortString;
+		ExpressionValue :  Longint;
+BEGIN
+	TRY 
+		Parser := TFPExpressionParser.Create(nil);
+		Parser.BuiltIns := [bcMath];
+		TempSymbolList := SymbolList;
+		while TempSymbolList<> nil DO
+		BEGIN
+			Parser.Identifiers.AddFloatVariable(TempSymbolList^.Symbol, TempSymbolList^.Value);
+			TempSymbolList := TempSymbolList^.Next;
+		END;
+		AuxStr := CurrentText;
+		AuxStr := Copy(AuxStr, 2, length(AuxStr)-2); // Remove double quotes at the beginning and at the end
+		TRY
+			Parser.Expression := AuxStr;
+			parserResult := Parser.Evaluate;
+		EXCEPT
+			ON E: Exception DO BEGIN SyntaxError('Invalid expression "'+AuxStr+'": '+ E.message); END;
+		END 
+	FINALLY 
+	 Parser.free(); 
+	END; 
+	IF (parserResult.resultType = rtFloat) THEN ExpressionValue := trunc(parserResult.ResFloat) ELSE
+	IF (parserResult.resultType = rtInteger) THEN ExpressionValue := parserResult.ResInteger ELSE
+	SyntaxError('Expression ' + AuxStr + ' returned a non numeric value');
+	
+	Result :=  ExpressionValue;
 END;
 
 PROCEDURE ParseDefine();
@@ -131,12 +166,14 @@ VAR Symbol : AnsiString;
 	Value : Longint;	
 BEGIN
 	Scan();
-	if (CurrentTokenID<>T_IDENTIFIER) THEN SyntaxError('Identifier expected');
+	if (CurrentTokenID<>T_IDENTIFIER) THEN SyntaxError('Identifier expected after #define' );
 	Symbol := CurrentText;
 	Scan();
-	IF (CurrentTokenID=T_NUMBER) OR (CurrentTokenID= T_IDENTIFIER) THEN Value := GetIdentifierValue();
+	IF  (CurrentTokenID=T_STRING) THEN Value := GetExpressionValue()	ELSE 
+	IF (CurrentTokenID=T_NUMBER) OR (CurrentTokenID= T_IDENTIFIER) THEN Value := GetIdentifierValue() ELSE Value := MAXINT;
+	IF (Value = MAXINT) AND (CurrentTokenID=T_STRING) THEN SyntaxError('"'+CurrentText+'" is not a valid expression');
 	IF (Value = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
-	if NOT AddSymbol(SymbolTree, Symbol, Value) THEN SyntaxError('"' + Symbol + '" already defined');
+	if NOT AddSymbol(SymbolList, Symbol, Value) THEN SyntaxError('"' + Symbol + '" already defined');
 END;
 
 PROCEDURE ParseExtern();
@@ -229,15 +266,15 @@ END;
 PROCEDURE ParseOTX();
 BEGIN
 	ParseMessageList(OTX, OTXCount, T_SECTION_LTX);
-	AddSymbol(SymbolTree, 'LAST_OBJECT', OTXCount -1);
-	AddSymbol(SymbolTree, 'NUM_OBJECTS', OTXCount);
+	AddSymbol(SymbolList, 'LAST_OBJECT', OTXCount -1);
+	AddSymbol(SymbolList, 'NUM_OBJECTS', OTXCount);
 END;
 
 PROCEDURE ParseLTX();
 BEGIN
 	ParseMessageList(LTX, LTXCount, T_SECTION_CON);
-	AddSymbol(SymbolTree, 'LAST_LOCATION', LTXCount -1);
-	AddSymbol(SymbolTree, 'NUM_LOCATIONS', LTXCount);
+	AddSymbol(SymbolList, 'LAST_LOCATION', LTXCount -1);
+	AddSymbol(SymbolList, 'NUM_LOCATIONS', LTXCount);
 END;
 
 
