@@ -22,6 +22,9 @@
 #endif			BEGIN  AddToken(TokenList, T_ENDIF, yytext, MaxLongInt, yylineno, yycolno); END;
 #else           BEGIN  AddToken(TokenList, T_ELSE, yytext, MaxLongInt, yylineno, yycolno); END;
 #db				BEGIN  AddToken(TokenList, T_DB, yytext, MaxLongInt, yylineno, yycolno); END;
+#defb   		BEGIN  AddToken(TokenList, T_DB, yytext, MaxLongInt, yylineno, yycolno); END;
+#dw             BEGIN  AddToken(TokenList, T_DW, yytext, MaxLongInt, yylineno, yycolno); END;
+#defw           BEGIN  AddToken(TokenList, T_DW, yytext, MaxLongInt, yylineno, yycolno); END;
 #extern			BEGIN  AddToken(TokenList, T_EXTERN, yytext, MaxLongInt, yylineno, yycolno); END;
 #incbin			BEGIN  AddToken(TokenList, T_INCBIN, yytext, MaxLongInt, yylineno, yycolno); END;
 #classic        BEGIN  AddToken(TokenList, T_CLASSIC, yytext, MaxLongInt, yylineno, yycolno); END;
@@ -31,7 +34,7 @@ _				BEGIN  AddToken(TokenList, T_UNDERSCORE, yytext, MaxLongInt, yylineno, yyco
 \/[0-9]+		BEGIN  AddToken(TokenList, T_LIST_ENTRY, yytext, StrToInt(Copy(yytext,2,Length(yytext)-1)), yylineno, yycolno); END;
 ;.*\n 			BEGIN  END;
 -?[0-9]+        BEGIN  AddToken(TokenList, T_NUMBER, yytext, StrToInt(yytext), yylineno, yycolno); END;
-[_,a-zA-Z0-9Ò—·ÈÌÛ˙¸¡…Õ”⁄‹Á«]+ BEGIN  AddToken(TokenList, T_IDENTIFIER, yytext, MaxLongInt, yylineno, yycolno); END;
+[_,a-zA-Z0-9·ÈÌÛ˙¸¡…Õ”⁄‹Ò—Á«]+ BEGIN  AddToken(TokenList, T_IDENTIFIER, yytext, MaxLongInt, yylineno, yycolno); END;
 \@				BEGIN  AddToken(TokenList, T_INDIRECT, yytext, MaxLongInt, yylineno, yycolno); END;
 [ \t\n]         BEGIN  END;
 .               BEGIN yyerror('Unexpected character'); Halt(1); END;

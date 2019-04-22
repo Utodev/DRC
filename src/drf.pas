@@ -67,6 +67,12 @@ BEGIN
  ELSE Result :=42;  // Conservative
  END;
 
+FUNCTION GetRowsByTarget(Target:String):Byte;
+BEGIN
+  IF Target = 'PCW' THEN Result := 32 ELSE
+  IF Target = 'MSX2' THEN Result := 26 ELSE Result := 25;
+END;
+
  FUNCTION targetUsesDstringsGraphics(Target:AnsiString): Boolean;
  BEGIN
   Result := (Target='ZX') OR (Target='CPC') OR (Target='C64') OR (Target='MSX');
@@ -104,6 +110,8 @@ BEGIN
   // add COLS Symbol
   cols := getColsByTarget(Target, SubTarget);
   if (cols<>0) THEN AddSymbol(SymbolList, 'COLS', cols);
+  // add ROWS Symbol
+  AddSymbol(SymbolList, 'ROWS', GetRowsByTarget(Target));
   // Add Dstrings Symbol
   if (targetUsesDstringsGraphics(Target)) THEN AddSymbol(SymbolList, 'DSTRINGS', 1);
   // Add common Symbols

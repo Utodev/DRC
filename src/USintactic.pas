@@ -436,8 +436,8 @@ BEGIN
 		Scan(); // Get Condact
 		IF (CurrentTokenID <> T_IDENTIFIER)  AND (CurrentTokenID<>T_UNDERSCORE) 
 		    AND (CurrentTokenID<>T_SECTION_PRO) AND (CurrentTokenID<>T_SECTION_END) 
-		    AND (CurrentTokenID<>T_INCBIN) AND (CurrentTokenID<>T_DB) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Condact or new process entry expected');
-		IF (CurrentTokenID<>T_INCBIN) AND (CurrentTokenID<>T_DB) THEN
+		    AND (CurrentTokenID<>T_INCBIN) AND (CurrentTokenID<>T_DB) AND (CurrentTokenID<>T_DW) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Condact or new process entry expected');
+		IF (CurrentTokenID<>T_INCBIN) AND (CurrentTokenID<>T_DB) AND (CurrentTokenID<>T_DW) THEN
 		BEGIN
 			Opcode := GetCondact(CurrentText);
 			IF Opcode <> - 1 THEN
@@ -491,6 +491,16 @@ BEGIN
 			IF (CurrentIntVal<0) OR (CurrentIntVal>255) THEN SyntaxError('DB value should be between 0 and 255');
 			WriteLn('#DB ' + CurrentText + ' processed');
 			AddProcessCondact(SomeEntryCondacts,CurrentIntVal , 0, CurrentCondactParams, true); // adds a fake condact, with the DB value as OPCODE and zero parameters
+		END
+		ELSE 	
+		IF CurrentTokenID=T_DW THEN 
+		BEGIN
+			Scan();
+			IF (CurrentTokenID<>T_NUMBER) THEN SyntaxError('DW value should be numeric');
+			IF (CurrentIntVal<0) OR (CurrentIntVal>65535) THEN SyntaxError('DW value should be between 0 and 65535');
+			WriteLn('#DW ' + CurrentText + ' processed');
+			AddProcessCondact(SomeEntryCondacts,CurrentIntVal AND $FF , 0, CurrentCondactParams, true); 
+			AddProcessCondact(SomeEntryCondacts,(CurrentIntVal AND $FF00)>>8, 0, CurrentCondactParams, true); // adds DW as two DBs
 		END
 		ELSE 	
 		IF CurrentTokenID=T_INCBIN THEN 
