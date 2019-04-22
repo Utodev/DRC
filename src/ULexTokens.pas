@@ -30,6 +30,7 @@ const T_INCBIN=279;
 const T_EXTERN=280;
 const T_CLASSIC=281;
 const T_ELSE=282;
+const T_DW=283;
 
 IMPLEMENTATION
 END.
