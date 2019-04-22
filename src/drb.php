@@ -709,7 +709,7 @@ function isLittleEndianPlatform($target)
     return (($target=='ST') || ($target=='AMIGA'));
 };
 
-//================================================================= main ========================================================
+//================================================================= other ========================================================
 
 
 
@@ -751,7 +751,7 @@ $target = strtoupper($argv[1]);
 if (!isValidTarget($target)) Error("Invalid target machine '$target'");
 $nextParam =2;
 $subtarget = '';
-if ($target=='MSX2')
+if (($target=='MSX2') || ($target=='PC'))
 {
     $subtarget = strtoupper($argv[$nextParam]);
     $nextParam++;
