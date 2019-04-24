@@ -31,6 +31,13 @@ const T_EXTERN=280;
 const T_CLASSIC=281;
 const T_ELSE=282;
 const T_DW=283;
+const T_ECHO=284;
+const T_USERPTR=285;
+const T_INT=286;
+const T_SFX=287;
+const T_NOTHING=288;
+const T_HEX=289;
+const T_DEBUG=290;
 
 IMPLEMENTATION
 END.
