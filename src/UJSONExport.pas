@@ -66,7 +66,7 @@ BEGIN
     WriteLn(JSON,tabs(),'"settings":');
     INC(Indent);     
     WriteLn(JSON,tabs(),'[');
-    WriteLn(JSON,tabs(),'{"classic_mode":', byte(ClassicMode), '}');
+    WriteLn(JSON,tabs(),'{"classic_mode":', byte(ClassicMode), ', "debug_mode":', byte(DebugMode) , '}');
     WriteLn(JSON,tabs(),'],');
     DEC(Indent);
     // Symbols
@@ -219,9 +219,12 @@ BEGIN
                     WriteLn(JSON,tabs(),'{');
                     INC(Indent);       
                     WriteLn(JSON,tabs(),'"Opcode":', TempCondactList^.Opcode,',');
-                    if (NOT TempCondactList^.isDB) THEN WriteLn(JSON,tabs(),'"Condact":"', Condacts[TempCondactList^.Opcode].Condact,'",')
-                                                   ELSE  WriteLn(JSON,tabs(),'"Condact":"#DB/#INCBIN",');
-                     IF TempCondactList^.NumParams>0 THEN 
+                    IF (TempCondactList^.isDB) THEN WriteLn(JSON,tabs(),'"Condact":"#DB/#INCBIN",') 
+                    ELSE IF (TempCondactList^.Opcode = FAKE_USERPTR_CONDACT_CODE) THEN WriteLn(JSON,tabs(),'"Condact":"#USERPTR",') 
+                    ELSE IF (TempCondactList^.Opcode = FAKE_DEBUG_CONDACT_CODE) THEN WriteLn(JSON,tabs(),'"Condact":"DEBUG",') 
+                    ELSE WriteLn(JSON,tabs(),'"Condact":"', Condacts[TempCondactList^.Opcode].Condact,'",');
+
+                    IF TempCondactList^.NumParams>0 THEN 
                     BEGIN
                         IF TempCondactList^.Params[0].Indirection THEN Aux := 1 ELSE Aux := 0;
                         WriteLn(JSON,tabs(),'"Indirection1":', Aux,',');

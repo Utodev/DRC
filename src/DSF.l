@@ -1,5 +1,11 @@
 //This is the Lex (TPLex) lex file, the tokenizer
 
+// ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ
+// This comment intentionally includes some characters to get your attraction if you open the  file with
+//  some encoding that is not the original ISO-8859-1. You will see a lot of trash below instead 
+// of several accented N, (n-tilde) characters) if that happens.
+// ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ
+
 %{
 
 
@@ -18,9 +24,16 @@
 \/END			BEGIN  AddToken(TokenList, T_SECTION_END, yytext, MaxLongInt, yylineno, yycolno); END;
 #define			BEGIN  AddToken(TokenList, T_DEFINE, yytext, MaxLongInt, yylineno, yycolno); END;
 #ifdef			BEGIN  AddToken(TokenList, T_IFDEF, yytext, MaxLongInt, yylineno, yycolno); END;
+#if 			BEGIN  AddToken(TokenList, T_IFDEF, yytext, MaxLongInt, yylineno, yycolno); END;
 #ifndef			BEGIN  AddToken(TokenList, T_IFNDEF, yytext, MaxLongInt, yylineno, yycolno); END;
 #endif			BEGIN  AddToken(TokenList, T_ENDIF, yytext, MaxLongInt, yylineno, yycolno); END;
 #else           BEGIN  AddToken(TokenList, T_ELSE, yytext, MaxLongInt, yylineno, yycolno); END;
+#echo           BEGIN  AddToken(TokenList, T_ECHO, yytext, MaxLongInt, yylineno, yycolno); END;
+#userptr        BEGIN  AddToken(TokenList, T_USERPTR, yytext, MaxLongInt, yylineno, yycolno); END;
+#int            BEGIN  AddToken(TokenList, T_INT, yytext, MaxLongInt, yylineno, yycolno); END;
+#sfx            BEGIN  AddToken(TokenList, T_SFX, yytext, MaxLongInt, yylineno, yycolno); END;
+#hex            BEGIN  AddToken(TokenList, T_HEX, yytext, MaxLongInt, yylineno, yycolno); END;
+#debug          BEGIN  AddToken(TokenList, T_DEBUG, yytext, MaxLongInt, yylineno, yycolno); END;
 #db				BEGIN  AddToken(TokenList, T_DB, yytext, MaxLongInt, yylineno, yycolno); END;
 #defb   		BEGIN  AddToken(TokenList, T_DB, yytext, MaxLongInt, yylineno, yycolno); END;
 #dw             BEGIN  AddToken(TokenList, T_DW, yytext, MaxLongInt, yylineno, yycolno); END;

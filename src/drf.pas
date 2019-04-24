@@ -98,6 +98,8 @@ BEGIN
   TokenList := nil;
   // Parses whole file into TokenList
   WriteLn('Checking Lexer...');
+  // Yhis is a fake token we add, although it will be never loaded. Everytime Scan() is called, it goes to "next" so first time this fake one will be skipped.
+  AddToken(TokenList, T_NOTHING, '', 0, 0, 0);
   yylex();
   // Create some useful built-in symbols
   // The target

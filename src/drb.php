@@ -6,6 +6,9 @@
 // in the copyright notice above. Thanks Jose Manuel for this invaluable aid.
 
 
+define('FAKE_DEBUG_CONDACT_CODE',220);
+define('FAKE_USERPTR_CONDACT_CODE',256);    
+
 //================================================================= filewrite ========================================================
 
 // Writes a byte value to file
@@ -52,20 +55,29 @@ function writeBlock($handle, $size)
     for ($i=0;$i<$size;$i++) writeZero($handle);
 }
 
-
-
 //================================================================= externs ========================================================
 
-function generateExterns($adventure, &$currentAddress, $outputFileHandler)
+function generateExterns(&$adventure, &$currentAddress, $outputFileHandler)
 {
-    foreach ($adventure->externs as $extern)
+    foreach($adventure->externs as $extern)
     {
-        $filePath = $extern->FilePath;
-        if (!file_exists($filePath)) Error("Extern file not found: ${filePath}");
+        $externData = $extern->FilePath;
+        $parts = explode('|',$externData);
+        if (sizeof($parts)<2) $parts[] ='EXTERN'; // this is just to be able to process old version .JSON files
+        $filePath = $parts[0];
+        $fileType = $parts[1];
+        if (!file_exists($filePath)) Error("File not found: ${filePath}");
         $externfileHandle = fopen($filePath, "r");
         $buffer = fread($externfileHandle, filesize($filePath));
         fclose($externfileHandle);
         fputs($outputFileHandler, $buffer);
+        switch ($fileType) 
+        {
+            case 'EXTERN': $adventure->extvec[0] = $currentAddress;
+            case 'SFX': $adventure->extvec[1] = $currentAddress;
+            case 'INT':$adventure->extvec[2] = $currentAddress;
+            default: Error("Invalid file type '$fileType' for file $filePath");
+        }
         $currentAddress+=filesize($filePath);
     }   
 }
@@ -490,13 +502,15 @@ function generateObjectExtraAttr($adventure, &$currentAddress, $outputFileHandle
 //================================================================= processes ========================================================
 
 
-function getCondactsHash($condacts, $from)
+function getCondactsHash($adventure, $condacts, $from)
 {
     $hash = '';
     for ($i=$from; $i<sizeof($condacts);$i++)
     {
         $condact = $condacts[$i];
         $opcode = $condact->Opcode;
+        if (($opcode==FAKE_DEBUG_CONDACT_CODE) && (!$adventure->debugMode)) continue;
+        if (($opcode==FAKE_USERPTR_CONDACT_CODE)) continue;
         if (($condact->NumParams>0) && ($condact->Indirection1)) $opcode = $opcode | 0x80; // Set indirection bit
         $hash .= ($opcode);
         if ($condact->NumParams>0)
@@ -530,7 +544,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                 $entry = $process->entries[$entryID];
                 for($condactID=0;$condactID<sizeof($entry->condacts); $condactID++)
                 {
-                    $hash = getCondactsHash($entry->condacts, $condactID);
+                    $hash = getCondactsHash($adventure,$entry->condacts, $condactID);
                     if (($hash!='') && (!array_key_exists("$hash", $condactsHash)))
                     {
                         $hashInfo = new StdClass();
@@ -555,7 +569,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
             $entry = $process->entries[$entryID];
             if (!$adventure->classicMode)
             {
-                $hash = getCondactsHash($entry->condacts, 0);
+                $hash = getCondactsHash($adventure,$entry->condacts, 0);
                 if ($hash!='')
                 {
                     if ($condactsHash["$hash"]->offset != -1)
@@ -576,15 +590,23 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
             for($condactID=0;$condactID<sizeof($entry->condacts);$condactID++)
             {
                 $condact = $entry->condacts[$condactID];
-                
+
+                $opcode = $condact->Opcode;
+                if (($opcode==FAKE_DEBUG_CONDACT_CODE) && (!$adventure->debugMode)) continue; // Not saving fake DEBUG condact if debug mode is not on.
+                if ($opcode==FAKE_USERPTR_CONDACT_CODE) 
+                {
+                    $usrextvec = $condact->Param1;
+                    $adventure->extvec[$usrextvec] = $currentAddress;
+                    echo "UserPtr #$usrextvec set to " . prettyFormat($currentAddress).  "\n";
+                    continue; // Just save the extvec, do not save the fake condact
+                }
 
                 if (!$adventure->classicMode)
                 {
-                    $hash = getCondactsHash($entry->condacts, $condactID);
+                    $hash = getCondactsHash($adventure,$entry->condacts, $condactID);
                     if ($condactsHash["$hash"]->offset == -1) $condactsHash["$hash"]->offset = $currentAddress;
                 }
 
-                $opcode = $condact->Opcode;
                 if (($condact->NumParams>0) && ($condact->Indirection1)) $opcode = $opcode | 0x80; // Set indirection bit
                 writeByte($outputFileHandler, $opcode);
                 $currentAddress++;
@@ -783,6 +805,10 @@ if (!$adventure)
     Error($error);
 }
 
+// Create the vectors for extens and USRPTR
+$adventure->extvec = array();
+for ($i=0;$i<13;$i++) $adventure->extvec[$i] = 0;
+
 // Replace characters over ASCII 127 with those below. Replace also escape chars.
 replaceEscapeChars($adventure);
 checkStrings($adventure);
@@ -792,6 +818,7 @@ $outputFileHandler = fopen($outputFileName, "wr");
 if (!$outputFileHandler) Error('Can\'t create output file');
     // Check settings in JSON
 $adventure->classicMode = $adventure->settings[0]->classic_mode;
+$adventure->debugMode = $adventure->settings[0]->debug_mode;
 if ($adventure->classicMode) echo "Classic mode ON, optimizations disabled.\n"; else echo "Classic mode OFF, optimizations enabled.\n";
                             
 // Just for development, set to true for verbose info
@@ -846,7 +873,9 @@ writeByte($outputFileHandler, $numberOfProcesses);
 // Fill the rest of the header with zeros, as we don't know yet the offset values. Will comeupdate them later.
 writeBlock($outputFileHandler, 26); 
 $currentAddress+=34;
-writeBlock($outputFileHandler, 26);  // Los punteros varios, en principio a 0x000
+// extern - vectors
+for($i=0;$i<13;$i++)
+    writeWord($outputFileHandler, $adventure->extvce[$i],$isLittleEndian);
 $currentAddress+=26;
 
 

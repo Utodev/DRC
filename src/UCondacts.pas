@@ -145,6 +145,9 @@ CONST Condacts : ARRAY[0..NUM_CONDACTS - 1] OF TCondact = (
 (* Returns the condact index in the codacts table, or -1 if not found*)
 FUNCTION GetCondact(Condact : String): Integer;
 
+(* Returns number of condacts for a given condact code *)
+FUNCTION GetNumParams(Opcode: Byte): Byte;
+
 IMPLEMENTATION	
 
 USES SysUtils;
@@ -153,18 +156,31 @@ FUNCTION GetCondact(Condact : String): Integer;
 VAR i : integer;
 	found : boolean;
 BEGIN
-	i := 0;
-	found := false;
-	while (i < 128) AND (NOT found) DO
+  IF (UpperCase(Condact)=FAKE_DEBUG_CONDACT_TEXT) THEN
 	BEGIN
-	  if (AnsiUpperCase(Condact) = AnsiUpperCase(Condacts[i].Condact)) THEN
-	  BEGIN
-	  	Result := i;
-	  	found := true;
-	  END;
-	  Inc(i);	
-    END;
-    IF NOT FOUND THEN Result := -1;
+	 Result := FAKE_DEBUG_CONDACT_CODE;
+	END
+	ELSE
+	BEGIN 
+		i := 0;
+		found := false;
+		while (i < 128) AND (NOT found) DO
+		BEGIN
+			if (AnsiUpperCase(Condact) = AnsiUpperCase(Condacts[i].Condact)) THEN
+			BEGIN
+				Result := i;
+				found := true;
+			END;
+			Inc(i);	
+			END;
+			IF NOT FOUND THEN Result := -1;
+	END;
+END;
+
+FUNCTION GetNumParams(Opcode: Byte): Byte;
+BEGIN
+ IF Opcode = FAKE_DEBUG_CONDACT_CODE THEN Result :=0
+									 ELSE Result := Condacts[Opcode].NumParams;
 END;
 
 END.

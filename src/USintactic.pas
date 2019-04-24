@@ -9,12 +9,13 @@ USES UTokenList;
 PROCEDURE Sintactic();
 
 var ClassicMode : Boolean;
+	  DebugMode : Boolean;
 
 
 
 IMPLEMENTATION
 
-USES sysutils, UConstants, ULexTokens, USymbolList, UVocabularyTree, UMessageList, UCondacts, UConnections, UObjects, UProcess, UProcessCondactList, UCTLExtern,fpexprpars, strings;
+USES sysutils, UConstants, ULexTokens, USymbolList, UVocabularyTree, UMessageList, UCondacts, UConnections, UObjects, UProcess, UProcessCondactList, UCTLExtern,fpexprpars, strings, strutils;
 
 VAR CurrentText: AnsiString;
 	CurrentIntVal : Longint;
@@ -23,99 +24,16 @@ VAR CurrentText: AnsiString;
 	CurrColno : Word;
 	CurrTokenPTR: TPTokenList;
 	OnIfdefMode : boolean;
-	OnElse : boolean;
-
-
-
+	OnElse :Boolean;
+	
 PROCEDURE SyntaxError(msg: String);
 BEGIN
   Writeln(CurrLineno,':', CurrColno, ': ', msg,'.');
   Halt(1);
 END;
 
+PROCEDURE Scan(); forward;
 
-PROCEDURE Scan();
-VAR MyDefine : AnsiString;
-	Evaluation : Boolean;
-	Label NextIfdef, ElsePoint,ELSEDoNotProcess ;
-BEGIN
-	IF (CurrTokenPTR=nil) then SyntaxError('Unexpected end of file');
-	CurrentTokenID := CurrTokenPTR^.TokenID;
-
-
-	// Apply IFDEF/IFNDEF
-	IF (CurrentTokenID=T_IFDEF) OR (CurrentTokenID=T_IFNDEF) THEN
-	BEGIN
-	 NextIfdef:
-	 if CurrTokenPTR^.Next = nil THEN SyntaxError('Unexpected end of file just after #ifdef/#ifndef');
-	 CurrTokenPTR := CurrTokenPTR^.Next;
-	 if CurrTokenPTR^.TokenID <> T_STRING THEN SyntaxError('Invalid #ifdef/#ifndef label, please include the label in betwween quotes');
-	 MyDefine := CurrTokenPTR^.Text;
-	 MyDefine := Copy(MyDefine, 2, Length(MyDefine) - 2);
-	 Evaluation:= GetSymbolValue(SymbolList, MyDefine)<>MAXINT;
-	 IF CurrentTokenID = T_IFNDEF THEN Evaluation:= not Evaluation;
-
-	 // IF directive failed, skip code until ENDIF or ELSE
-	 IF NOT Evaluation THEN
-	 BEGIN
-	 	ELSEDoNotProcess:
-		CurrTokenPTR := CurrTokenPTR^.Next;
-	 	WHILE (CurrTokenPTR<>nil) AND (CurrTokenPTR^.TokenID<>T_ENDIF)  AND (CurrTokenPTR^.TokenID<>T_ELSE) DO 
-		 BEGIN
-		 	CurrTokenPTR := CurrTokenPTR^.Next;
-			CurrentTokenID := CurrTokenPTR^.TokenID;
-		END;	 
-		IF (CurrTokenPTR=nil) THEN SyntaxError('Unexpected end of file. #ifdef/#ifndef couldn''t find #endif while in failed condition');
-		
-		IF (CurrentTokenID=T_ELSE) AND (NOT OnElse) THEN 
-		BEGIN
-		 OnElse := true;
-		 GOTO ElsePoint;
-		END; 
-		IF (CurrentTokenID=T_ELSE) AND (OnElse) THEN SyntaxError('Nested #else');			
-	 	CurrTokenPTR:= CurrTokenPTR^.Next;
-	 	IF (CurrTokenPTR=nil) THEN SyntaxError('Unexpected end of file. #ifdef/#ifndef couldn''t find #endif while in failed condition');
-	 	CurrentTokenID := CurrTokenPTR^.TokenID;
-		IF ((CurrentTokenID = T_IFDEF) OR (CurrentTokenID = T_IFNDEF)) THEN goto NextIfdef;
-	 END 
-	 ELSE
-	 BEGIN
-	  ElsePoint:
-	 	CurrTokenPTR:= CurrTokenPTR^.Next;
-	 	IF (CurrTokenPTR=nil) THEN SyntaxError('Unexpected end of file. #ifdef/#ifndef(#else) couldn''t find #endif while in successful condition');
-	 	CurrentTokenID := CurrTokenPTR^.TokenID;
-	 	OnIfdefMode := true;
-	 END;
-	END;
-
-	//Apply ELSE
-	IF (CurrentTokenID=T_ELSE) THEN 
-	BEGIN
-    OnElse := true;
-	  Goto ELSEDoNotProcess;
-	END;	
-
-	// Apply ENDIF
-	IF (CurrentTokenID=T_ENDIF) THEN
-	BEGIN
-	  IF  OnIfdefMode THEN 
-	  BEGIN
-	 		CurrTokenPTR:= CurrTokenPTR^.Next;
-	 		CurrentTokenID := CurrTokenPTR^.TokenID;
-	  	OnIfdefMode:=false;
-			OnElse := false;
-			if ((CurrentTokenID = T_IFDEF) OR (CurrentTokenID = T_IFNDEF)) THEN goto NextIfdef;
-	  END ELSE SyntaxError('#endif without #ifdef/#ifndef');
-	END;
-
-
-	CurrentText := CurrTokenPTR^.Text;
-
-	CurrentIntVal := CurrTokenPTR^.IntVal;
-	CurrLineno := CurrTokenPTR^.lineno;
-	CurrColno := CurrTokenPTR^.colno;
-	CurrTokenPTR := CurrTokenPTR^.Next;
-END;
 
 FUNCTION GetIdentifierValue(): Longint;
 VAR Value : Longint;
@@ -159,6 +77,14 @@ BEGIN
 	SyntaxError('Expression ' + AuxStr + ' returned a non numeric value');
 	
 	Result :=  ExpressionValue;
+END;	
+
+FUNCTION ExtractValue():Longint;
+BEGIN
+	IF (CurrentTokenID=T_STRING) THEN Result := GetExpressionValue()	ELSE 
+	IF (CurrentTokenID=T_NUMBER) OR (CurrentTokenID= T_IDENTIFIER) THEN Result := GetIdentifierValue() ELSE Result := MAXINT;
+	IF (Result = MAXINT) AND (CurrentTokenID=T_STRING) THEN SyntaxError('"'+CurrentText+'" is not a valid expression');
+	IF (Result = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
 END;
 
 PROCEDURE ParseDefine();
@@ -169,28 +95,117 @@ BEGIN
 	if (CurrentTokenID<>T_IDENTIFIER) THEN SyntaxError('Identifier expected after #define' );
 	Symbol := CurrentText;
 	Scan();
-	IF  (CurrentTokenID=T_STRING) THEN Value := GetExpressionValue()	ELSE 
-	IF (CurrentTokenID=T_NUMBER) OR (CurrentTokenID= T_IDENTIFIER) THEN Value := GetIdentifierValue() ELSE Value := MAXINT;
-	IF (Value = MAXINT) AND (CurrentTokenID=T_STRING) THEN SyntaxError('"'+CurrentText+'" is not a valid expression');
-	IF (Value = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
+  Value := ExtractValue();
 	if NOT AddSymbol(SymbolList, Symbol, Value) THEN SyntaxError('"' + Symbol + '" already defined');
 END;
 
-PROCEDURE ParseExtern();
+PROCEDURE ParseExtern(ExternType: String);
 VAR Filename : String;
 BEGIN
 	Scan();
 	IF CurrentTokenID <> T_STRING THEN SyntaxError('Included extern file should be in between quotes');
 	FileName := Copy(CurrentText, 2, length(CurrentText) - 2);
 	IF NOT FileExists(Filename) THEN SyntaxError('Extern file "'+FileName+'" not found');
-	WriteLn('#extern "' + Filename + '" processed.');
-	AddCTL_Extern(CTLExternList, FileName); // Adds the file to binary files to be included
+	WriteLn('#'+ExternType+''' "' + Filename + '" processed.');
+	AddCTL_Extern(CTLExternList, FileName, ExternType); // Adds the file to binary files to be included
 END;
 
-PROCEDURE ParseClassic();
+
+PROCEDURE ParseEcho();
 BEGIN
- ClassicMode := true;
+ Scan();
+ IF (CurrentTokenID<>T_STRING) THEN SyntaxError('Invalid string for #echo');
+ WriteLn(CurrentText);
 END;
+
+PROCEDURE Scan();
+VAR Evaluation: Boolean;
+		MyDefine : AnsiString;
+BEGIN
+ IF (CurrTokenPTR=nil) then SyntaxError('Unexpected end of file');
+ CurrTokenPTR := CurrTokenPTR^.Next;
+ CurrentTokenID := CurrTokenPTR^.TokenID;
+ 
+ IF (not (CurrentTokenID-256 in [T_DEFINE-256,T_IFDEF-256,T_IFNDEF-256,T_ENDIF-256,T_ELSE-256,T_ECHO-256,T_INT-256,T_SFX-256,T_EXTERN-256, T_DEBUG-256, T_CLASSIC-256])) THEN  // All minus 256 just to be able to use a SET and IN, which only work with 0-255 value
+  BEGIN // If the token obtained is not one of the compiler directives that may appear anywhere in the code, and have to beapplied inmediatly we just return the token to the calling function
+	CurrentText := CurrTokenPTR^.Text;
+	CurrentIntVal := CurrTokenPTR^.IntVal;
+	CurrLineno := CurrTokenPTR^.lineno;
+	CurrColno := CurrTokenPTR^.colno;
+ END
+ ELSE
+ BEGIN // otherwise, we have to apply those compiler directives, and then call Scan() again to return the value the calling function is expecting, that should be just after the compiler directive
+       // Notice there is a scan() call just after the CASE/OF
+	  //FI		 CurrentText := CurrTokenPTR^.Text; WriteLn('Fast # ' , CurrentTokenID, ' ', CurrentText);
+		CASE CurrentTokenID of  // Firs parse the directive
+		T_DEFINE: ParseDefine();
+		T_IFDEF, T_IFNDEF: BEGIN
+													IF OnIfdefMode or OnElse THEN SyntaxError('Nested #ifdef/#ifndef');
+						 					 		if CurrTokenPTR^.Next = nil THEN SyntaxError('Unexpected end of file just after #ifdef/#ifndef');
+	 												CurrTokenPTR := CurrTokenPTR^.Next;
+													if CurrTokenPTR^.TokenID <> T_STRING THEN SyntaxError('Invalid #ifdef/#ifndef label, please include the label in betwween quotes');
+	 												MyDefine := CurrTokenPTR^.Text;
+	 												MyDefine := Copy(MyDefine, 2, Length(MyDefine) - 2);
+	 												Evaluation:= GetSymbolValue(SymbolList, MyDefine)<>MAXINT;
+	 												IF CurrentTokenID = T_IFNDEF THEN Evaluation:= not Evaluation;
+													IF NOT Evaluation THEN // ifdef/ifndef failed
+													BEGIN
+														WHILE (CurrTokenPTR<>nil) AND (CurrTokenPTR^.TokenID<>T_ENDIF)  AND (CurrTokenPTR^.TokenID<>T_ELSE) DO 
+		 												BEGIN
+		 													CurrTokenPTR := CurrTokenPTR^.Next;
+															IF CurrTokenPTR<>nil THEN
+															BEGIN
+																CurrentTokenID := CurrTokenPTR^.TokenID;
+																IF (CurrentTokenID=T_IFDEF) OR (CurrentTokenID=T_IFNDEF) THEN SyntaxError('Nested #ifdef/#ifndef not allowed');
+															END;	
+														END;
+														IF (CurrTokenPTR=nil) THEN SyntaxError('Unexpected end of file. #ifdef/#ifndef couldn''t find #endif while in failed condition "'+MyDefine+'"');
+														IF (CurrentTokenID = T_ELSE) THEN
+														BEGIN
+															OnIfdefMode := true;
+															OnElse := true;
+														END;
+													END
+													ELSE 
+													BEGIN // IF EVALUATION OK
+														OnIfdefMode := true;
+													END;	 
+											 END;	
+		T_ENDIF: BEGIN
+							 IF NOT OnIfdefMode THEN SyntaxError('#endif without #ifdef/#ifndef');
+							 OnIfdefMode := false;
+               OnElse := false;
+						 END;
+		T_ELSE:  BEGIN // If we get to an ELSE directly, it means the #ifdef/#ifndef evaluation was succesful, so we must be in ifdefmode
+						  IF OnElse THEN SyntaxError('Nested #else');
+		          IF NOT OnIfdefMode THEN SyntaxError('#else without #ifdef/#ifndef');
+							OnElse := true;
+							// That also means the part after the #else should be skipped
+							WHILE (CurrTokenPTR<>nil) AND (CurrTokenPTR^.TokenID<>T_ENDIF) DO 
+							BEGIN
+								CurrTokenPTR := CurrTokenPTR^.Next;
+								IF CurrTokenPTR<>nil THEN
+							  BEGIN
+									CurrentTokenID := CurrTokenPTR^.TokenID;
+									IF (CurrentTokenID=T_IFDEF) OR (CurrentTokenID=T_IFNDEF) OR (CurrentTokenID=T_ELSE) THEN SyntaxError('Nested #ifdef/#ifndef/#else not allowed');
+								END;	
+							END;
+							IF (CurrTokenPTR=nil) THEN SyntaxError('Unexpected end of file. #ifdef/#ifndef couldn''t find #endif while in failed condition "'+MyDefine+'"');
+						 END;
+		T_ECHO: ParseEcho();
+    T_EXTERN: ParseExtern('EXTERN');
+		T_INT: ParseExtern('INT');
+		T_SFX: ParseExtern('SFX');
+		T_CLASSIC: ClassicMode := true;
+		T_DEBUG: DebugMode := true;
+		END; // CASE
+    Scan(); // Then scan again
+ END;
+END;
+
+
+
+
 
 PROCEDURE ParseCTL();
 BEGIN
@@ -198,11 +213,8 @@ BEGIN
 	IF (CurrentTokenID<>T_SECTION_CTL) THEN SyntaxError('/CTL expected');
 	REPEAT
 		Scan();
-		IF (CurrentTokenID = T_DEFINE) THEN ParseDefine()
-		ELSE IF (CurrentTokenID = T_UNDERSCORE) THEN BEGIN END 
-		ELSE IF (CurrentTokenID  =T_EXTERN) THEN ParseExtern()
-		ELSE IF (CurrentTokenID  =T_CLASSIC) THEN ParseClassic()
-		ELSE IF (CurrentTokenID<>T_SECTION_VOC) THEN SyntaxError('#define, #extern, #classic or /VOC expected');
+		IF (CurrentTokenID = T_UNDERSCORE) THEN BEGIN END 
+		ELSE IF (CurrentTokenID<>T_SECTION_VOC) THEN SyntaxError('/VOC expected' + IntToStr(CurrentTokenID));
 	UNTIL CurrentTokenID = T_SECTION_VOC;
 END;
 
@@ -431,18 +443,21 @@ VAR Opcode : Longint;
 	FileName : String;
 	IncludedFile: FILE;
 	AuxByte: Byte;
+	AuxLong :Longint;
+	HexByte, HexString : AnsiString;
 BEGIN
 	REPEAT
 		Scan(); // Get Condact
-		IF (CurrentTokenID <> T_IDENTIFIER)  AND (CurrentTokenID<>T_UNDERSCORE) 
-		    AND (CurrentTokenID<>T_SECTION_PRO) AND (CurrentTokenID<>T_SECTION_END) 
-		    AND (CurrentTokenID<>T_INCBIN) AND (CurrentTokenID<>T_DB) AND (CurrentTokenID<>T_DW) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Condact or new process entry expected');
-		IF (CurrentTokenID<>T_INCBIN) AND (CurrentTokenID<>T_DB) AND (CurrentTokenID<>T_DW) THEN
+		IF (CurrentTokenID <> T_IDENTIFIER)  AND (CurrentTokenID<>T_UNDERSCORE)  AND (CurrentTokenID<>T_SECTION_PRO) AND (CurrentTokenID<>T_SECTION_END) 
+		    AND (CurrentTokenID<>T_INCBIN) AND (CurrentTokenID<>T_DB) AND (CurrentTokenID<>T_DW) AND (CurrentTokenID<>T_NUMBER) 
+				AND (CurrentTokenID<>T_HEX) AND (CurrentTokenID<>T_USERPTR)	THEN SyntaxError('Condact or new process entry expected');
+
+		IF (CurrentTokenID<>T_INCBIN) AND (CurrentTokenID<>T_DB) AND (CurrentTokenID<>T_DW) AND (CurrentTokenID<>T_HEX) AND (CurrentTokenID<>T_USERPTR) THEN
 		BEGIN
 			Opcode := GetCondact(CurrentText);
 			IF Opcode <> - 1 THEN
 			BEGIN
-				FOR i:= 0 TO Condacts[Opcode].NumParams - 1 DO
+				FOR i:= 0 TO GetNumParams(Opcode) - 1 DO
 				BEGIN
 					Scan();
 					CurrentCondactParams[i].Indirection := false;
@@ -481,26 +496,55 @@ BEGIN
 					END;
 					CurrentCondactParams[i].Value := Value;
 				END;
-				AddProcessCondact(SomeEntryCondacts, Opcode, Condacts[Opcode].NumParams, CurrentCondactParams, false);
+				AddProcessCondact(SomeEntryCondacts, Opcode, GetNumParams(Opcode), CurrentCondactParams, false);
 			END;
 		END ELSE
-		IF CurrentTokenID=T_DB THEN 
+		IF CurrentTokenID=T_USERPTR THEN  // USERPTR
 		BEGIN
 			Scan();
-			IF (CurrentTokenID<>T_NUMBER) THEN SyntaxError('DB value should be numeric');
-			IF (CurrentIntVal<0) OR (CurrentIntVal>255) THEN SyntaxError('DB value should be between 0 and 255');
-			WriteLn('#DB ' + CurrentText + ' processed');
+			IF (CurrentTokenID<>T_NUMBER) THEN SyntaxError('#userptr parameter should be numeric');
+			IF (CurrentIntVal<0) OR (CurrentIntVal>9) THEN SyntaxError('#userptr parameter should be 0-9');
+			WriteLn('#USERPTR ' + CurrentText + ' processed');
+			CurrentCondactParams[0].Value := CurrentIntVal;
+			CurrentCondactParams[0].Indirection := false;
+			AddProcessCondact(SomeEntryCondacts, FAKE_USERPTR_CONDACT_CODE , 1, CurrentCondactParams, false); // adds a fake condact value as OPCODE and zero parameters
+		END
+		ELSE 	
+		IF CurrentTokenID=T_DB THEN //DB
+		BEGIN
+			Scan();
+			AuxLong := ExtractValue();
+			IF (AuxLong=MAXINT) THEN SyntaxError('#DB Unknown value "'+CurrentText+'"');
+			IF (AuxLong<0) OR (AuxLong>255) THEN SyntaxError('DB value should be between 0 and 255');
+			WriteLn('#DB ' + CurrentText + '('+IntToStr(AuxLong)+') processed');
 			AddProcessCondact(SomeEntryCondacts,CurrentIntVal , 0, CurrentCondactParams, true); // adds a fake condact, with the DB value as OPCODE and zero parameters
 		END
 		ELSE 	
-		IF CurrentTokenID=T_DW THEN 
+		IF CurrentTokenID=T_DW THEN //DW
 		BEGIN
 			Scan();
-			IF (CurrentTokenID<>T_NUMBER) THEN SyntaxError('DW value should be numeric');
-			IF (CurrentIntVal<0) OR (CurrentIntVal>65535) THEN SyntaxError('DW value should be between 0 and 65535');
-			WriteLn('#DW ' + CurrentText + ' processed');
+			AuxLong := ExtractValue();
+			IF (AuxLong=MAXINT) THEN SyntaxError('#DW Unknown value "'+CurrentText+'"');
+			IF (AuxLong<0) OR (AuxLong>65535) THEN SyntaxError('DW value should be between 0 and 65535');
+			WriteLn('#DW ' + CurrentText + '('+IntToStr(AuxLong)+') processed');
 			AddProcessCondact(SomeEntryCondacts,CurrentIntVal AND $FF , 0, CurrentCondactParams, true); 
 			AddProcessCondact(SomeEntryCondacts,(CurrentIntVal AND $FF00)>>8, 0, CurrentCondactParams, true); // adds DW as two DBs
+		END 
+		ELSE
+		IF CurrentTokenID=T_HEX THEN // HEX
+		BEGIN
+			Scan();
+			IF (CurrentTokenID<>T_STRING) THEN SyntaxError('HEX parameter should in between quotes');
+			if (Length(CurrentText) MOD 2<>0) THEN SyntaxError('Invalid hexadecimal string');
+			HexString := Copy(CurrentText, 2, Length(CurrentText)-2);
+			WHILE (HexString<>'') DO
+			BEGIN
+			 HexByte := Copy(HexString, 1,2);
+			 HexString := Copy(HexString,3,Length(HexString)-2);
+			 AuxByte := Hex2Dec(HexByte);
+			 AddProcessCondact(SomeEntryCondacts,AuxByte, 0, CurrentCondactParams, true); // Queues one fake condact per each hex value
+			END;
+			WriteLn('#HEX ' + CurrentText + ' processed');
 		END
 		ELSE 	
 		IF CurrentTokenID=T_INCBIN THEN 
@@ -591,8 +635,8 @@ PROCEDURE Sintactic();
 BEGIN
 	CurrTokenPTR := TokenList;
 	ClassicMode := false;
+	DebugMode := false;
 	OnIfdefMode := false;
-	OnElse := false;
 	MTXCount := 0;
 	STXCount := 0;
 	LTXCount := 0;
