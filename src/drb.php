@@ -875,7 +875,7 @@ writeBlock($outputFileHandler, 26);
 $currentAddress+=34;
 // extern - vectors
 for($i=0;$i<13;$i++)
-    writeWord($outputFileHandler, $adventure->extvce[$i],$isLittleEndian);
+    writeWord($outputFileHandler, $adventure->extvec[$i],$isLittleEndian);
 $currentAddress+=26;
 
 
