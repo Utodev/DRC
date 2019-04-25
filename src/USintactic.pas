@@ -412,7 +412,7 @@ BEGIN
 			BEGIN
 				TheWord := Copy(CurrentText, 1, VOCABULARY_LENGTH);
 				AuxVocabularyTree := GetVocabulary(VocabularyTree, TheWord, VOC_NOUN);
-				IF AuxVocabularyTree = nil THEN SyntaxError('Noun not defined');
+				IF AuxVocabularyTree = nil THEN SyntaxError('Noun not defined: "'+CurrentText+'"');
 				Noun := AuxVocabularyTree^.Value;
 			END;
 
@@ -601,7 +601,7 @@ BEGIN
 		  BEGIN
 			  TheWord := Copy(CurrentText, 1, VOCABULARY_LENGTH);
 			  AuxVocabularyTree := GetVocabulary(VocabularyTree, TheWord, VOC_NOUN);
-			  if (AuxVocabularyTree = nil) THEN SyntaxError('Noun not defined');
+			  if (AuxVocabularyTree = nil) THEN SyntaxError('Noun not defined: "'+CurrentText+'"');
 			  Noun := AuxVocabularyTree^.Value;
 		  END;
 		  EntryCondacts := nil;
