@@ -1,10 +1,18 @@
-; Este es el fichero de inicio de la librerÃ­a para DAAD Reborn Compiler en espaÃ±ol
+;------------------------------------------------------------------------------------------
+;ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ
+;ÑÑÑÑÑ                                                                                  ÑÑÑÑÑ
+;ÑÑÑÑÑ Este es el fichero de inicio de la librería para DAAD Reborn Compiler en español ÑÑÑÑÑ
+;ÑÑÑÑÑ                                                                                  ÑÑÑÑÑ
+;ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ
 
+; Por favor no quites las eñes en el recuadro justo encima, están ahí para que notes fácil-
+; mente si abres el fichero con una codificación que no es la correcta (ISO-8859-1 o Win1252)
 
-/CTL
+/CTL    ;Sección de control
 _
 ;#extern "MLV_ESX.BIN"
 ;#classic
+;#debug
 
 #define TIMEOUT   87            ;If Timeout last frame
 
@@ -45,10 +53,11 @@ _
 #define fInkeyKey2          61
 #define fScreenMode         62     ; 2=Text, 4=CGA, 13=EGA, 141=VGA
 #define fCurrentWindow      63     ; Which window is active at the moment
-;
-;
+
+
+
 ;------------------------------------------------------------------------------
-/VOC
+/VOC    ;Vocabulario
 ;                       Movimiento: verbos y nombres < 14
 N       2       noun
 NORTE   2       noun
@@ -68,6 +77,8 @@ SUBIR   10      verb
 AB      11      noun
 ABAJO   11      noun
 BAJAR   11      verb
+
+
 ;                       Nombres <20 indica que se pueden usar como verbos
 ;                               <50 indica nombre propio (no admite lo, la...)
 I       14      noun
@@ -75,22 +86,26 @@ INVEN   14      noun
 TODO    20      noun
 TODOS   20      noun
 TODAS   20      noun
+
 ;
 LINTER  100     noun
 
-;                       Verbs
+;                       Verbos
 COGER   20      verb
 DEJAR   21      verb
 SOLTAR  21      verb
 QUITAR  22      verb
 PONER   23      verb
 R       24      verb
-REDES   24      verb
-MIRAR   24      verb
 M       24      verb
+MIRAR   24      verb
+REDES   24      verb
+F       25      verb
 FIN     25      verb
 SAVE    26      verb
+SV      26      verb
 LOAD    27      verb
+LD      27      Verb
 RAMSA   28      verb
 RAMLO   29      verb
 EX      30      verb
@@ -99,7 +114,8 @@ DECIR   31      verb
 PREGUNT 31      verb
 HABLAR  31      verb
 JUGAR   32      verb
-;
+
+;                            Adjetivos
 PEQUE   2       adjective
 GRANDE  3       adjective
 VIEJO   4       adjective
@@ -127,14 +143,14 @@ TRAVES  5       preposition
 BAJO    7       preposition
 JUNTO   8       preposition
 MENOS   13      preposition
-;                               Pronouns
-;                               Conjugations
+;                               Pronombres
+;                               Conjunciones
 Y       2       conjugation
 ENTONCE 2       conjugation
 LUEGO   2       conjugation
-;
+
 ;------------------------------------------------------------------------------
-/STX
+/STX    ;Mensajes del sistema
 /0 "Está demasiado oscuro para ver nada."
 /1 "También puedo ver:"
 /2 "#n"
@@ -178,7 +194,7 @@ LUEGO   2       conjugation
 /40 "No puedo ponerme _."
 /41 "No puedo quitarme _."
 /42 "No puedo quitarme _.  No puedo llevar nada más en las manos."
-/43 "@ pesa demasiado para mi."
+/43 "@ pesa demasiado para mí."
 /44 "@ está en"
 /45 "@ no está en"
 /46 ", "
@@ -199,40 +215,40 @@ LUEGO   2       conjugation
 /61 "Pon en marcha la cinta."
 /62 "¿Cinta o disco?"
 ;------------------------------------------------------------------------------
-/MTX
-;0/ "un mensaje"
+/MTX    ;Mensajes
+/0 "a"
 ;------------------------------------------------------------------------------
-/OTX
+/OTX    ;Object Texts
 /0 "Una linterna.(encendida)"
 ;------------------------------------------------------------------------------
-/LTX
+/LTX    ;Location Texts
 /0 "BASE DE DATOS VACIA - DAAD V2."
 /1 "Has entrado a la mazmorra, múltiples peligros te esperan, pero también grandes logros y enormes tesoros. "
 ;------------------------------------------------------------------------------
-/CON
+/CON    ;Conexiones
 /0
 /1
 ;------------------------------------------------------------------------------
-/OBJ
+/OBJ    ;Objetos
 ;obj  starts  weight    c w  5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0    noun   adjective
 ;num    at
 /0      _  1       _ _  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _    LINTER  _
 ;------------------------------------------------------------------------------
-/PRO 0
+/PRO 0       ;Bucle principal de localidades
 
 
 _       _       AT      0               ; Empezamos una partida
-                PROCESS 6               ; El proceso de inicializaciÃ³n
+                PROCESS 6               ; El proceso de inicialización
                 
                 
 
-_       _       WINDOW  0               ; Ventana de grÃ¡ficos
+_       _       WINDOW  0               ; Ventana de gráficos
                 CLEAR   fDarkF           ; Asume que hay luz
                 NOTZERO 0
                 ABSENT  0
                 SET     fDarkF           ; Oscuro
 
-_       _       PICTURE @fPlayer        ; Si hay grÃ¡fico, cÃ¡rgalo
+_       _       PICTURE @fPlayer        ; Si hay gráfico, cárgalo
                 DISPLAY @fDarkF         ; Muestralo si no oscuro; si oscuro
                                         ; hace un CLS
 _       _       WINDOW  1
@@ -245,7 +261,7 @@ _       _       ZERO    fDarkF
 _       _       PROCESS 3
 
 ; Ahora usamos el proceso 1 como el bucle principal del juego. Un retorno desde
-; aquÃ­ significa el fin del juego
+; aquí significa el fin del juego
 
 _       _       PROCESS 1
 
@@ -254,11 +270,11 @@ _       _       PROCESS 1
 
 _       _       PROCESS 4               ; Lo que en el PAW era el proceso 2
 
-_       _       PARSE   0               ; Toma sentencia lÃ³gica del buffer
-                PROCESS 2               ; Sentencia no vÃ¡lida o timeout
+_       _       PARSE   0               ; Toma sentencia lógica del buffer
+                PROCESS 2               ; Sentencia no válida o timeout
                 REDO
 
-_       _       EQ      fTurns   255     ; El valo mÃ¡ximo de un byte
+_       _       EQ      fTurns   255     ; El valo máximo de un byte
                 PLUS    fTurnsHi   1
                 CLEAR   fTurns
                 SKIP    1
@@ -267,10 +283,10 @@ _       _       PLUS    fTurns   1
 
 _       _       PROCESS 5               ; La antigua tabla de respuestas
                 ISDONE                  ; Ha hecho algo?
-                REDO                    ; SÃ­Â­: pedimos otra orden del jugador
+                REDO                    ; Sí­: pedimos otra orden del jugador
 
-_       _       MOVE    fPlayer          ; No: intentamos mover al jugador
-                RESTART                 ;Lo movimos: salta al principio de PRO 0
+_       _       MOVE    fPlayer         ; No: intentamos mover al jugador
+                RESTART                 ; Lo movimos: salta al principio de PRO 0
 
 _       _       NEWTEXT
                 LT      fVerb    14
@@ -290,29 +306,27 @@ _       _       HASAT TIMEOUT
 _       _       SYSMESS 6               ; No te entiendo
 
 ;------------------------------------------------------------------------------
-/PRO 3
+/PRO 3 ; Antiguo proceso 1 del PAW. (Nótese que tanto la tabla de respuestas como los
 ; antiguos procesos 1 y 2 del PAW ahora pueden estar en cualquer parte; o no
-; existir en absoluto, ya que ya no hay nada automÃ¡tico al haberse implementado
+; existir en absoluto, ya que ya no hay nada automático al haberse implementado
 ; todo en el propio lenguaje del DAAD)
 
 _       _       NEWLINE
-                ZERO    fDarkF            ; No estÃ¡ oscuro
+                ZERO    fDarkF            ; No está oscuro
                 LISTOBJ
 
 
 ;------------------------------------------------------------------------------
-/PRO 4
+/PRO 4 ; Antiguo proceso 2 del PAW
 
-/PRO 5
+/PRO 5 ; Interpretamos los comando como en la antigua tabla de respuestas
+
 
 I       _       SYSMESS 9
                 LISTAT  CARRIED
                 SYSMESS 10
                 LISTAT  WORN
                 DONE
-
-
-
 
 COGER   TODO    DOALL   HERE                
 COGER   _       AUTOG
@@ -326,22 +340,21 @@ QUITAR  TODO    DOALL   WORN
 QUITAR  _       AUTOR
                 DONE
 
-
 PONER   TODO    DOALL   CARRIED
 PONER   _       AUTOW
                 DONE
 
-MIRAR   _       RESTART
+R       _       RESTART
 
 FIN     _       QUIT
                 END
 
 FIN     _       DONE                    
 
-SAVE    _       SAVE 0                  
+SV      _       SAVE 0                  
                 RESTART
 
-LOAD    _       LOAD 0
+LD      _       LOAD 0
                 RESTART
 
 RAMSA   _       RAMSAVE
@@ -353,13 +366,13 @@ RAMLO   _
 
 MIRAR   _       RESTART
 
-/PRO 6
+/PRO 6 ; Inicialización
 
 _       _       WINDOW  1               ; Inicializamos las ventanas
                 WINAT   14       0
-                WINSIZE 25      127     ; TamaÃ±o mÃ¡ximo
+                WINSIZE 25      127     ; Tamaño máximo
                 CLS
-                DESC    0               ; IntroducciÃ³n
+                DESC    0               ; Introducción
                 ANYKEY
                 CLS
                 CLEAR   255             ; Pone a cero todas las banderas
