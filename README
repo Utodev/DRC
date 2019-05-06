@@ -147,14 +147,13 @@ _  AT 7
  15 CREATE ; comment
  2 DONE
 
-11) The compiler directive #classic
 
-12) The compiler directive #debug wil make the compiler accept a new condact named DEBUG. If #debug is not present DEBUG condacts will be just ignored. DEBUG condact is a fake
+11) The compiler directive #debug wil make the compiler accept a new condact named DEBUG. If #debug is not present DEBUG condacts will be just ignored. DEBUG condact is a fake
 condact that will you game reset unless you are running under ZesarUX ZX Spectrum emulator with DAAD debug active. ZesarUX emulator detects that fake condact, and enters step
 by step debugging at that point. You can add as many DEBUG condacts as you want, for debuggin purposes, just remember to remove the #debug directive before generating production
 version of your game.
 
-13) The compiler directive #classic affects both backend and front end. By default the new compiler makes several optimizations which at the moment  are experimental. 
+12) The compiler directive #classic affects both backend and front end. By default the new compiler makes several optimizations which at the moment  are experimental. 
 Those optimizations include mainly two tasks:
 
 1) Optimizations to save space (make a smaller database), not related to text compressing.
