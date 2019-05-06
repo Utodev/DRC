@@ -185,7 +185,7 @@ end;
 
 
 begin
-    if (ParamCount<3) or (ParamCount>5) then Syntax();
+    if (ParamCount<3) then Syntax();
     TAPFilename := ParamStr(1);
     INTFilename := ParamStr(2);
     DDBFilename := ParamStr(3);
@@ -229,27 +229,25 @@ begin
     begin
         Assign(FileLoader, LoaderFilename);  
         Reset(FileLoader, 1);
-        Blockread(FileLoader, Buffer, Sizeof(FileLoader));
-        BlockWrite(FileTap, Buffer, sizeOf(FileLoader));
+        Blockread(FileLoader, Buffer, filesize(FileLoader));
+        BlockWrite(FileTap, Buffer, filesize(FileLoader));
         Close(FileLoader);
     end
     else
     begin
         if (SCRFilename='') then SaveLoader(FileTAP, GameName, false) // Loader without SCREEN$
-                            else 
-                            begin 
-                                SaveLoader(FileTAP, GameName, true); // Loader with SCREEN$
-                                //Save SCREEN$
-                                Assign(FileSCR, SCRFilename);
-                                Reset(FileSCR,1);
-                                if (filesize(FileSCR)<>6912) THEN Error('Invalid SCREEN$ file, size must be 6912 bytes');
-                                GameName[10] := 'S';
-                                SaveBlockFromFile(GameName,FileTAP, FileSCR, 16384);
-                                Close(FileSCR);
-                             end;
-        
-
-    end;                             
+                            else SaveLoader(FileTAP, GameName, true); // Loader with SCREEN$
+    end;       
+    IF (SCRFilename<>'') then
+    begin
+        //Save SCREEN$
+        Assign(FileSCR, SCRFilename);
+        Reset(FileSCR,1);
+        if (filesize(FileSCR)<>6912) THEN Error('Invalid SCREEN$ file, size must be 6912 bytes');
+        GameName[10] := 'S';
+        SaveBlockFromFile(GameName,FileTAP, FileSCR, 16384);
+        Close(FileSCR);
+    end;
     // Save the interpreter
     GameName[10] := 'I';
     SaveBlockFromFile(GameName,FileTAP, FileINT, 24576);
