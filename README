@@ -1,7 +1,287 @@
-DRC is a compiler front aimed to replace Aventuras AD DAAD compiler.
-DRC generates an intermediate code in JSON format, from an modified version of DAAD's SCE format, name DSF (DAAD source file).
+PREFACE
+=======
+
+Note: For spanish instructions please check LEEME file.
+
+DRC is the new DAAD compiler, DRC stands for "DAAD Reborn Compiler" and it has two parts:
+
+- The front-end, which takes a .DSF file (DAAD Source File), a format very similar to SCE but not the same, and generates a .json file which 
+  contains all the information of the game.
+
+- The back-end, which takes the .json file and generates the .DDB file.
+
+The package also includes DAADMAKER, a tool which will help you easily create TAP and DSK files for ZX Spectrum.
 
 The compiler is (C) Uto 2018 and it's distributed under the GPL v3 license
+
+WHY USE DRC
+===========
+
+There are three main reasons:
+
+1) It's native to your OS, no more DOSBOX Windows
+2) It applies some specific optimizations, not related to text compressions, which makes the DDB file smaller
+3) You will be able to write MESSAGE "a message text" instead of having to create message n in MTX section and then write MESSAGE n at processes section.
+
+The DSF format
+==============
+It's quite similar to SCE, but there are some changes:
+
+1) Character encoding is ISO-8859-1 (Latin1), but is also compatible with Windows-1252. It's a quite more common encoding today, and much prefered 
+   over the very old CP437 (DOS) encoding.
+
+2) #define symbols can have any length, DC was cutting them after 15 characters.
+3) STX/MTX/LTX/OTX sections should have the message written between quotes (it doesn'y matter if single or double quotes while you use the same at both sides)   
+
+Examples:
+
+\0 "It's dark"
+\1 'You are carrying: '
+
+Any quote similar to those at the sides of the string, which are  inside the string, should be escaped with a backlash. For english it's higly recommended to use double quotes for strings, so  you can write "It's OK" instead of 'It\'s OK'.
+
+4) Escape codes use sharp character (#) instead of backslash. For instance you write #k instead of \k. Due to some lucky side effect, \n will still work, but it's the only one (and #n works as well).
+
+Examples:
+
+/58 "Disk or drive full.#k#n"
+
+Pleae notice escape codes that used to be a blank space are not really required with the double quotes delimiters, but anyway they still work.
+
+5) the following compiler directives are supported
+
+- #define xxxxx [valor|identifier|expression]
+
+#define fPlayer 38
+#define Columns COLS
+#define fTurnsHi "fTurns+1"
+
+Expressions should be placed in between quotes.
+
+- #ifdef/#ifndef  "xxxxx"  
+
+#ifdef "zx"
+#ifndef "8bit"
+
+Please notice #ifdef can be replaced with #if too, but DC expresions like '#IF !zx'  are not valid. Use #ifndef instead.
+
+- #endif 
+
+Just as for DC
+
+- #else 
+
+You can do:
+
+#ifdef "zx"
+<do something>
+#else
+<do something else>
+#endif
+
+- #extern, #sfx and #int 
+
+#extern "MLV_MSX.BIN"
+
+
+- #incbin, #hex, #dw/#defw and #db/#defb
+
+#incbin "somefile.bin"
+#hex "AF89F5EA"
+#dw 7
+#db COLS
+#db "COLS/2"
+
+(please notice in expressions, results will be truncated to the previous integer value)
+
+- #classic (will be explained later)
+
+- #echo 
+
+#echo "Hello world!"
+
+- #debug (will explain later too)
+
+6) DSF don't have a /TOK section
+
+7) In DSF files processes, indirection is marked with @ sign, that is @Player instead of  [Player]
+
+8)  You can write messages directly like this
+
+MESSAGE "Hello World!"
+SYSMESS "Help"
+DESC "You are in hole"
+
+The compiler will find a place for that message in a message table, and assign the number automatically.
+
+9) DSF files ha ve /END mark at the end of last process
+
+10) Processes Syntax is more flexible all these options are possible (some are quite weird, but possible anyway):
+
+; All in one line
+_ _ AT 7 CARRIED 2 LET 127 12 MESSAGE 15 CREATE 2 DONE
+
+
+; ngPAWS/Superglus/NMP style
+_ _
+ AT 7
+ CARRIED 2
+ LET 127 12
+ MESSAGE 15
+ CREATE 2 
+ DONE
+
+; DC Style
+_ _     AT 7
+        CARRIED 2
+        LET 127 12
+        MESSAGE 15
+        CREATE 2 
+        DONE
+
+; Ofuscated DAAD
+_ 
+_  AT 7 
+ CARRIED 
+ 2 LET 127 12 MESSAGE ; comment
+ 15 CREATE ; comment
+ 2 DONE
+
+11) The compiler directive #classic
+
+12) The compiler directive #debug wil make the compiler accept a new condact named DEBUG. If #debug is not present DEBUG condacts will be just ignored. DEBUG condact is a fake
+condact that will you game reset unless you are running under ZesarUX ZX Spectrum emulator with DAAD debug active. ZesarUX emulator detects that fake condact, and enters step
+by step debugging at that point. You can add as many DEBUG condacts as you want, for debuggin purposes, just remember to remove the #debug directive before generating production
+version of your game.
+
+13) The compiler directive #classic affects both backend and front end. By default the new compiler makes several optimizations which at the moment  are experimental. 
+Those optimizations include mainly two tasks:
+
+1) Optimizations to save space (make a smaller database), not related to text compressing.
+2) Automation which makes the compiler be clever enough to put a message in STX or LTX tables when the MTX table is full and another MESSAGE "a message" condact appears.
+
+In classic mode, none of those advantages take place.
+
+
+HOW TO COMPILE
+==============
+
+1) First we have to call the front end (drf). Syntax is:
+
+DRF <machine> [video_mode] <file.DSF> [output.json]
+
+<machine> can be zx, cpc, msx, c64, amiga, pcw, st, pc or msx2.
+
+machine is automatically created as a #define, so if you call the compiler with "c64" then [#ifdef "C64"] would be a succesful condition.
+
+DRF will also create "bit8" or "bit16" symbols depending on target machine, so you can also use [#ifdef/#ifndef "bit8"]
+
+DRF will also automaticall create the symbol COLS as DC does, depending on target, but will also create the ROWS symbol, which DC doesn't create.
+
+[video_mode] is only required if target is PC (video modes accepted are VGA, CGA, EGA and TEXT) or MSX2 (video modes accepted are 5_6,5_8,6_6,6_8,7_6,7_8,8_6 and 8_8)
+
+[output.json] is the output file name, if missing , same name of the .DSF file will be used, with JSON extension.
+
+Please notice MSX2 target is a new target for a new interpreter being developed at the moement (April, 2018).
+
+Examples:
+
+drf msx mygame.dsf
+drf zx mygame.dsf
+drf pc vga mygame.dsf someother.json
+drf msx2 5_8 mygame.dsf
+
+2) Then we have to call the backend, that is made like this:
+
+drb <target> [video_mode] <language> <fichero.json> [output.ddb]
+
+<target> and [video_mode] are just like in the front end, and language can be "es" or "en" (for Spanish and English)
+
+Once again, last parameter is optional, if you don't provide an output file name, the same name of the json file will be chosen, and extension changed to DDB.
+
+Examples:
+
+drb zx en mygame.dsf
+drb pc vga es mygame.dsf
+drb msx en mygame.dsf final.ddb
+
+Hey! there is not a drb executable!
+===================================
+
+You are right, drb is not an executable file, is a php script, so you have to call it with php. See below about how to install php in your OS.
+
+So you actually have to call drb like this:
+
+php drb.php zx en mygame.dsf
+php drb.php pc vga es mygame.dsf
+php drb.php msx en mygame.dsf final.ddb
+
+
+INSTALLING PHP
+==============
+
+OSX: since a long time ago php is installed de-facto in all OSX versions, I have checked it was already on Mavericks, so anythin newer than that, including 
+     latest High Sierra and Mojave include php.
+
+Linux: install the following packages with your favorite package manager: "php" and "php-xml"
+
+Windows: go this URL (https://www.php.net/downloads.php), click on "Windows Downloads" (at the bottom of first block). Download the newst zip and extract it wherever you prefer. 
+         After that you either add that folder to the PATH, or you will have to call php using the full path, so instead of 
+         
+         php drb.php msx en mygame.dsf final.ddb
+
+         you wil have to write
+         
+         C:\path\to\your\php\installation\php.exe drb.php msx en mygame.dsf final.ddb
+
+         Obviously, adding php folder to the path will make your life easier in the long term.
+
+
+IMPORTANT NOTE
+==============
+Many of you will tend to include DRF and DRB calls in a batch file, please make sure that batch file checks DRF exit errorlevel, cause if it fails, you would probably 
+running DRF on the previous version of the JSON file generated by DRC, so it will be succesful but very confusing.
+
+In Linux, MSYS and probably in OSX, adding this after the call to DRF will do the trick:
+
+rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+
+In Windows I beliave you have to put this after DRF call:
+
+IF ERRORLEVEL 1 EXIT
+
+HEY! WHAT ABOUT TEXT COMPRESSION?
+=================================
+The backend compiler include the tokens included in the default databases for both english and spanish, so you don't have to care about that. I've worked a bit trying to get better tokens
+for the current messages, but didn't get any results. Still, DRC saves space compared with DC, but it's because of other optimizations not related with text compression. DRC always 
+applies compression to MTX and STX sections, in case you don't want that, edit drb.php file and in the line where you can see "advanced" replace that with "basic".
+
+I wil be working on text compression improvement later on, but at this moment I beliave the compiler already saves enough space only with other optimizations. 
+
+DAADMAKER
+=========
+DAADMaker will help you create TAP and DSK files for ZX Spectrum. Basically you will need to have at least the ZX Spectrum interpreter for your language, and the DDB file generated by DRC or by the original DAAD compiler (DC). You can also
+have a .SDG location graphics database, and a loading screen in .SCR format, but those are optional (if missing, an empty SDG file with not graphics will be added, and no loading screen will be included).
+
+So for instance you can do:
+
+daadmaker OUTPUT.TAP DS48IS.P3F GAME.DDB GAME.SDG GAME.SRC   --> Create OUTPUT.TAP with GAME.DDB, GAME.SDG and GAME.SCR
+daadmaker OUTPUT.TAP DS48IS.P3F GAME.DDB --> Create OUTPUT.TAP with GAME.DDB, defaulkt font, no graphics, and no loading screen
+daadmaker OUTPUT.TAP DS48IS.P3F GAME.DDB GAME.SCR --> Create OUTPUT.TAP with GAME.DDB, defaulkt font, no graphics, and GAME.SCR as loading screen
+
+You can also add an additional .TAP file, if you do that it would be considered an alternative loader (the tap file should contain a basic loader), and it would be included in the output.tap file
+
+daadmaker OUTPUT.TAP DS48IS.P3F GAME.DDB GAME.SDG GAME.SRC MYLOADER.TAP  --> Create OUTPUT.TAP with GAME.DDB, GAME.SDG and GAME.SCR using MYLOADER.TAP as loader.
+
+That may help you create your own custom logo, colors, or customized loader with hidden lines (A DAAD'ed game o'hacker?). Also the package includes TAP2DSK.TAP, a custom loader, that will create an output.tap file
+which will save itself to disk when loaded in a Spectrum +3 (either real or emulated) with an empty disk inserted.
+
+
+
+
+
+BUILDING DRC
+============
 
 To compile just dowload freepascal and run:
 
@@ -12,91 +292,3 @@ In case you need to change the lexer file (DSF.l) delete file lexer.pas and upda
 plex DSF.l lexer.pas
 
 Plex is usually included with freepascal. Make sure you have installed both fpc and fpc-src packages.
-
-Changes in DRC/DFM 
-==================
-
-These are some changes you may find when using DRC/DFM instead of DC/SCE:
-
-- #define labels can have any length, they are also case-insensitive
-
-- Message, sysmess, objects and locations texts should be between double quotes (").The lexical analyzer would admit anything in between the quotes, but there are several escape codes that should be taken into account (see DAAD's manual, page 68).
-
-/58 "Disk or drive full.\n"
-
-- DRC supports the following directives : #define, #ifdef, #ifndef, #endif, #extern, #classic, #incbin and #db
-
- 'define', 'ifdef', 'ifndef' and 'endif' work as expected.
-
- 'extern' can only be used at the beginning of /CTL section, and will include the binary in the output JSON file in the extern section.
-
-#extern "MLV_MSX.BIN"
-
- 'incbin' and 'db' work only in the condats section of processes. 'db' will include a raw byte value, while 'incbin' will include as many bytes as the file given as parameter contains.
-
-#db 28
-#incbin "file.inc"
-
- 'classic' is explained below
-
-- DFM files don't have a /TOK section.
-
-- All vocabulary words are added as symbols, with prefix "_voc_". For instance if there is a word NORTH, it can be refered as _VOC_NORTH. 
-
-- Also all vocabulary words can replace parameters, but if the same word is defined as symbol, the symbol will take precedence. i.e "EQ 33 TAKE" is valid and the second parameter would be replaced by the vocabulary number of word "TAKE", unless there is a previous
- "#define TAKE x", in which case TAKE would be replaced by value x. 
-
-- Indirection is marked as in NMP, Superglus and ngPAWS, that is: '@38' instead of '[38]'
-
-- You can directly write texts after MESSAGE/MES/SYSMESS like this
-
-MESSAGE "Hello world!"
-SYSMESS "Doo-bee-doo-bee-doo, Doo-doo-dee-dah, dah-dah-dah-dah-dah"
-MES "hey ho let's go"
-
-If a message already exists with that specific text in the matching table (MTX for MESSAGE and MES, STX for SYSMESS) the compiler will replace the text with the message number automatically and continue. If the message does not exist, it will be added to the message list automatically and then replaced by the new message number. 
-Of course, if there are several equal messages written like that in your code, only one message will be added to message list and a new message number will be obtained.
-
-Is stil possible to use old syntax "MESSAGE n" if you want or is required.
-
-Please notice that DRC will try to accomodate a message in other message tables if there is no room for messages in the matching message table. For instance if you write MESSAGE "blah blah blah" and message table (MTX) is already full, DRC will try to put the message in the sytem messages table (STX), and then it will not obly obtain the number of that message, but also will replace MESSAGE with SYSMES in the output.
-If system messages is also full, DRC will try to use the locations table (LTX), and replace the condact with DESC condact. All that will allow the writer to potentially use up to 768 different messages, counting location texts, system messages, and user messages.
-
-If you don't like the idea of messages going to different tables, just add the #classic directive in the /CTL section. DRC will replace MESSAGE "xxx" and similar sentences, but will never try to accomodate messages in other tables when tables are full, and will raise an error instead.
-
-- A DSF file has a '/END' mark at the end of last process
-
-- Escape chars (\g,\t,\k, etc. described at page 68 of DAAD's manual (Special characters) have to be included in DSF files with a sharp character instead of backslash. i.e "#k" replaces "\k". Also, it is possible to use either #n or #r to add a carriage return in any message/location/object. Finally, 
-  and  as an excepcion, "\n" is also accepted for carriage return. So in the end there are three ways of adding a carriage return:  #n, #r and \n.
-
-- With DRC you have much less fixed layout for processes, for instance all these options are valid:
-
-; All in one line
-_ _ AT 7 CARRIED 2 LET 127 12 MESSAGE 15 CREATE 2 DONE
-
-
-; Superglus/ngPAWS/NMP Style
-_ _
- AT 7
- CARRIED 2
- LET 127 12
- MESSAGE 15
- CREATE 2 
- DONE
-
-; Classic DAAD style
-_ _     AT 7
-        CARRIED 2
-        LET 127 12
-        MESSAGE 15
-        CREATE 2 
-        DONE
-
-;Crazy order
-_ 
-_  AT 7 
- CARRIED 
- 2 LET 127 12 MESSAGE ; comment goes here
- 15 CREATE ; other comment goes here
- 2 DONE
-
