@@ -608,6 +608,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                 }
 
                 if (($condact->NumParams>0) && ($condact->Indirection1)) $opcode = $opcode | 0x80; // Set indirection bit
+                if (($opcode == FAKE_DEBUG_CONDACT_CODE) && ($adventure->verbose)) echo "Debug condact found, inserted.\n";
                 writeByte($outputFileHandler, $opcode);
                 $currentAddress++;
                 for($i=0;$i<$condact->NumParams;$i++) 
@@ -823,8 +824,9 @@ if (($adventure->debugMode) && ($target!='ZX'))
 {
     echo "Debug mode active, but target is not ZX. Debug mode deactivated.";
     $adventure->debugMode = false;
-}
+} 
 if ($adventure->classicMode) echo "Classic mode ON, optimizations disabled.\n"; else echo "Classic mode OFF, optimizations enabled.\n";
+if ($adventure->debugMode) echo "Debug mode ON, generating DEBUG information for ZesarUX debugger.\n";
                             
 // Just for development, set to true for verbose info
 $adventure->verbose = false;
