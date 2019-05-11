@@ -214,9 +214,9 @@ Once again, last parameter is optional, if you don't provide an output file name
 
 Examples:
 
-drb zx en mygame.dsf
-drb pc vga es mygame.dsf
-drb msx en mygame.dsf final.ddb
+drb zx en mygame.json
+drb pc vga es mygame.json
+drb msx en mygame.json final.ddb
 
 Hey! there is not a drb executable!
 ===================================
@@ -225,9 +225,9 @@ You are right, drb is not an executable file, is a php script, so you have to ca
 
 So you actually have to call drb like this:
 
-php drb.php zx en mygame.dsf
-php drb.php pc vga es mygame.dsf
-php drb.php msx en mygame.dsf final.ddb
+php drb.php zx en mygame.json
+php drb.php pc vga es mygame.json
+php drb.php msx en mygame.json final.ddb
 
 
 INSTALLING PHP
@@ -241,11 +241,11 @@ Linux: install the following packages with your favorite package manager: "php" 
 Windows: go this URL (https://www.php.net/downloads.php), click on "Windows Downloads" (at the bottom of first block). Download the newst zip and extract it wherever you prefer. 
          After that you either add that folder to the PATH, or you will have to call php using the full path, so instead of 
          
-         php drb.php msx en mygame.dsf final.ddb
+         php drb.php msx en mygame.json final.ddb
 
          you wil have to write
          
-         C:\path\to\your\php\installation\php.exe drb.php msx en mygame.dsf final.ddb
+         C:\path\to\your\php\installation\php.exe drb.php msx en mygame.json final.ddb
 
          Obviously, adding php folder to the path will make your life easier in the long term.
 

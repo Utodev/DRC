@@ -209,18 +209,18 @@ Una vez más, el último parámetro es opcional, si no lo pones se generará uno
 
 Ejemplos:
 
-drb zx en mijuego.dsf
-drb pc vga es mijuego.dsf
-drb msx en mijuego.dsf final.ddb
+drb zx en mijuego.json
+drb pc vga es mijuego.json
+drb msx en mijuego.dsf final.json
 
 Oye! el drb no es un ejecutable!
 ================================
 
 Pues es verdad ,es un scrip php, así que debes instalar php en tu ordenador y luego llamarle así :
 
-php drb.php zx en mijuego.dsf
-php drb.php pc vga es mijuego.dsf
-php drb.php msx en mijuego.dsf final.ddb
+php drb.php zx en mijuego.json
+php drb.php pc vga es mijuego.json
+php drb.php msx en mijuego.json final.ddb
 
 
 INSTALANDO PHP
@@ -233,11 +233,11 @@ Linux: instala los paquetes "php" and "php-xml"
 Windows: ve aqui (https://www.php.net/downloads.php), pulsa en  "Windows Downloads" (al final del primer bloque). Baja el zip mas nuevo que haya y extraelo en la carpeta que mas te guste (por ejemplo C:\php).
          Tras eso, bien pones esa tarjeta en el path, o bien tendrás que llamar a drp con la ruta completa al fichero php.exe que hay en ese carpeta, en vez de:
          
-         php drb.php msx en mygame.dsf final.ddb
+         php drb.php msx en mygame.json final.ddb
 
          tendrás que escribir (si instalaste en C:\php):
          
-         C:\php\php.exe drb.php msx en mygame.dsf final.ddb
+         C:\php\php.exe drb.php msx en mygame.json final.ddb
 
          Obviamente, añadir la carpeta al path es más cómodo a largo plazo.
 
