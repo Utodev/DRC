@@ -105,7 +105,7 @@ END;
 BEGIN
   WriteLn('Make CPC run file on PC. VERSION ', VERSION, ' FILE VERSION ', FILEV);
   WriteLn('(c) 1989-2018 Infinite Imaginations.');
-  WriteLn('Original code por CP/M written by T.J.Gilberts using Hisoft C.');
+  WriteLn('Original code for CP/M written by T.J.Gilberts using Hisoft C.');
   WriteLn('Rebuilt in pascal by Uto in 2018');
 
   IF (ParamCount()<>4) THEN Syntax();
