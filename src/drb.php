@@ -820,7 +820,7 @@ if (!$outputFileHandler) Error('Can\'t create output file');
     // Check settings in JSON
 $adventure->classicMode = $adventure->settings[0]->classic_mode;
 $adventure->debugMode = $adventure->settings[0]->debug_mode;
-if (($adventure->debugMode) && ($target!='ZX'))
+if (($adventure->debugMode) && ($target!='ZX') && ($target!='CPC'))
 {
     echo "Debug mode active, but target is not ZX. Debug mode deactivated.";
     $adventure->debugMode = false;
