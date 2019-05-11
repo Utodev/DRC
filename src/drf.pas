@@ -12,7 +12,7 @@ BEGIN
 	AppName := ChangeFileExt(ExtractFileName(ParamStr(0)),'');
 	WriteLn('Syntax: ', AppName, ' <target> [subtarget] <file.DSF> [output.json] ');
   WriteLn();
-	WriteLn('file.DSF is a DAAD', ' ', Version, '.', Minor, ' source file.');
+	WriteLn('file.DSF is a DAAD', ' ', version_hi, '.', version_lo, ' source file.');
   WriteLn();
 	WriteLn('<target> is the target machine, one of this list: ZX, CPC, C64, MSX, MSX2, PCW, PC, AMIGA or ST. The target machine will be added as if there were a ''#define <target> '' in the code, so you can make the code depend on target platform.');
   WriteLn();
@@ -139,7 +139,7 @@ END;
 
 BEGIN
   AppName := ChangeFileExt(ExtractFileName(ParamStr(0)),'');
-  Write('DAAD Reborn Compiler Frontend', ' ', Version, '.', Minor, ' (C) Uto 2018');
+  Write('DAAD Reborn Compiler Frontend', ' ', version_hi, '.', version_lo, ' (C) Uto 2018');
   if (CurrentYear()<>2018) THEN Write('-', CurrentYear());
   WriteLn();
   // Check Parameters

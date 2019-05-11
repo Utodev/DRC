@@ -3,8 +3,8 @@ UNIT UConstants;
 
 INTERFACE
 
-CONST Version = 0;
-	Minor = 4;
+CONST version_hi = 0;
+	version_lo = 5;
 
       LOC_CARRIED = 254;
       LOC_WORN = 253;       
