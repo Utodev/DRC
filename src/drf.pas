@@ -92,14 +92,13 @@ PROCEDURE CompileForTarget(Target: String; Subtarget: AnsiString; OutputFileName
 var machine : AnsiString;
    cols: byte;
 BEGIN
- Writeln('Opening ' + InputFileName);
+  Writeln('Reading ' + InputFileName);
   AssignFile(yyinput, InputFileName);
   Reset(yyinput);
   TokenList := nil;
-  // Parses whole file into TokenList
-  WriteLn('Checking Lexer...');
-  // Yhis is a fake token we add, although it will be never loaded. Everytime Scan() is called, it goes to "next" so first time this fake one will be skipped.
+  // This is a fake token we add, although it will be never loaded. Everytime Scan() is called, it goes to "next" so first time this fake one will be skipped.
   AddToken(TokenList, T_NOTHING, '', 0, 0, 0);
+  // Parses whole file into TokenList
   yylex();
   // Create some useful built-in symbols
   // The target
@@ -123,10 +122,9 @@ BEGIN
   AddSymbol(SymbolList, 'WORN', LOC_WORN);
   AddSymbol(SymbolList, 'HERE', LOC_HERE);
   AddSymbol(SymbolList, 'HERE', LOC_HERE);
-  
   WriteLn('Checking Syntax...');
   Sintactic();
-  Write('Generating output [Classic mode O');
+  Write('Generating ',OutputFileName,' [Classic mode O');
   if (ClassicMode) THEN WriteLn('N]') ELSE WriteLn('FF]');
 	GenerateOutput(OutputFileName, Target);
 END;  
