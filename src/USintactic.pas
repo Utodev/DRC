@@ -641,26 +641,15 @@ BEGIN
 	STXCount := 0;
 	LTXCount := 0;
 	OTXCount := 0;
-	WriteLn('CTL...');
 	ParseCTL();
-	WriteLn('VOC...');
 	ParseVOC();
-	WriteLn('STX...');
 	ParseSTX();
-	WriteLn('MTX...');
 	ParseMTX();
-	WriteLn('OTX...');
 	ParseOTX();
-	WriteLn('LTX...');
 	ParseLTX();
-	WriteLn('CON...');
 	ParseCON();
-	WriteLn('OBJ...');
 	ParseOBJ();
-	WriteLn('PRO...');
 	ParsePRO();
-  WriteLn('Input file parse completed...');
-
 END;
 
 END.
