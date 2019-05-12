@@ -265,5 +265,5 @@ begin
     Close(FileDDB);
     Close(FileSDG);
     if (SDGFilename=SDGTMP) then Erase(FileSDG);
-    WriteLn('OK');
+    WriteLn('File ', TAPFilename, ' created.');
 end.
