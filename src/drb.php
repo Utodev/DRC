@@ -106,34 +106,72 @@ function generateTokens(&$adventure, &$currentAddress, $outputFileHandler, $hasT
     }
     else
     {
-        // Compress the message tables
-        $totalSaving = 0;
-        $usedTokens = array();
         $compressableTables = getCompressableTables($compressionData->compression,$adventure);
+
+        // *** FIRST PASS: determine which tokens it's worth to use:
+
+        // Copy all strings to an array
+        $stringList = array();
+        foreach ($compressableTables as $compressableTable)
+            for ($i=0;$i<sizeof($compressableTable);$i++)
+                $stringList[] =  $compressableTable[$i]->Text;
+
+        // Determine savings per token
+        $tokenSavings = array();
         for ($j=0;$j<sizeof($compressionData->tokenDetails->tokens);$j++)
         {
             $token = $compressionData->tokenDetails->tokens[$j];
+            for ($i=0;$i<sizeof($stringList);$i++)
+            {
+                $parts = explode($token->token, $stringList[$i]);
+                if (sizeof($parts)>1)
+                 for ($k=0;$k<sizeof($parts)-1;$k++)  // Once per each token replacement (number of parts minus 1)
+                 {
+                    if (array_key_exists($j, $tokenSavings)) $tokenSavings[$j] += strlen($token->token) - 1; else $tokenSavings["$j"] = -1; // First replacement of a token wastes 1 byte, next replacements save token length minus 1
+                 }
+                 $stringList[$i] = implode(chr($j+127), $parts);
+            }
+        }
+
+        // Remove tokens which aren't worth to use
+        $totalSaving = 0;
+        $finalTokens = array($compressionData->tokenDetails->tokens[0]->token); //never remove first token
+        for ($j=1;$j<sizeof($compressionData->tokenDetails->tokens);$j++) // $j=1 to start by second token
+        {
+            if (!array_key_exists($j, $tokenSavings)) $tokenSavings[$j] = 0;
+            if ($tokenSavings[$j]>0)
+            {
+                $finalTokens[] = $compressionData->tokenDetails->tokens[$j]->token;
+                $totalSaving += $tokenSavings[$j];
+            } 
+            else if ($adventure->verbose) echo "Token '" . $compressionData->tokenDetails->tokens[$j]->token . "' would " . ($tokenSavings[$j]<0? "waste":"save") . ' ' . abs($tokenSavings[$j]) . " bytes. Will not be used.\n";
+        }
+        $savings = $totalSaving;
+
+        // *** SECOND PASS: replace and dump only remaingin tokens
+
+        if ($adventure->verbose) echo "Compression tokens used: " . sizeof($finalTokens) . ".\n";
+
+
+        // Replace tokens        
+        for ($j=0;$j<sizeof($finalTokens);$j++)
+        {
+            $token = $finalTokens[$j];
             foreach ($compressableTables as $compressableTable)
                 for ($i=0;$i<sizeof($compressableTable);$i++)
                 {
                     $message = $compressableTable[$i]->Text;
-                    $parts = explode($token->token, $message);
-                    if (sizeof($parts)>1) $usedTokens[] = $j;
+                    $parts = explode($token, $message);
                     $newMessage = implode(chr($j+127), $parts);
-                    if ($message!=$newMessage) extecho("$message   ==> $newMessage\n");
-                    $totalSaving += (strlen($message) - strlen($newMessage));
                     $compressableTable[$i]->Text = $newMessage;;
                 }
         }
+    
         // Dump tokens to file
-        for ($j=0;$j<sizeof($compressionData->tokenDetails->tokens);$j++)
+        for ($j=0;$j<sizeof($finalTokens);$j++)
         {
-            $token = $compressionData->tokenDetails->tokens[$j];
-            $tokenStr = $token->token;
-            $tokenLength = strlen($tokenStr);
-            // If a given token was not used at all cause the token was not included in any text, we dump a fake token with just one character (won't ever be used anyway) to save space
-            if (!in_array($j, $usedTokens) && (!$adventure->classicMode))  $tokenLength=1;
-            
+            $tokenStr = $finalTokens[$j];
+            $tokenLength = strlen($tokenStr);          
             for ($i=0;$i<$tokenLength;$i++) 
             {
                 $shift = ($i == $tokenLength-1) ? 128 : 0;
@@ -141,9 +179,10 @@ function generateTokens(&$adventure, &$currentAddress, $outputFileHandler, $hasT
                 writeByte($outputFileHandler, ord($c) + $shift);
                 $currentAddress++;
             }
-            $totalSaving -= $tokenLength;
         }
-        $savings = $totalSaving;
+
+
+        
         
     }
 }
