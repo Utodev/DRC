@@ -140,7 +140,11 @@ function generateTokens(&$adventure, &$currentAddress, $outputFileHandler, $hasT
                 $finalTokens[] = $compressionData->tokens[$j];
                 $totalSaving += $tokenSavings[$j];
             } 
-            else if ($adventure->verbose) echo "Token '" . $compressionData->tokens[$j] . "' would " . ($tokenSavings[$j]<0? "waste":"save") . ' ' . abs($tokenSavings[$j]) . " bytes. Will not be used.\n";
+            else if ($adventure->verbose)
+            {
+                if ($tokenSavings[$j]==0) echo "Token [" . $compressionData->tokens[$j] . "] won't be used cause it was not used by any text.\n";
+                                     else echo "Token [" . $compressionData->tokens[$j] . "] won't be used cause using it wont save any bytes, but waste ".abs($tokenSavings[$j])." byte.\n";
+            } 
         }
         $savings = $totalSaving;
 
