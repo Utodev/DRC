@@ -90,6 +90,7 @@ function generateExterns(&$adventure, &$currentAddress, $outputFileHandler)
 // - tokens: and array of tokens where each element is an hexadecimal encoded (ISO-8599-1) string. First token should be an impossible token, due to a bug in some intrepreters. So make sure the string can't be found in your texts (i.e. "0000")
 $compressionJSON_ES  = '{ "compression": "advanced","tokens": ["0000","2071756520","6120646520","6f20646520","20756e6120","2064656c20","7320646520","206465206c","20636f6e20","656e746520","20706f7220","2065737415","7469656e65","7320756e20","616e746520","2070617261","206c617320","656e747261","6e20656c20","6520646520","61206c6120","6572696f72","6369186e20","616e646f20","69656e7465","20656c20","206c6120","20646520","20636f6e","20656e20","6c6f7320","61646f20","20736520","65737461","20756e20","6c617320","656e7461","20646573","20616c20","61646120","617320","657320","6f7320","207920","61646f","746520","616461","6c6120","656e74","726573","717565","616e20","6f2070","726563","69646f","732c20","616e74","696e61","696461","6c6172","65726f","6d706c","6120","6f20","6572","6573","6f72","6172","616c","656e","6173","6f73","6520","616e","656c","6f6e","696e","6369","756e","2e20","636f","7265","6469","2c20","7572","7472","6465","7375","6162","6f6c","616d","7374","6375","7320","6163","696c","6772","6164","7465","7920","696d","746f","7565","7069","6775","6368","6361","6c61","6e20","726f","7269","6c6f","6d69","6c20","7469","6f62","6d65","7369","7065","206e","7475","6174","6669","646f","656d","6179","222e","6c6c"] }';
 $compressionJSON_EN  = '{ "compression": "advanced","tokens": ["0000","2074686520","20796f7520","2061726520","696e6720","20746f20","20616e64","20697320","596f7520","616e6420","54686520","6e277420","206f6620","20796f75","696e67","656420","206120","206f70","697468","6f7574","656e74","20746f","20696e","616c6c","207468","206974","746572","617665","206265","766572","686572","616e64","656172","596f75","206f6e","656e20","6f7365","6e6f","6963","6170","2062","6768","2020","6164","6973","2063","6972","6179","7572","756e","6f6f","2064","6c6f","726f","6163","7365","7269","6c69","7469","6f6d","626c","636b","4920","6564","6565","2066","6861","7065","6520","7420","696e","7320","7468","2c20","6572","6420","6f6e","746f","616e","6172","656e","6f75","6f72","7374","2e20","6f77","6c65","6174","616c","7265","7920","6368","616d","656c","2077","6173","6573","6974","2073","6c6c","646f","6f70","7368","6d65","6865","626f","6869","6361","706c","696c","636c","2061","6f66","2068","7474","6d6f","6b65","7665","736f","652e","642e","742e","7669","6c79","6964","7363","2070","656d","7220"] }';
+// A .TOK alternative file can be placed together with input JSON file (just use same name, .TOK extension. It's content should a JSON object just like the ones above)
 
 function extecho($message)
 {
@@ -794,6 +795,8 @@ function Syntax()
     echo "Examples:\n";
     echo "php drb zx es game.json\n";
     echo "php drb c64x en game.json mygame.ddb -ch\n";
+    echo "\n";
+    echo "Text compression will use the built in tokens for each language. In case you want to provide your own tokens just place a file with same name as the JSON file but with .TOK extension in the same folder. To know about the TOK file content format look for the default tokens array win DRB source code.\n";
     exit(1);
 }
 
@@ -992,7 +995,7 @@ $bestTokensDetails = null;
 if (file_exists(strtolower($tokensFilename))) $tokensFilename = strtolower($tokensFilename);
 if (file_exists($tokensFilename)) 
 {
-    if ($adventure->verbose) echo "Loading $tokensFilename.\n";
+    if ($adventure->verbose) echo "Loading tokens from $tokensFilename.\n";
     $compressionJSON = file_get_contents($tokensFilename);
 }
 else 
