@@ -800,13 +800,13 @@ function Syntax()
     echo ("          -ch : Prepend C64 header to DDB file (ch stands for 'Commodore header')\n");
     echo ("          -c  : Forced classic mode\n");
     echo ("          -d  : Forced debug mode\n");
-    echo "g\n";
+    echo "\n";
     echo "Examples:\n";
     echo "php drb zx es game.json\n";
     echo "php drb c64 en game.json mygame.ddb -ch\n";
     echo "php drb pc vga en game.json mygame.ddb -c -v\n";
     echo "\n";
-    echo "Text compression will use the built in tokens for each language. In case you want to provide your own tokens just place a file with same name as the JSON file but with .TOK extension in the same folder. To know about the TOK file content format look for the default tokens array win DRB source code.\n";
+    echo "Text compression will use the built in tokens for each language. In case you want to provide your own tokens just place a file with same name as the JSON file but with .TOK extension in the same folder. To know about the TOK file content format look for the default tokens array in DRB source code.\n";
     exit(1);
 }
 
