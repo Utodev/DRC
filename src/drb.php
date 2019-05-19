@@ -151,6 +151,11 @@ function generateTokens(&$adventure, &$currentAddress, $outputFileHandler, $hasT
         // *** SECOND PASS: replace and dump only remaingin tokens
 
         if ($adventure->verbose) echo "Compression tokens used: " . sizeof($finalTokens) . ".\n";
+        if ($adventure->classicMode)
+        {
+            while (sizeof($finalTokens)<128) $finalTokens[] = ' ';
+            if ($adventure->verbose) echo "Filling tokens table up to 128 tokens for classic mode compatibility.\n";
+        }
 
 
         // Replace tokens        
@@ -332,12 +337,13 @@ function checkStrings($adventure)
 
 
 
-function generateMessages($messageList, &$currentAddress, $outputFileHandler,  $isLittleEndian)
+function generateMessages($messageList, &$currentAddress, $outputFileHandler,  $isLittleEndian, $target)
 {
 
     $messageOffsets = array();
     for ($messageID=0;$messageID<sizeof($messageList);$messageID++)
     {
+        addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
         $messageOffsets[$messageID] = $currentAddress;
         $message = $messageList[$messageID];
         for ($i=0;$i<strlen($message->Text);$i++)
@@ -351,6 +357,7 @@ function generateMessages($messageList, &$currentAddress, $outputFileHandler,  $
     }
 
     // Write the messages table
+    addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
     for ($messageID=0;$messageID<sizeof($messageList);$messageID++)
     {
         writeWord($outputFileHandler, $messageOffsets[$messageID] , $isLittleEndian);
@@ -363,24 +370,24 @@ function generateMessages($messageList, &$currentAddress, $outputFileHandler,  $
 }
 
 
-function generateMTX($adventure, &$currentAddress, $outputFileHandler,  $isLittleEndian)
+function generateMTX($adventure, &$currentAddress, $outputFileHandler,  $isLittleEndian, $target)
 {
-    generateMessages($adventure->messages, $currentAddress, $outputFileHandler,   $isLittleEndian);
+    generateMessages($adventure->messages, $currentAddress, $outputFileHandler,   $isLittleEndian, $target);
 }
 
-function generateSTX($adventure, &$currentAddress, $outputFileHandler,  $isLittleEndian)
+function generateSTX($adventure, &$currentAddress, $outputFileHandler,  $isLittleEndian, $target)
 {
-    generateMessages($adventure->sysmess, $currentAddress, $outputFileHandler,  $isLittleEndian);
+    generateMessages($adventure->sysmess, $currentAddress, $outputFileHandler,  $isLittleEndian, $target);
 }
 
-function generateLTX($adventure, &$currentAddress, $outputFileHandler,  $isLittleEndian)
+function generateLTX($adventure, &$currentAddress, $outputFileHandler,  $isLittleEndian, $target)
 {
-    generateMessages($adventure->locations, $currentAddress, $outputFileHandler,   $isLittleEndian);
+    generateMessages($adventure->locations, $currentAddress, $outputFileHandler,   $isLittleEndian, $target);
 }
 
-function generateOTX($adventure, &$currentAddress, $outputFileHandler, $isLittleEndian)
+function generateOTX($adventure, &$currentAddress, $outputFileHandler, $isLittleEndian, $target)
 {
-    generateMessages($adventure->objects, $currentAddress, $outputFileHandler, $isLittleEndian); 
+    generateMessages($adventure->objects, $currentAddress, $outputFileHandler, $isLittleEndian, $target); 
 }
 
 //================================================================= connections ========================================================
@@ -566,7 +573,7 @@ function getCondactsHash($adventure, $condacts, $from)
     return $hash;
 }
 
-function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $isLittleEndian)
+function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $isLittleEndian, $target)
 {     
     $terminatorOpcodes = array(22, 23,103, 116,117,108);  //DONE/OK/NOTDONE/SKIP/RESTART/REDO
     $condactsOffsets = array();
@@ -618,10 +625,11 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     else 
                     {
                         $condactsHash["$hash"]->offset = $currentAddress;
+                        
                     }
                 }
             }
-
+            addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
             $condactsOffsets["${procID}_${entryID}"] = $currentAddress;
             $entry = $process->entries[$entryID];
             $terminatorFound = false;
@@ -678,6 +686,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
         }
     }
 
+    addPaddingIfRequired($target, $outputFileHandler, $currentAddress); 
     // Dump the entries tables
     $processesOffsets = array();
     for ($procID=0;$procID<sizeof($adventure->processes);$procID++)
@@ -694,9 +703,11 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
         }
         WriteZero($outputFileHandler); // Marca de fin de proceso, doble 00
         $currentAddress++;
+        addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
     }
 
     // Dump the processes table
+    addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
     for ($procID=0;$procID<sizeof($adventure->processes);$procID++)
     {
         writeWord ($outputFileHandler, $processesOffsets["$procID"], $isLittleEndian);
@@ -787,6 +798,8 @@ function Syntax()
     echo("[options]: any of the following:\n");
     echo ("          -v  : verbose output\n");
     echo ("          -ch : Prepend C64 header to DDB file (ch stands for 'Commodore header')\n\n");
+    echo ("          -c  : Forced classic mode')\n\n");
+    echo ("          -d  : Forced debug mode')\n\n");
     echo "Examples:\n";
     echo "php drb zx es game.json\n";
     echo "php drb c64x en game.json mygame.ddb -ch\n";
@@ -815,6 +828,8 @@ function parseOptionalParameters($argv, $nextParam, &$adventure)
             {
                 case "-CH" : $adventure->prependC64Header = true; break;
                 case "-V" : $adventure->verbose = true; break;
+                case "-C" : $adventure->forcedClassicMode = true; break;
+                case "-D" : $adventure->forcedDebugMode = true; break;
                 default: Error("$currentParam is not a valid option");
             }
         } 
@@ -889,6 +904,8 @@ if (!$adventure)
 // Parse optional parameters
 $adventure->verbose = false;
 $adventure->prependC64Header = false;
+$adventure->forcedClassicMode = false;
+$adventure->forcedDebugMode = false;
 $outputFileName = parseOptionalParameters($argv, $nextParam, $adventure);
 if ($outputFileName=='') $outputFileName = replace_extension($inputFileName, 'DDB');
 if ($outputFileName==$inputFileName) Error('Input and output file name cannot be the same');
@@ -912,7 +929,9 @@ $outputFileHandler = fopen($outputFileName, "wr");
 if (!$outputFileHandler) Error('Can\'t create output file');
     // Check settings in JSON
 $adventure->classicMode = $adventure->settings[0]->classic_mode;
+if ($adventure->forcedClassicMode) $adventure->classicMode = true;
 $adventure->debugMode = $adventure->settings[0]->debug_mode;
+if ($adventure->forcedDebugMode) $adventure->debugMode = true;
 if (($adventure->debugMode) && ($target!='ZX') && ($target!='CPC'))
 {
     echo "Debug mode active, but target is not ZX. Debug mode deactivated.";
@@ -933,7 +952,7 @@ $isLittleEndian = isLittleEndianPlatform($target);
 
 if ($adventure->verbose) 
 {
-    echo  "Endianness is " . $isLittleEndian? "Little endian":"Big endian";
+    echo  "Endianness is " . ($isLittleEndian? "little":"big")  ." endian";
     echo "\nBase address      [" . prettyFormat($baseAddress) . "]\n";
 }
 
@@ -1030,22 +1049,22 @@ if ($adventure->verbose) echo "Tokens            [" . prettyFormat($compressedTe
 generateTokens($adventure , $currentAddress, $outputFileHandler, $hasTokens, $compressionData, $textSavings);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Sysmess
-generateSTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
+generateSTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian, $target);
 $sysmessLookupOffset = $currentAddress - 2 * sizeof($adventure->sysmess);;
 if ($adventure->verbose) echo "Sysmess           [" . prettyFormat($sysmessLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Messages
-generateMTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
+generateMTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian, $target);
 $messageLookupOffset = $currentAddress - 2 * sizeof($adventure->messages);
 if ($adventure->verbose) echo "Messages          [" . prettyFormat($messageLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Object Texts
-generateOTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
+generateOTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian, $target);
 $objectLookupOffset = $currentAddress - 2 * sizeof($adventure->object_data);
 if ($adventure->verbose) echo "Object texts      [" . prettyFormat($objectLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Location texts
-generateLTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian);
+generateLTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian, $target);
 $locationLookupOffset =  $currentAddress - 2 * sizeof($adventure->locations);
 if ($adventure->verbose) echo "Locations         [" . prettyFormat($locationLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
@@ -1073,7 +1092,7 @@ if ($adventure->verbose) echo "Initially at      [" . prettyFormat($initiallyAtO
 generateObjectInitially($adventure, $currentAddress, $outputFileHandler);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Dump Processes
-generateProcesses($adventure, $currentAddress, $outputFileHandler, $isLittleEndian);
+generateProcesses($adventure, $currentAddress, $outputFileHandler, $isLittleEndian, $target);
 $processListOffset = $currentAddress - sizeof($adventure->processes) * 2;
 if ($adventure->verbose) echo "Processes         [" . prettyFormat($processListOffset) . "]\n";
 
