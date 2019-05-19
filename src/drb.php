@@ -797,9 +797,10 @@ function Syntax()
     echo("[outputfile] : (optional) name of output file. If absent, same name of json file would be used, with DDB extension.\n\n\n");
     echo("[options]: any of the following:\n");
     echo ("          -v  : verbose output\n");
-    echo ("          -ch : Prepend C64 header to DDB file (ch stands for 'Commodore header')\n\n");
-    echo ("          -c  : Forced classic mode')\n\n");
-    echo ("          -d  : Forced debug mode')\n\n");
+    echo ("          -ch : Prepend C64 header to DDB file (ch stands for 'Commodore header')\n");
+    echo ("          -c  : Forced classic mode\n");
+    echo ("          -d  : Forced debug mode\n");
+    echo "\n";
     echo "Examples:\n";
     echo "php drb zx es game.json\n";
     echo "php drb c64x en game.json mygame.ddb -ch\n";
