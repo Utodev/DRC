@@ -73,11 +73,12 @@ function generateExterns(&$adventure, &$currentAddress, $outputFileHandler)
         fputs($outputFileHandler, $buffer);
         switch ($fileType) 
         {
-            case 'EXTERN': $adventure->extvec[0] = $currentAddress;
-            case 'SFX': $adventure->extvec[1] = $currentAddress;
-            case 'INT':$adventure->extvec[2] = $currentAddress;
+            case 'EXTERN': $adventure->extvec[0] = $currentAddress; break;
+            case 'SFX': $adventure->extvec[1] = $currentAddress; break;
+            case 'INT':$adventure->extvec[2] = $currentAddress; break;
             default: Error("Invalid file type '$fileType' for file $filePath");
         }
+        echo "$fileType $filePath loaded at " . prettyFormat($currentAddress) . "\n";
         $currentAddress+=filesize($filePath);
     }   
 }
