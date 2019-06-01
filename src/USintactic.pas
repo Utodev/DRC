@@ -309,10 +309,10 @@ BEGIN
 		Scan();
 		IF (CurrentTokenID<>T_LIST_ENTRY) AND (CurrentTokenID<>T_SECTION_OBJ) THEN
 		BEGIN
-			IF CurrentTokenID<>T_IDENTIFIER THEN SyntaxError('Connection vocabulary word expected');
+			IF CurrentTokenID<>T_IDENTIFIER THEN SyntaxError('Connection vocabulary word expected but "'+CurrentText+'" found');
 			TheWord := Copy(CurrentText,1,VOCABULARY_LENGTH);
 			AuxVocabularyTree := GetVocabulary(VocabularyTree, TheWord, VOC_ANY);
-			IF (AuxVocabularyTree=nil) THEN SyntaxError('Direction is not defined');
+			IF (AuxVocabularyTree=nil) THEN SyntaxError('Direction is not defined:"' + CurrentText+'"');
 			IF (AuxVocabularyTree^.Value > MAX_DIRECTION_VOCABULARY) 
 			   OR (NOT (AuxVocabularyTree^.VocType IN [VOC_VERB,VOC_NOUN])) THEN SyntaxError('Only verbs and nouns with number up to ' + IntToStr(MAX_DIRECTION_VOCABULARY) + ' are valid for connections');
 				Direction := AuxVocabularyTree^.Value;
@@ -333,7 +333,7 @@ BEGIN
 	CurrentLoc := 0;
 	Scan();
 	REPEAT 
-		IF (CurrentTokenID <> T_LIST_ENTRY) THEN SyntaxError('Location entry expected');
+		IF (CurrentTokenID <> T_LIST_ENTRY) THEN SyntaxError('Location entry expected but "'+CurrentText+'" found');
 		IF CurrentIntVal<>CurrentLoc THEN SyntaxError('Connections for location #' + IntToStr(CurrentLoc) + ' expected but location #' + IntToStr(CurrentIntVal) + ' found');
 		IF (CurrentIntVal>=LTXCount) THEN SyntaxError ('Location ' + IntToStr(CurrentIntVal) + ' is not defined');
 		ParseLocationConnections(CurrentLoc);
@@ -361,12 +361,12 @@ BEGIN
 		Scan();
 		IF CurrentTokenID <> T_SECTION_PRO THEN
 		BEGIN
-			IF (CurrentTokenID <> T_LIST_ENTRY) THEN SyntaxError('Object entry expected');
+			IF (CurrentTokenID <> T_LIST_ENTRY) THEN SyntaxError('Object entry expected but "'+CurrentText+'" found');
 			IF CurrentIntVal<>CurrentObj THEN SyntaxError('Definition for object #' + IntToStr(Currentobj) + ' expected but object #' + IntToStr(CurrentIntVal) + ' found');
 			IF (CurrentIntVal>=OTXCount) THEN SyntaxError ('Object #' + IntToStr(CurrentIntVal) + ' not defined');
 
 			Scan(); // Get Initialy At
-			IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_UNDERSCORE) THEN SyntaxError('Object initial location expected');
+			IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_UNDERSCORE) THEN SyntaxError('Object initial location expected but "'+CurrentText+'" found');
 			IF (CurrentTokenID = T_UNDERSCORE) THEN InitialyAt := LOC_NOT_CREATED
 			ELSE
 			BEGIN
@@ -379,7 +379,7 @@ BEGIN
 			IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Object weight expected');
 			Weight := GetIdentifierValue();
 			IF (Weight = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
-			IF (Weight >= MAX_FLAG_VALUE) THEN SyntaxError('Invalid weight');
+			IF (Weight >= MAX_FLAG_VALUE) THEN SyntaxError('Invalid weight :' + CurrentText);
 
 
 			Scan(); // Get if container
@@ -406,7 +406,7 @@ BEGIN
 			END;			
 
 			Scan(); // Get Noun
-			IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER)  AND (CurrentTokenID<>T_UNDERSCORE) THEN SyntaxError('Vocabulary noun or underscore expected');
+			IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER)  AND (CurrentTokenID<>T_UNDERSCORE) THEN SyntaxError('Vocabulary noun or underscore expected but "'+CurrentText+'" found');
 			IF (CurrentTokenID=T_UNDERSCORE) THEN Noun := NO_WORD 
 			ELSE
 			BEGIN
@@ -417,13 +417,13 @@ BEGIN
 			END;
 
 			Scan(); // Get Adject
-			IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_UNDERSCORE) THEN SyntaxError('Vocabulary adjective or underscore character expected');
+			IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_UNDERSCORE) THEN SyntaxError('Vocabulary adjective or underscore character expected but "'+CurrentText+'" found');
 			IF CurrentTokenID = T_UNDERSCORE THEN Adjective := NO_WORD 
 			ELSE
 			BEGIN
 				TheWord := Copy(CurrentText, 1, VOCABULARY_LENGTH);
 				AuxVocabularyTree := GetVocabulary(VocabularyTree, TheWord, VOC_ADJECT);
-				IF AuxVocabularyTree = nil THEN SyntaxError('Adjective not defined');
+				IF AuxVocabularyTree = nil THEN SyntaxError('Adjective not defined: "' + CurrentText + '"');
 				Adjective := AuxVocabularyTree^.Value;
 			END;
 			AddObject(ObjectList, CurrentObj, Noun, Adjective, Weight, InitialyAt, Flags,  Container, Wearable);
@@ -448,14 +448,14 @@ VAR Opcode : Longint;
 BEGIN
 	REPEAT
 		Scan(); // Get Condact
-		IF (CurrentTokenID <> T_IDENTIFIER)  AND (CurrentTokenID<>T_UNDERSCORE)  AND (CurrentTokenID<>T_SECTION_PRO) AND (CurrentTokenID<>T_SECTION_END) 
-		    AND (CurrentTokenID<>T_INCBIN) AND (CurrentTokenID<>T_DB) AND (CurrentTokenID<>T_DW) AND (CurrentTokenID<>T_NUMBER) 
-				AND (CurrentTokenID<>T_HEX) AND (CurrentTokenID<>T_USERPTR)	THEN SyntaxError('Condact or new process entry expected');
+		IF (CurrentTokenID <> T_IDENTIFIER)  AND (CurrentTokenID<>T_UNDERSCORE)  AND (CurrentTokenID<>T_SECTION_PRO) AND (CurrentTokenID<>T_SECTION_END)   AND (CurrentTokenID<>T_INCBIN) 
+		 AND (CurrentTokenID<>T_DB) AND (CurrentTokenID<>T_DW) AND (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_HEX) AND (CurrentTokenID<>T_USERPTR)	 
+		 AND (CurrentTokenID<>T_PROCESS_ENTRY_SIGN)	 THEN SyntaxError('Condact, new process entry or new process expected but "'+CurrentText+'" found');
 
 		IF (CurrentTokenID<>T_INCBIN) AND (CurrentTokenID<>T_DB) AND (CurrentTokenID<>T_DW) AND (CurrentTokenID<>T_HEX) AND (CurrentTokenID<>T_USERPTR) THEN
 		BEGIN
-			Opcode := GetCondact(CurrentText);
-			IF Opcode <> - 1 THEN
+		  IF (CurrentTokenID = T_PROCESS_ENTRY_SIGN) OR (CurrentTokenID = T_SECTION_END) OR (CurrentTokenID = T_SECTION_PRO) THEN Opcode := -2 ELSE Opcode := GetCondact(CurrentText);
+			IF Opcode >= 0 THEN
 			BEGIN
 				FOR i:= 0 TO GetNumParams(Opcode) - 1 DO
 				BEGIN
@@ -497,7 +497,11 @@ BEGIN
 					CurrentCondactParams[i].Value := Value;
 				END;
 				AddProcessCondact(SomeEntryCondacts, Opcode, GetNumParams(Opcode), CurrentCondactParams, false);
-			END;
+			END 
+			ELSE
+			BEGIN
+			 IF (Opcode=-1) THEN SyntaxError('Unknown condact: "'+CurrentText+'"'); // If opcode = -1, it was an invalid condact, otherwise we have found entry end because of another entry, another process or \END
+			END 
 		END ELSE
 		IF CurrentTokenID=T_USERPTR THEN  // USERPTR
 		BEGIN
@@ -563,7 +567,7 @@ BEGIN
 			END;
 			CloseFile(IncludedFile);
 		END;
-	UNTIL Opcode = -1;
+	UNTIL Opcode < 0;
 END;	
 
 
@@ -574,41 +578,44 @@ VAR TheWord: AnsiString;
 	EntryCondacts :  TPProcessCondactList;
         ValidVerb : Boolean;
 BEGIN
-	Scan(); // Get Verb
+	Scan(); // Get > sign or next process
 	REPEAT
-		IF (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_UNDERSCORE) AND (CurrentTokenID<>T_SECTION_PRO) THEN SyntaxError('Vocabulary verb expected');
-      IF (CurrentTokenID <> T_SECTION_PRO) THEN
-      BEGIN
+	 IF (CurrentTokenID<>T_PROCESS_ENTRY_SIGN) AND  (CurrentTokenID<>T_SECTION_PRO) AND  (CurrentTokenID<>T_SECTION_END) THEN SyntaxError('Entry sign expected ">" but "'+CurrentText+'" found');
+
+   IF (CurrentTokenID <> T_SECTION_PRO) AND  (CurrentTokenID<>T_SECTION_END) THEN
+     BEGIN
+			Scan(); // Get the verb
+			IF (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_UNDERSCORE) THEN SyntaxError('Vocabulary verb expected but "'+CurrentText+'" found');
 		  IF (CurrentTokenID = T_UNDERSCORE) THEN Verb := NO_WORD
 		  ELSE
 		  BEGIN
 			  TheWord := Copy(CurrentText, 1, VOCABULARY_LENGTH);
-                          ValidVerb := false;
+        ValidVerb := false;
 			  AuxVocabularyTree := GetVocabulary(VocabularyTree, TheWord, VOC_ANY);
 			  IF (AuxVocabularyTree <> nil) THEN
                           BEGIN
                                 IF (AuxVocabularyTree^.VocType=VOC_VERB) THEN ValidVerb := true
                                 ELSE IF (AuxVocabularyTree^.VocType=VOC_NOUN) AND (AuxVocabularyTree^.Value<=MAX_CONVERTIBLE_NAME) THEN ValidVerb:= true
                           END;
-                          IF (NOT ValidVerb) THEN SyntaxError('Verb not defined or invalid condact: ' + TheWord);
+                          IF (NOT ValidVerb) THEN SyntaxError('Verb not found in vocabulary: "' + CurrentText +'"');
 			  Verb := AuxVocabularyTree^.Value;
 		  END;
 
 		  Scan(); // Get Noun
-		  IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_UNDERSCORE) THEN SyntaxError('Vocabulary noun expected');
+		  IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_UNDERSCORE) THEN  SyntaxError('Vocabulary noun expected but "'+CurrentText+'" found');
 		  IF (CurrentTokenID = T_UNDERSCORE) THEN Noun := NO_WORD
 		  ELSE
 		  BEGIN
 			  TheWord := Copy(CurrentText, 1, VOCABULARY_LENGTH);
 			  AuxVocabularyTree := GetVocabulary(VocabularyTree, TheWord, VOC_NOUN);
-			  if (AuxVocabularyTree = nil) THEN SyntaxError('Noun not defined: "'+CurrentText+'"');
+			  if (AuxVocabularyTree = nil) THEN SyntaxError('Noun not found in vocabulary: "'+CurrentText+'"');
 			  Noun := AuxVocabularyTree^.Value;
 		  END;
 		  EntryCondacts := nil;
 		  ParseProcessCondacts(EntryCondacts);
 		  AddProcessEntry(Processes[CurrentProcess].Entries, Verb, Noun, EntryCondacts);
-                END;
-        UNTIL (CurrentTokenID = T_SECTION_PRO) OR (CurrentTokenID = T_SECTION_END);
+     END;
+  UNTIL (CurrentTokenID = T_SECTION_PRO) OR (CurrentTokenID = T_SECTION_END);
 END;
 
 
@@ -621,7 +628,7 @@ BEGIN
 	ProcessCount := 0;
 	REPEAT
 		Scan();
-		IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Process number expected');
+		IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Process number expected but "'+CurrentText+'" found');
 		ProcNum := GetIdentifierValue();
 		IF (Procnum = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
 		IF ProcNum<>CurrentProcess THEN SyntaxError('Definition for process #' + IntToStr(CurrentProcess) + ' expected but process #' + IntToStr(ProcNum) + ' found');

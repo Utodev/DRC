@@ -270,10 +270,10 @@ S 1
 ;------------------------------------------------------------------------------
 /PRO 0       ;Main Location Loop
 
-_       _       AT      0                ; Starting game
+> _       _     AT      0                ; Starting game
                 PROCESS 6                ; then we need init sequence
 
-_       _       WINDOW  0                ; Select graphics window
+> _       _     WINDOW  0                ; Select graphics window
                 CLEAR   fDarkF           ; Assume light
 ;                MINUS   2       1       ; Decrement flag 2    (See notes)
                 NOTZERO 0
@@ -282,28 +282,28 @@ _       _       WINDOW  0                ; Select graphics window
 ;                MINUS   4       1       ; & Flag 4 if No Lamp (See notes)
                 SET     fDarkF           ; Dark
 
-_       _       PICTURE @fPlayer        ; If there is a picture, Load it
+> _       _     PICTURE @fPlayer        ; If there is a picture, Load it
                 DISPLAY @fDarkF         ; & Display it if not dark, else CLS
 
-_       _       WINDOW  1
+> _       _     WINDOW  1
                 NOTZERO fDarkF           ; Dark
                 SYSMESS 0
 
-_       _       ZERO    fDarkF
+> _       _     ZERO    fDarkF
                 DESC    @fPlayer        ; Doesn't exit loop now
 
-_       _       PROCESS 3
+> _       _     PROCESS 3
 
 ; Now we use Process 1 as the main code loop, a return from it is the end
 ; of the game
 
-_       _       PROCESS 1
+> _       _     PROCESS 1
 
 ;------------------------------------------------------------------------------
 /PRO 1
-_       _       PROCESS 4               ; Do process 2 stuff here
+> _       _     PROCESS 4               ; Do process 2 stuff here
 
-;_       _       MINUS   5       1       ; Update auto flags
+;> _       _     MINUS   5       1       ; Update auto flags
 ;                MINUS   6       1       ; These are not supported anymore
 ;                MINUS   7       1       ; as we use the low section as
 ;                MINUS   8       1       ; a small stack
@@ -312,40 +312,40 @@ _       _       PROCESS 4               ; Do process 2 stuff here
 ;                ABSENT  0
 ;                MINUS   10      1
 
-_       _       PARSE   0               ; Get next LS from current buffer
+> _       _     PARSE   0               ; Get next LS from current buffer
                 PROCESS 2               ; Failed cos of invalid or timeout
                 REDO
 
-_       _       EQ      fTurns   255     ; Max for one byte
+> _       _     EQ      fTurns   255     ; Max for one byte
                 PLUS    fTurnsHi 1
                 CLEAR   fTurns
                 SKIP    1
 
-_       _       PLUS    fTurns   1
+> _       _     PLUS    fTurns   1
 
-_       _       PROCESS 5               ; Do any commands
+> _       _     PROCESS 5               ; Do any commands
                 ISDONE                  ; Done something
                 REDO
 
-_       _       MOVE    fPlayer          ; No so try to move player
+> _       _     MOVE    fPlayer          ; No so try to move player
                 RESTART                 ; Absolute jump to start process 0
 
-_       _       NEWTEXT
+> _       _     NEWTEXT
                 LT      fVerb    14
                 SYSMESS 7
                 REDO
 
-_       _       SYSMESS 8
+> _       _     SYSMESS 8
                 REDO
 
 
 ;------------------------------------------------------------------------------
 /PRO 2
-_       _       HASAT TIMEOUT
+> _       _     HASAT TIMEOUT
                 SYSMESS 35
                 DONE
 
-_       _       SYSMESS 6               ; I didn't understand
+> _       _     SYSMESS 6               ; I didn't understand
 
 ;------------------------------------------------------------------------------
 /PRO 3 ; Old process 1. Note that both the response table and the old PAW 
@@ -353,17 +353,17 @@ _       _       SYSMESS 6               ; I didn't understand
 ; is implemented in the DAAD language itself.
 
 ;This is better carried out thus
-_       _       NEWLINE
+> _       _     NEWLINE
                 ZERO    fDarkF            ; Isn't dark
                 LISTOBJ
 
 ;than the old system needed in Version 1, without accesss to DarkF
-;_       _       NEWLINE
+;> _       _     NEWLINE
 ;                ZERO    0               ;If it is light...
 ;                ABSENT  0               ;and the light source is absent...
 ;                LISTOBJ                 ;List the objects
 
-;_       _       PRESENT 0               ;If the light source is present...
+;> _       _     PRESENT 0               ;If the light source is present...
 ;                LISTOBJ                 ;List the objects
 
 ;------------------------------------------------------------------------------
@@ -371,54 +371,54 @@ _       _       NEWLINE
 ;------------------------------------------------------------------------------
 /PRO 5 ; Command decoder
 
-I       _       SYSMESS 9
+> I       _     SYSMESS 9
                 LISTAT  CARRIED
                 SYSMESS 10
                 LISTAT  WORN
                 DONE
 
-GET     ALL     DOALL   HERE
-GET     _       AUTOG
+> GET     ALL   DOALL   HERE
+> GET     _     AUTOG
                 DONE
 
-DROP    ALL     DOALL   CARRIED
-DROP    _       AUTOD
+> DROP    ALL   DOALL   CARRIED
+> DROP    _     AUTOD
                 DONE
 
-REMOVE  ALL     DOALL   WORN
-REMOVE  _       AUTOR
+> REMOVE  ALL   DOALL   WORN
+> REMOVE  _     AUTOR
                 DONE
 
-WEAR    ALL     DOALL   CARRIED
-WEAR    _       AUTOW
+> WEAR    ALL   DOALL   CARRIED
+> WEAR    _     AUTOW
                 DONE
 
-R       _       RESTART
+> R       _     RESTART
 
-Q       _       QUIT
+> Q       _     QUIT
                 END
 
-Q       _       DONE                    ;Not like QUIT on PAW
+> Q       _     DONE                    ;Not like QUIT on PAW
 
-SAVE    _       SAVE    0               ;ditto
+> SAVE    _     SAVE    0               ;ditto
                 RESTART
 
-LOAD    _       LOAD    0
+> LOAD    _     LOAD    0
                 RESTART
 
-RAMSA   _       RAMSAVE
+> RAMSA   _     RAMSAVE
                 RESTART
 
-RAMLO   _       RAMLOAD 255             ;Reload all flags
+> RAMLO   _     RAMLOAD 255             ;Reload all flags
                 RESTART
 
-LOOK    _       RESTART
+> LOOK    _     RESTART
 ;------------------------------------------------------------------------------
 /PRO 6 ; Initialise the DAAD system
 
-_       _       WINDOW  1               ; Windows are random
+> _       _     WINDOW  1               ; Windows are random
 
-_       _       WINAT   14       0
+> _       _     WINAT   14       0
                 WINSIZE 25      127     ; Maximum window
                 CLS
                 DESC    0               ; Introduction
@@ -426,14 +426,14 @@ _       _       WINAT   14       0
                 CLS
                 CLEAR   255             ; Clear all flags
 
-_       _       NOTEQ   255     fGFlags
+> _       _     NOTEQ   255     fGFlags
                 CLEAR   @255
 
-_       _       PLUS    255     1
+> _       _     PLUS    255     1
                 LT      255     255     ; Will be set at end to indicate init
                 SKIP    -2              ; has been done once
 
-_       _       RESET                   ; Set objects to start location & Flag 1
+> _       _     RESET                   ; Set objects to start location & Flag 1
                 LET     fStrength 10
                 LET     fMaxCarr  4
                 SET     fCPronounNoun

@@ -237,73 +237,73 @@ LUEGO   2       conjugation
 /PRO 0       ;Bucle principal de localidades
 
 
-_       _       AT      0               ; Empezamos una partida
+> _       _     AT      0               ; Empezamos una partida
                 PROCESS 6               ; El proceso de inicialización
                 
                 
 
-_       _       WINDOW  0               ; Ventana de gráficos
+> _       _     WINDOW  0               ; Ventana de gráficos
                 CLEAR   fDarkF           ; Asume que hay luz
                 NOTZERO 0
                 ABSENT  0
                 SET     fDarkF           ; Oscuro
 
-_       _       PICTURE @fPlayer        ; Si hay gráfico, cárgalo
+> _       _     PICTURE @fPlayer        ; Si hay gráfico, cárgalo
                 DISPLAY @fDarkF         ; Muestralo si no oscuro; si oscuro
                                         ; hace un CLS
-_       _       WINDOW  1
+> _       _     WINDOW  1
                 NOTZERO fDarkF           ; Oscuro
                 SYSMESS 0
 
-_       _       ZERO    fDarkF
+> _       _     ZERO    fDarkF
                 DESC   @fPlayer        ; DESC No sale del bucle ahora
 
-_       _       PROCESS 3
+> _       _     PROCESS 3
 
 ; Ahora usamos el proceso 1 como el bucle principal del juego. Un retorno desde
 ; aquí significa el fin del juego
 
-_       _       PROCESS 1
+> _       _     PROCESS 1
 
 ;------------------------------------------------------------------------------
 /PRO 1
 
-_       _       PROCESS 4               ; Lo que en el PAW era el proceso 2
+> _       _     PROCESS 4               ; Lo que en el PAW era el proceso 2
 
-_       _       PARSE   0               ; Toma sentencia lógica del buffer
+> _       _     PARSE   0               ; Toma sentencia lógica del buffer
                 PROCESS 2               ; Sentencia no válida o timeout
                 REDO
 
-_       _       EQ      fTurns   255     ; El valo máximo de un byte
+> _       _     EQ      fTurns   255     ; El valo máximo de un byte
                 PLUS    fTurnsHi   1
                 CLEAR   fTurns
                 SKIP    1
 
-_       _       PLUS    fTurns   1
+> _       _     PLUS    fTurns   1
 
-_       _       PROCESS 5               ; La antigua tabla de respuestas
+> _       _     PROCESS 5               ; La antigua tabla de respuestas
                 ISDONE                  ; Ha hecho algo?
                 REDO                    ; Sí­: pedimos otra orden del jugador
 
-_       _       MOVE    fPlayer         ; No: intentamos mover al jugador
+> _       _     MOVE    fPlayer         ; No: intentamos mover al jugador
                 RESTART                 ; Lo movimos: salta al principio de PRO 0
 
-_       _       NEWTEXT
+> _       _     NEWTEXT
                 LT      fVerb    14
                 SYSMESS 7
                 REDO
 
-_       _       SYSMESS 8
+> _       _     SYSMESS 8
                 REDO
 
 
 ;------------------------------------------------------------------------------
 /PRO 2
-_       _       HASAT TIMEOUT
+> _       _     HASAT TIMEOUT
                 SYSMESS 35
                 DONE
 
-_       _       SYSMESS 6               ; No te entiendo
+> _       _     SYSMESS 6               ; No te entiendo
 
 ;------------------------------------------------------------------------------
 /PRO 3 ; Antiguo proceso 1 del PAW. (Nótese que tanto la tabla de respuestas como los
@@ -311,7 +311,7 @@ _       _       SYSMESS 6               ; No te entiendo
 ; existir en absoluto, ya que ya no hay nada automático al haberse implementado
 ; todo en el propio lenguaje del DAAD)
 
-_       _       NEWLINE
+> _       _     NEWLINE
                 ZERO    fDarkF            ; No está oscuro
                 LISTOBJ
 
@@ -322,53 +322,52 @@ _       _       NEWLINE
 /PRO 5 ; Interpretamos los comando como en la antigua tabla de respuestas
 
 
-I       _       SYSMESS 9
+> I       _     SYSMESS 9
                 LISTAT  CARRIED
                 SYSMESS 10
                 LISTAT  WORN
                 DONE
 
-COGER   TODO    DOALL   HERE                
-COGER   _       AUTOG
+> COGER   TODO  DOALL   HERE                
+> COGER   _     AUTOG
                 DONE
 
-DEJAR   TODO    DOALL   CARRIED
-DEJAR   _       AUTOD
+> DEJAR   TODO  DOALL   CARRIED
+> DEJAR   _     AUTOD
                 DONE
 
-QUITAR  TODO    DOALL   WORN
-QUITAR  _       AUTOR
+> QUITAR  TODO  DOALL   WORN
+> QUITAR  _     AUTOR
                 DONE
 
-PONER   TODO    DOALL   CARRIED
-PONER   _       AUTOW
+> PONER   TODO  DOALL   CARRIED
+> PONER   _     AUTOW
                 DONE
 
-R       _       RESTART
+> R       _     RESTART
 
-FIN     _       QUIT
+> FIN     _     QUIT
                 END
 
-FIN     _       DONE                    
+> FIN     _     DONE                    
 
-SV      _       SAVE 0                  
+> SV      _     SAVE 0                  
                 RESTART
 
-LD      _       LOAD 0
+> LD      _     LOAD 0
                 RESTART
 
-RAMSA   _       RAMSAVE
+> RAMSA   _     RAMSAVE
                 RESTART
 
-RAMLO   _      
-                RAMLOAD 255                             ;Reload all flags
+> RAMLO   _     RAMLOAD 255                             ;Reload all flags
                 RESTART
 
-MIRAR   _       RESTART
+> MIRAR   _     RESTART
 
 /PRO 6 ; Inicialización
 
-_       _       WINDOW  1               ; Inicializamos las ventanas
+> _       _     WINDOW  1               ; Inicializamos las ventanas
                 WINAT   14       0
                 WINSIZE 25      127     ; Tamaño máximo
                 CLS
@@ -377,14 +376,14 @@ _       _       WINDOW  1               ; Inicializamos las ventanas
                 CLS
                 CLEAR   255             ; Pone a cero todas las banderas
 
-_       _       NOTEQ   255     fGFlags  ; menos GFlags!!!
+> _       _     NOTEQ   255     fGFlags  ; menos GFlags!!!
                 CLEAR   @255
 
-_       _       PLUS    255     1
+> _       _     PLUS    255     1
                 LT      255     255     ; Al final lo dejamos con valor 255
                 SKIP    -2              ; para indicar que hemos inicializado
 
-_       _       RESET                   ; Objetos a su loc. inicial / Flag 1
+> _       _     RESET                   ; Objetos a su loc. inicial / Flag 1
                 LET     fStrength 10
                 LET     fMaxCarr  4
                 SET     fCPronounNoun
