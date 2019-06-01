@@ -130,14 +130,16 @@ The compiler will find a place for that message in a message table, and assign t
 
 9) DSF files ha ve /END mark at the end of last process
 
-10) Processes Syntax is more flexible all these options are possible (some are quite weird, but possible anyway):
+10) Processes entries should have a preceding > sign , see below.
+
+11) Processes Syntax is more flexible all these options are possible (some are quite weird, but possible anyway):
 
 ; All in one line
-_ _ AT 7 CARRIED 2 LET 127 12 MESSAGE 15 CREATE 2 DONE
+> _ _ AT 7 CARRIED 2 LET 127 12 MESSAGE 15 CREATE 2 DONE
 
 
 ; ngPAWS/Superglus/NMP style
-_ _
+> _ _
  AT 7
  CARRIED 2
  LET 127 12
@@ -146,7 +148,7 @@ _ _
  DONE
 
 ; DC Style
-_ _     AT 7
+> _ _     AT 7
         CARRIED 2
         LET 127 12
         MESSAGE 15
@@ -154,6 +156,7 @@ _ _     AT 7
         DONE
 
 ; Ofuscated DAAD
+> 
 _ 
 _  AT 7 
  CARRIED 

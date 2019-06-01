@@ -130,14 +130,16 @@ El compilador buscará un sitio en la tabla de mensajes correspondientes y le as
 
 9) Los ficheros DSF tienen una marca /END al final
 
-10) La sintaxis de los procesos es más flexible que en DC:
+10) Las entradas de los procesos deben empezar todas por un símbolo >, ver más abajo.
+
+11) La sintaxis de los procesos es más flexible que en DC:
 
 ; Todo en una lineaº
-_ _ AT 7 CARRIED 2 LET 127 12 MESSAGE 15 CREATE 2 DONE
+> _ _ AT 7 CARRIED 2 LET 127 12 MESSAGE 15 CREATE 2 DONE
 
 
 ;  estilo ngPAWS/Superglus/NMP
-_ _
+> _ _
  AT 7
  CARRIED 2
  LET 127 12
@@ -146,7 +148,7 @@ _ _
  DONE
 
 ; estilo DC
-_ _     AT 7
+> _ _     AT 7
         CARRIED 2
         LET 127 12
         MESSAGE 15
@@ -154,6 +156,7 @@ _ _     AT 7
         DONE
 
 ;  DAAD ofuscado
+> 
 _ 
 _  AT 7 
  CARRIED 
