@@ -622,7 +622,6 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     {
                         $offset = $condactsHash["$hash"]->offset;
                         $condactsOffsets["${procID}_${entryID}"] = $offset;
-                        echo "[Reuse ${procID}_${entryID} : $offset]";
                         continue; // Avoid generating this entry condacts, as there is one which can be re-used
                     }
                     else 
@@ -634,7 +633,6 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
             } else addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
   
             $condactsOffsets["${procID}_${entryID}"] = $currentAddress;
-            echo "[${procID}_${entryID} : $currentAddress]";
             $entry = $process->entries[$entryID];
             $terminatorFound = false;
             for($condactID=0;$condactID<sizeof($entry->condacts);$condactID++)
