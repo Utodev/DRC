@@ -201,7 +201,7 @@ class daadToChr
 var $conversions = array('ª', '¡', '¿', '«', '»', 'á', 'é', 'í', 'ó', 'ú', 'ñ', 'Ñ', 'ç', 'Ç', 'ü', 'Ü');
 }
 define('VERSION_HI',0);
-define('VERSION_LO',6);
+define('VERSION_LO',7);
 
 
 function prettyFormat($value)
@@ -620,18 +620,21 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                 {
                     if ($condactsHash["$hash"]->offset != -1)
                     {
-                        $condactsOffsets["${procID}_${entryID}"] = $condactsHash["$hash"]->offset; 
+                        $offset = $condactsHash["$hash"]->offset;
+                        $condactsOffsets["${procID}_${entryID}"] = $offset;
+                        echo "[Reuse ${procID}_${entryID} : $offset]";
                         continue; // Avoid generating this entry condacts, as there is one which can be re-used
                     }
                     else 
                     {
+                        addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
                         $condactsHash["$hash"]->offset = $currentAddress;
-                        
                     }
                 }
-            }
-            addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+            } else addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+  
             $condactsOffsets["${procID}_${entryID}"] = $currentAddress;
+            echo "[${procID}_${entryID} : $currentAddress]";
             $entry = $process->entries[$entryID];
             $terminatorFound = false;
             for($condactID=0;$condactID<sizeof($entry->condacts);$condactID++)
@@ -648,11 +651,12 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     continue; // Just save the extvec, do not save the fake condact
                 }
 
-                if (!$adventure->classicMode)
-                {
-                    $hash = getCondactsHash($adventure,$entry->condacts, $condactID);
-                    if ($condactsHash["$hash"]->offset == -1) $condactsHash["$hash"]->offset = $currentAddress;
-                }
+                if ((!$adventure->classicMode))
+                    if (($currentAddress%2 == 0) || (!isPaddingPlatform($target))) // We can only partially re-use an entry if its word aligned or the platform does not require word alignment
+                    {
+                        $hash = getCondactsHash($adventure,$entry->condacts, $condactID);
+                        if ($condactsHash["$hash"]->offset == -1) $condactsHash["$hash"]->offset = $currentAddress;
+                    }
 
                 if (($condact->NumParams>0) && ($condact->Indirection1)) $opcode = $opcode | 0x80; // Set indirection bit
                 if (($opcode == FAKE_DEBUG_CONDACT_CODE) && ($adventure->verbose)) echo "Debug condact found, inserted.\n";
