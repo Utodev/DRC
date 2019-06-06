@@ -997,7 +997,7 @@ writeByte($outputFileHandler, $numberOfProcesses);
 // Fill the rest of the header with zeros, as we don't know yet the offset values. Will comeupdate them later.
 writeBlock($outputFileHandler, 26); 
 $currentAddress+=34;
-// extern - vectors
+// extern - vectors // fill with default values
 for($i=0;$i<13;$i++)
     writeWord($outputFileHandler, $adventure->extvec[$i],$isLittleEndian);
 $currentAddress+=26;
@@ -1133,6 +1133,8 @@ writeWord($outputFileHandler, $objectExtraAttrOffset, $isLittleEndian);
 // File length 
 $fileSize = $currentAddress;
 writeWord($outputFileHandler, $fileSize, $isLittleEndian);
+for($i=0;$i<13;$i++)
+    writeWord($outputFileHandler, $adventure->extvec[$i],$isLittleEndian);
 fclose($outputFileHandler);
 if ($adventure->verbose) echo "$outputFileName for $target created.\n";
 if ($currentAddress>0xFFFF) echo "Warning: DDB file goes over the 65535 memory address boundary.\n";
