@@ -54,6 +54,20 @@ Examples:
 
 Any quote similar to those at the sides of the string, which are  inside the string, should be escaped with a backlash. For english it's higly recommended to use double quotes for strings, so  you can write "It's OK" instead of 'It\'s OK'.
 
+Actually, DRC is able to detect a non escaped quote and fix it, so this is actually possible:
+
+\0 'It's dark'
+
+A side effect of that support is DRF will just understand anything between the first quote in the line and the last one is a string, so this:
+
+\0 'It's dark' ; 'Not really'
+
+would get this as the string, ignoring the comment:
+
+>>>It's dark' ; 'Not really<<<
+
+
+
 4) Escape codes use sharp character (#) instead of backslash. For instance you write #k instead of \k. Due to some lucky side effect, \n will still work, but it's the only one (and #n works as well).
 
 Examples:

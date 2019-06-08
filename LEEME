@@ -27,7 +27,7 @@ El compilador es  (C) Uto 2018 y se distribuye bajo licencia GPL v3
 DESCARGAR
 =========
 
-DEscarga la última versión en at http://www.ngpaws.com/downloads/DAAD/DRC
+Descarga la última versión en at http://www.ngpaws.com/downloads/DAAD/DRC
 
 POR QUÉ USAR DRC
 ================
@@ -54,6 +54,19 @@ Ejemplos:
 \1 'Llevas: '
 
 Si debes poner una comilla dentro de la cadena, y es la misma que se usa en los extremos, debes escaparla con un caracter \.
+
+En realidad, DRC es capaz de detectar una comilla no escapada y funcionar, así en realidad esto funcionaría:
+
+\0 'Hemos llegado a l'Hospitalet'
+
+Sin embargo esto tiene un efecto colateral, y es que DRF entenderá cualquier cosa entre la primera comilla de una fila y la última como una cadena, y por eso esto:
+
+\0 'Está oscuro' ; 'En realidad no'
+
+se tomará como una cadena, no teniendo en cuenta el comentario:
+
+>>>Está oscuro' ; 'En realidad no<<<
+
 
 4) Los códigos de scape usan el caracter # en lugar de \. Por ejemplo en vez de \k pon #k. Por una combinación astral (es coña pero casi), resulta que \n aun funciona, aunque #n también va.
 
