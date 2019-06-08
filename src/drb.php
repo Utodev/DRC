@@ -201,7 +201,7 @@ class daadToChr
 var $conversions = array('ª', '¡', '¿', '«', '»', 'á', 'é', 'í', 'ó', 'ú', 'ñ', 'Ñ', 'ç', 'Ç', 'ü', 'Ü');
 }
 define('VERSION_HI',0);
-define('VERSION_LO',7);
+define('VERSION_LO',8);
 
 
 function prettyFormat($value)
@@ -665,7 +665,6 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     switch ($i)
                     {
                         case 0: $param = $condact->Param1;
-                                if ($param < 0) $param= 256 + $param;  // For SKIP
                                 writeByte($outputFileHandler, $param); 
                                 break;
 

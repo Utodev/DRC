@@ -313,9 +313,8 @@ BEGIN
 			TheWord := Copy(CurrentText,1,VOCABULARY_LENGTH);
 			AuxVocabularyTree := GetVocabulary(VocabularyTree, TheWord, VOC_ANY);
 			IF (AuxVocabularyTree=nil) THEN SyntaxError('Direction is not defined:"' + CurrentText+'"');
-			IF (AuxVocabularyTree^.Value > MAX_DIRECTION_VOCABULARY) 
-			   OR (NOT (AuxVocabularyTree^.VocType IN [VOC_VERB,VOC_NOUN])) THEN SyntaxError('Only verbs and nouns with number up to ' + IntToStr(MAX_DIRECTION_VOCABULARY) + ' are valid for connections');
-				Direction := AuxVocabularyTree^.Value;
+			IF  (NOT (AuxVocabularyTree^.VocType IN [VOC_VERB,VOC_NOUN])) THEN SyntaxError('Invalid connection word');
+			Direction := AuxVocabularyTree^.Value;
 			Scan();
 			if (CurrentTokenID <> T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Location number expected');
 			ToLoc := GetIdentifierValue();
@@ -433,13 +432,30 @@ BEGIN
 	IF CurrentObj < OTXCount THEN SyntaxError('Definition for object #' + IntToStr(CurrentObj) + ' missing' );
 END;
 
+FUNCTION GetWordParamValue(Param: String; Opcode: Byte; ParameterNumber: Byte = 0): Integer;
+var TheWord : String;
+	AuxVocType : TVocType;
+	AuxVocabularyPTR : TPVocabularyTree;
+BEGIN
+  TheWord := Copy(CurrentText, 1, VOCABULARY_LENGTH);
+  AuxVocType := VOC_ANY;
+  IF Opcode<>255 THEN CASE Opcode of
+						ADJECT1_OPCODE: AuxVocType := VOC_ADJECT;
+						ADJECT2_OPCODE: AuxVocType := VOC_ADJECT;
+						ADVERB_OPCODE:  AuxVocType := VOC_ADVERB;
+						NOUN2_OPCODE:   AuxVocType := VOC_NOUN;
+						PREP_OPCODE:    AuxVocType := VOC_PREPOSITION;
+						SYNONYM_OPCODE: IF ParameterNumber=0 THEN AuxVocType := VOC_VERB ELSE AuxVocType:= VOC_NOUN;
+ 					 END;
+  AuxVocabularyPTR := GetVocabulary(VocabularyTree, TheWord, AuxVocType);
+  IF AuxVocabularyPTR = nil THEN Result := MAXINT ELSE  Result := AuxVocabularyPTR^.Value;
+END;
+
 PROCEDURE ParseProcessCondacts(var SomeEntryCondacts :  TPProcessCondactList);
 VAR Opcode : Longint;
 	CurrentCondactParams : TCondactParams;
 	Value : Longint;
-	AuxVocabularyPTR : TPVocabularyTree;
 	i : integer;
-	TheWord : String;
 	FileName : String;
 	IncludedFile: FILE;
 	AuxByte: Byte;
@@ -482,18 +498,21 @@ BEGIN
 						CurrentText := IntToStr(Value);
 					END;
 					IF (CurrentTokenID <> T_NUMBER) AND (CurrentTokenID <> T_IDENTIFIER) AND (CurrentTokenID<> T_UNDERSCORE) THEN SyntaxError('Invalid condact parameter');
-					Value := GetIdentifierValue();
-					IF Value=MAXINT THEN  // Parameter was neither numeric, nor previously defined, let's check if it's a non-verb vocabulary word as last chance
-					BEGIN
-						IF (CurrentTokenID = T_UNDERSCORE) THEN Value:=NO_WORD
-						ELSE
-						BEGIN
-							TheWord := Copy(CurrentText, 1, VOCABULARY_LENGTH);
-							AuxVocabularyPTR := GetVocabulary(VocabularyTree, TheWord, VOC_ANY);
-							IF AuxVocabularyPTR = nil THEN SyntaxError('Invalid condact parameter');
-							Value := AuxVocabularyPTR^.Value;
-						END;
-					END;
+
+					// Lets'de termine the value of the parameter
+					Value := MAXINT;
+					// If  an udnerscore, value is clear
+					IF CurrentTokenID = T_UNDERSCORE THEN Value:= NO_WORD;
+					// Otherwise if the condact accepts words as parameters, check vocabulary first
+					IF (Value = MAXINT) AND  (Opcode in [SYNONYM_OPCODE, PREP_OPCODE, NOUN2_OPCODE, ADJECT1_OPCODE, ADVERB_OPCODE, ADJECT2_OPCODE]) THEN Value:= GetWordParamValue(CurrentText, Opcode, i);
+					// Otherwise, check the symbol table
+					IF Value = MAXINT THEN Value := GetIdentifierValue();
+					// if still the value is not found, check the Vocavulary again, but more openly
+					IF Value = MAXINT THEN Value:= GetWordParamValue(CurrentText, 255);
+					// If still Maxint, then it should be a bad parameter
+					IF Value = MAXINT THEN SyntaxError('Invalid parameter #' + IntToStr(i+1) + ': "'+CurrentText+'"');
+					IF (Opcode=SKIP_OPCODE) AND (Value<0) THEN Value := 256 + Value;
+					IF (Value<0)  OR (Value>MAX_PARAMETER_RANGE) THEN SyntaxError('Invalid parameter value "'+CurrentText+'"');
 					CurrentCondactParams[i].Value := Value;
 				END;
 				AddProcessCondact(SomeEntryCondacts, Opcode, GetNumParams(Opcode), CurrentCondactParams, false);

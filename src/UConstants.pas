@@ -4,7 +4,7 @@ UNIT UConstants;
 INTERFACE
 
 CONST version_hi = 0;
-	version_lo = 7;
+	version_lo = 8;
 
       LOC_CARRIED = 254;
       LOC_WORN = 253;       
@@ -20,18 +20,27 @@ CONST version_hi = 0;
       MAX_PARAM_ACCEPTING_INDIRECTION = 1;
       MAX_MESSAGES_PER_TABLE = 255;
 
+      MAX_PARAMETER_RANGE = 255;
+
       NUM_CONDACTS  =128;
 
       MESSAGE_OPCODE = 38;
       MES_OPCODE =77;
       SYSMESS_OPCODE = 54;
       DESC_OPCODE = 19;
+      SKIP_OPCODE = 116;
+
+      SYNONYM_OPCODE = 36;
+      PREP_OPCODE = 68;
+      NOUN2_OPCODE = 69;
+      ADJECT1_OPCODE = 16;
+      ADVERB_OPCODE = 17;
+      ADJECT2_OPCODE = 70;
 
       FAKE_DEBUG_CONDACT_CODE = 220; // the fake DEBUG Condact
       FAKE_DEBUG_CONDACT_TEXT = 'DEBUG';
 
       FAKE_USERPTR_CONDACT_CODE = 256;    
-
 
 IMPLEMENTATION
 
