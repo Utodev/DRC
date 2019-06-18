@@ -202,6 +202,8 @@ DRF también crea los defines  "bit8" o "bit16" dependiendo de la maquina, demod
 
 DRF crea automaticamente el simboo  COLS al igual que DC, dependiendo de la maquina, pero crea además el simbolo ROWS, cosa que DC no hace.
 
+DRF también crea los símbolos LAST_OBJECT, LAST_LOCATION, NUM_OBJECTS and NUM_LOCATIONS
+
 [video_mode] solo se debe especificar si la maquina es  PC (video modes VGA, CGA, EGA and TEXT) o MSX2 (video modes 5_6,5_8,6_6,6_8,7_6,7_8,8_6 and 8_8)
 
 [output.json] es el nombre del fichero de salida, si no lo pones, se creará uno de igual nombre que el fichero DSF, pero con extensión JSON.

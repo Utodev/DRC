@@ -206,7 +206,10 @@ machine is automatically created as a #define, so if you call the compiler with 
 
 DRF will also create "bit8" or "bit16" symbols depending on target machine, so you can also use [#ifdef/#ifndef "bit8"]
 
-DRF will also automaticall create the symbol COLS as DC does, depending on target, but will also create the ROWS symbol, which DC doesn't create.
+DRF will also automaticaly create the symbol COLS as DC does, depending on target, but will also create the ROWS symbol, which DC doesn't create.
+
+DRF will also create the symbols LAST_OBJECT, LAST_LOCATION, NUM_OBJECTS and NUM_LOCATIONS
+
 
 [video_mode] is only required if target is PC (video modes accepted are VGA, CGA, EGA and TEXT) or MSX2 (video modes accepted are 5_6,5_8,6_6,6_8,7_6,7_8,8_6 and 8_8)
 
