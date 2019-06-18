@@ -3,7 +3,7 @@ PROGRAM DRC;
 {$I-}
 
 
-uses sysutils, ULexTokens, ULexLib, UTokenList, USintactic, UConstants, USymbolList, UCodeGeneration;
+uses sysutils, ULexTokens, ULexLib, UTokenList, USintactic, UConstants, USymbolList, UCodeGeneration, UCondacts;
 
 
 PROCEDURE SYNTAX();
@@ -152,10 +152,11 @@ BEGIN
    Inc(NextParam);
   END;
   InputFileName := ParamStr(NextParam);
-  Inc(NextParam);
   IF (NOT FileExists(InputFileName)) THEN ParamError('Input file not found: "'+InputFileName+'"');
-  IF  ParamCount>NextParam THEN OutputFileName := ParamStr(NextParam)
-                          ELSE OutputFileName := ChangeFileExt(InputFileName, '.json');
+  Inc(NextParam);
+  IF  ParamCount>= NextParam THEN OutputFileName := ParamStr(NextParam)
+                             ELSE OutputFileName := ChangeFileExt(InputFileName, '.json');
+  //LoadPlugins(); 
   CompileForTarget(Target, SubTarget, OutputFileName);
 END.
 
