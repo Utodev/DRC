@@ -211,6 +211,14 @@ Es lo mismo que esto:
 
 Esto no solo salva espacio al teclear, y ayuda a que no se nos olvide cambiar un mensaje en una de las entradas y cosas así, sino que dado que DRC es capaz de detectar entradas idénticas y reutilizarlas cuando las vuelva, hace que la segunda entrada apenas ocupe más que lo que ocupa su verbo y nombre.
 
+Se pueden añadir cuantas entradas se quiera:
+
+> ABRIR CANDADO
+> EMPUJAR PUERTAS
+> ABRIR PUERTAS
+> SALTAR REJA
+ <condactos>
+
 COMO COMPILAR
 =============
 
