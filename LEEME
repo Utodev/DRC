@@ -186,6 +186,30 @@ emulador ZesarUX entre en modo de debug de DAAD si está activado el "DAAD BReak
 1)  Optimizaciones para ahorrar espacio no relacionadas con la compresion de texto
 2)  Automatizaciones que hacen que DRC recoloque mensajes en otras tablas si la tabla de mensajes de usuario se llena.  Es decir, si pones MESSAGE "xxxxx" y ya no hay sitio en MTX  lo pondrá en STX o LTX y cambiará el MESSAGE por un SYSMESS o DESC, y un NEWLINE.
 
+13) DRC soporta frases sinónimas, lo cual viene a querer decir que esto:
+
+> ABRIR CANDADO
+> EMPUJAR PUERTAS
+   AT lPuertasDelDestino
+   NOTCARR oLlave
+   MESSSAGE "No tienes la llave-"
+   DONE
+
+Es lo mismo que esto:
+
+> ABRIR CANDADO
+   AT lPuertasDelDestino
+   NOTCARR oLlave
+   MESSSAGE "No tienes la llave-"
+   DONE
+
+> EMPUJAR PUERTAS
+   AT lPuertasDelDestino
+   NOTCARR oLlave
+   MESSSAGE "No tienes la llave-"
+   DONE
+
+Esto no solo salva espacio al teclear, y ayuda a que no se nos olvide cambiar un mensaje en una de las entradas y cosas así, sino que dado que DRC es capaz de detectar entradas idénticas y reutilizarlas cuando las vuelva, hace que la segunda entrada apenas ocupe más que lo que ocupa su verbo y nombre.
 
 COMO COMPILAR
 =============

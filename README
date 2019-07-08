@@ -192,6 +192,38 @@ Those optimizations include mainly two tasks:
 
 In classic mode, none of those advantages take place.
 
+13) DRC supports synonym sentences, which mean you can write this:
+
+> UNLOCK GATE
+> OPEN DOOR
+   AT lGatesOfDoom
+   NOTCARR oKey
+   MESSSAGE "You don't have the key."
+   DONE
+
+and have the same result than writing this:
+
+> UNLOCK GATE
+   AT lGatesOfDoom
+   NOTCARR oKey
+   MESSSAGE "You don't have the key."
+   DONE
+
+> OPEN DOOR
+   AT lGatesOfDoom
+   NOTCARR oKey
+   MESSSAGE "You don't have the key."
+   DONE
+
+It doesn't only save space in your source file, but also in the final DDB, as DRC is able to detect two entries with same condacts and re-use the code.
+
+You can add as many sentences as you want:
+
+>UNLOCK GATE
+>OPEN DOOR
+>OPEN GATES
+>PUSH DOOR
+ <condacts>
 
 HOW TO COMPILE
 ==============
