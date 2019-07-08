@@ -463,7 +463,7 @@ VAR Opcode : Longint;
 	HexByte, HexString : AnsiString;
 BEGIN
 	REPEAT
-		Scan(); // Get Condact
+		IF (SomeEntryCondacts<>nil) THEN Scan(); // Get Condact, skip first time when the condact list is empy cause it's already read
 		IF (CurrentTokenID <> T_IDENTIFIER)  AND (CurrentTokenID<>T_UNDERSCORE)  AND (CurrentTokenID<>T_SECTION_PRO) AND (CurrentTokenID<>T_SECTION_END)   AND (CurrentTokenID<>T_INCBIN) 
 		 AND (CurrentTokenID<>T_DB) AND (CurrentTokenID<>T_DW) AND (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_HEX) AND (CurrentTokenID<>T_USERPTR)	 
 		 AND (CurrentTokenID<>T_PROCESS_ENTRY_SIGN)	 THEN SyntaxError('Condact, new process entry or new process expected but "'+CurrentText+'" found');
@@ -589,50 +589,88 @@ BEGIN
 	UNTIL Opcode < 0;
 END;	
 
-
-PROCEDURE ParseProcessEntries(CurrentProcess: Longint);
+PROCEDURE ParseVerbNoun(var Verb: Longint; var  Noun: Longint);
 VAR TheWord: AnsiString;
 	AuxVocabularyTree :  TPVocabularyTree;
-	Verb, Noun : Longint;
+    ValidVerb : Boolean;
+BEGIN
+	Scan(); // Get the verb
+	IF (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_UNDERSCORE) THEN SyntaxError('Vocabulary verb expected but "'+CurrentText+'" found');
+	IF (CurrentTokenID = T_UNDERSCORE) THEN Verb := NO_WORD
+	ELSE
+	BEGIN
+		TheWord := Copy(CurrentText, 1, VOCABULARY_LENGTH);
+		ValidVerb := false;
+		AuxVocabularyTree := GetVocabulary(VocabularyTree, TheWord, VOC_ANY);
+		IF (AuxVocabularyTree <> nil) THEN
+			BEGIN
+				IF (AuxVocabularyTree^.VocType=VOC_VERB) THEN ValidVerb := true
+				ELSE IF (AuxVocabularyTree^.VocType=VOC_NOUN) AND (AuxVocabularyTree^.Value<=MAX_CONVERTIBLE_NAME) THEN ValidVerb:= true
+			END;
+		IF (NOT ValidVerb) THEN SyntaxError('Verb not found in vocabulary: "' + CurrentText +'"');
+		Verb := AuxVocabularyTree^.Value;
+		END;
+
+		Scan(); // Get Noun
+		IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_UNDERSCORE) THEN  SyntaxError('Vocabulary noun expected but "'+CurrentText+'" found');
+		IF (CurrentTokenID = T_UNDERSCORE) THEN Noun := NO_WORD
+		ELSE
+		BEGIN
+			TheWord := Copy(CurrentText, 1, VOCABULARY_LENGTH);
+			AuxVocabularyTree := GetVocabulary(VocabularyTree, TheWord, VOC_NOUN);
+			if (AuxVocabularyTree = nil) THEN SyntaxError('Noun not found in vocabulary: "'+CurrentText+'"');
+			Noun := AuxVocabularyTree^.Value;
+		END;
+END;
+
+
+(* Please notice entries can hav synonym entries, for instance:
+
+> UNLOCK GATE
+> OPEN DOOR
+   AT lGatesOfDoom
+   NOTCARR oKey
+   MESSSAGE "You don't have the key."
+   DONE
+
+Its the same as:
+
+> UNLOCK GATE
+   AT lGatesOfDoom
+   NOTCARR oKey
+   MESSSAGE "You don't have the key."
+   DONE
+
+> OPEN DOOR
+   AT lGatesOfDoom
+   NOTCARR oKey
+   MESSSAGE "You don't have the key."
+   DONE
+*)
+PROCEDURE ParseProcessEntries(CurrentProcess: Longint);
+VAR 	Verb, Noun : Longint;
 	EntryCondacts :  TPProcessCondactList;
-        ValidVerb : Boolean;
+	VerbNouns : array of longint;
+	i : integer;
 BEGIN
 	Scan(); // Get > sign or next process
 	REPEAT
 	 IF (CurrentTokenID<>T_PROCESS_ENTRY_SIGN) AND  (CurrentTokenID<>T_SECTION_PRO) AND  (CurrentTokenID<>T_SECTION_END) THEN SyntaxError('Entry sign expected ">" but "'+CurrentText+'" found');
 
-   IF (CurrentTokenID <> T_SECTION_PRO) AND  (CurrentTokenID<>T_SECTION_END) THEN
+     IF (CurrentTokenID <> T_SECTION_PRO) AND  (CurrentTokenID<>T_SECTION_END) THEN
      BEGIN
-			Scan(); // Get the verb
-			IF (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_UNDERSCORE) THEN SyntaxError('Vocabulary verb expected but "'+CurrentText+'" found');
-		  IF (CurrentTokenID = T_UNDERSCORE) THEN Verb := NO_WORD
-		  ELSE
-		  BEGIN
-			  TheWord := Copy(CurrentText, 1, VOCABULARY_LENGTH);
-        ValidVerb := false;
-			  AuxVocabularyTree := GetVocabulary(VocabularyTree, TheWord, VOC_ANY);
-			  IF (AuxVocabularyTree <> nil) THEN
-                          BEGIN
-                                IF (AuxVocabularyTree^.VocType=VOC_VERB) THEN ValidVerb := true
-                                ELSE IF (AuxVocabularyTree^.VocType=VOC_NOUN) AND (AuxVocabularyTree^.Value<=MAX_CONVERTIBLE_NAME) THEN ValidVerb:= true
-                          END;
-                          IF (NOT ValidVerb) THEN SyntaxError('Verb not found in vocabulary: "' + CurrentText +'"');
-			  Verb := AuxVocabularyTree^.Value;
-		  END;
-
-		  Scan(); // Get Noun
-		  IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_UNDERSCORE) THEN  SyntaxError('Vocabulary noun expected but "'+CurrentText+'" found');
-		  IF (CurrentTokenID = T_UNDERSCORE) THEN Noun := NO_WORD
-		  ELSE
-		  BEGIN
-			  TheWord := Copy(CurrentText, 1, VOCABULARY_LENGTH);
-			  AuxVocabularyTree := GetVocabulary(VocabularyTree, TheWord, VOC_NOUN);
-			  if (AuxVocabularyTree = nil) THEN SyntaxError('Noun not found in vocabulary: "'+CurrentText+'"');
-			  Noun := AuxVocabularyTree^.Value;
-		  END;
+	      setLength(VerbNouns, 0);
+	      REPEAT  // Repeat per each synonym entry (check comment above this procedure to see what synonym entries are)
+		  	ParseVerbNoun(Verb, Noun);
+			setLength(VerbNouns, Length(VerbNouns)+2);
+			VerbNouns[High(VerbNouns)-1] := Verb;
+			VerbNouns[High(VerbNouns)] := Noun;
+		  	Scan();
+		  UNTIL CurrentTokenID<>T_PROCESS_ENTRY_SIGN;
 		  EntryCondacts := nil;
 		  ParseProcessCondacts(EntryCondacts);
-		  AddProcessEntry(Processes[CurrentProcess].Entries, Verb, Noun, EntryCondacts);
+		  // Dump condacts once per each synonym entry
+		  for i:=0 to ((Length(VerbNouns) DIV 2) -1) DO AddProcessEntry(Processes[CurrentProcess].Entries, VerbNouns[i*2], VerbNouns[i*2+1], EntryCondacts);
      END;
   UNTIL (CurrentTokenID = T_SECTION_PRO) OR (CurrentTokenID = T_SECTION_END);
 END;
