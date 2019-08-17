@@ -1,5 +1,7 @@
 <?php
 
+global $adventure;
+
 // (C) Uto & Jose Manuel Ferrer 2019 - This code is released under the GPL v3 license
 // To build the backend of DAAD reborn compiler I have had aid from Jose Manuel Ferrer Ortiz's DAAD database code,
 // which he glently provided me. In some cases the code has been even copied and pasted, so that's why he is also
@@ -222,6 +224,7 @@ function replace_extension($filename, $new_extension) {
 
 function addPaddingIfRequired($target, $outputFileHandler, &$currentAddress)
 {
+    if ($GLOBALS['adventure']->forcedNoPadding) exit;
     if (isPaddingPlatform($target) && (($currentAddress % 2)==1)) 
     {
         writeZero($outputFileHandler); // Fill with one byte for padding
@@ -802,6 +805,7 @@ function Syntax()
     echo ("          -ch : Prepend C64 header to DDB file (ch stands for 'Commodore header')\n");
     echo ("          -c  : Forced classic mode\n");
     echo ("          -d  : Forced debug mode\n");
+    echo ("          -np : Forced no padding on padding platforms\n");
     echo "\n";
     echo "Examples:\n";
     echo "php drb zx es game.json\n";
@@ -809,6 +813,8 @@ function Syntax()
     echo "php drb pc vga en game.json mygame.ddb -c -v\n";
     echo "\n";
     echo "Text compression will use the built in tokens for each language. In case you want to provide your own tokens just place a file with same name as the JSON file but with .TOK extension in the same folder. To know about the TOK file content format look for the default tokens array in DRB source code.\n";
+    echo "\n";
+    echo "Please notice forcing no padding in a padding platforma may create incompatibility for smaller CPUs as 68000 or 8088\n";
     exit(1);
 }
 
@@ -834,6 +840,7 @@ function parseOptionalParameters($argv, $nextParam, &$adventure)
                 case "-V" : $adventure->verbose = true; break;
                 case "-C" : $adventure->forcedClassicMode = true; break;
                 case "-D" : $adventure->forcedDebugMode = true; break;
+                case "-NP" : $adventure->forcedNoPadding = true; break;
                 default: Error("$currentParam is not a valid option");
             }
         } 
@@ -910,6 +917,7 @@ $adventure->verbose = false;
 $adventure->prependC64Header = false;
 $adventure->forcedClassicMode = false;
 $adventure->forcedDebugMode = false;
+$adventure->forcedNoPadding = false;
 $outputFileName = parseOptionalParameters($argv, $nextParam, $adventure);
 if ($outputFileName=='') $outputFileName = replace_extension($inputFileName, 'DDB');
 if ($outputFileName==$inputFileName) Error('Input and output file name cannot be the same');
@@ -945,6 +953,7 @@ if ($adventure->verbose)
 {
     if ($adventure->classicMode) echo "Classic mode ON, optimizations disabled.\n"; else echo "Classic mode OFF, optimizations enabled.\n";
     if ($adventure->debugMode) echo "Debug mode ON, generating DEBUG information for ZesarUX debugger.\n";
+    if ($adventure->forcedNoPadding) echo "No padding has been forced.\n";
 }                            
 
 
