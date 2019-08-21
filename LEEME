@@ -1,11 +1,11 @@
-PREFACE
-=======
+PREFACIO
+========
 
-Nota: para las instrucciones en inglés, lea el fichero README
+Note: For English instructions please check README file.
 
 DRC es el nuevo compilador de  DAAD compiler, DRC  significa  "DAAD Reborn Compiler" (Compilador de DAAD Renacido) y tiene dos partes:
 
-- El front-end, que toma un fichero  .DSF  (DAAD Source File), un formato muy similar al SCE pero no igual, y geneta un fichero  .json file which que contiene toda la información del juego.
+- El front-end, que toma un fichero  .DSF  (DAAD Source File), un formato muy similar al SCE pero no igual, y genera un fichero .json que contiene toda la información del juego.
 
 - El back-end, que toma ese JSON y genera el DDB.
 
@@ -22,21 +22,21 @@ Encuentra más detalle sobre estas herramientas al final de este documento.
 LICENCIA Y COPYRIGHT
 ====================
 
-El compilador es  (C) Uto 2018 y se distribuye bajo licencia GPL v3
+El compilador es (C) Uto 2018 y se distribuye bajo licencia GPL v3
 
 DESCARGAR
 =========
 
-Descarga la última versión en at http://www.ngpaws.com/downloads/DAAD/DRC
+Descarga la última versión en http://www.ngpaws.com/downloads/DAAD/DRC
 
 POR QUÉ USAR DRC
 ================
 
-Hay tres razoens principaleS:
+Hay tres razones principales:
 
-1) Es nativo a tu sistema operativo (Windows, Linux, OS X) , no mas DOSBOX
-2) Apica optmizaciones especificas, no relacionadas con comrpesión de texto, que hacen el fichero DDB más pequeño
-3) Podrás escribir en tu código MESSAGE "un mensaje" en lugar de tener que crear un mensaje n en la seccion MTX y después escribir "MESSAGE n" en los procesos.
+1) Es nativo a tu sistema operativo (Windows, Linux, OS X) , no más DOSBOX
+2) Aplica optimizaciones específicas, no relacionadas con compresión de texto, que hacen el fichero DDB más pequeño
+3) Podrás escribir en tu código MESSAGE "un mensaje" en lugar de tener que crear un mensaje n en la sección MTX y después escribir "MESSAGE n" en los procesos.
 
 El formato DSF
 ==============
@@ -68,7 +68,7 @@ se tomará como una cadena, no teniendo en cuenta el comentario:
 >>>Está oscuro' ; 'En realidad no<<<
 
 
-4) Los códigos de scape usan el caracter # en lugar de \. Por ejemplo en vez de \k pon #k. Por una combinación astral (es coña pero casi), resulta que \n aun funciona, aunque #n también va.
+4) Los códigos de escape usan el caracter # en lugar de \. Por ejemplo en vez de \k pon #k. Por una combinación astral (es coña pero casi), resulta que \n aún funciona, aunque #n también va.
 
 Ejemplos:
 
@@ -78,7 +78,7 @@ Daros cuenta de que al ir las cadenas entre comillas las secuencias que eran un 
 
 5) Se soportan las siguientes directivas:
 
-- #define xxxxx [valor|identifier|expression]
+- #define xxxxx [valor|identificador|expresión]
 
 #define fPlayer 38
 #define Columns COLS
@@ -91,7 +91,7 @@ Las expresiones deben ponerse entre comillas:
 #ifdef "zx"
 #ifndef "8bit"
 
-Notese que que #ifdef puede ser reemplazado por #if, pero expresiones de DC como "#IF !zx" no son válidas, usa  #ifndef.
+Nótese que #ifdef puede ser reemplazado por #if, pero expresiones de DC como "#IF !zx" no son válidas, usa  #ifndef.
 
 - #endif 
 
@@ -99,7 +99,7 @@ Funciona como en DC
 
 - #else 
 
-Puedes haceR:
+Puedes hacer:
 
 #ifdef "zx"
 <haz algo>
@@ -131,7 +131,7 @@ Puedes haceR:
 
 6) Los ficheros  DSF no tienen sección /TOK 
 
-7) En los procesos la indireccióne es marcada con  @ en lugar de corchetes, es decir  @Player en lugar de [Player]
+7) En los procesos la indirección es marcada con  @ en lugar de corchetes, es decir  @Player en lugar de [Player]
 
 8)  Puedes escribir mensajes directamente así:
 
@@ -147,7 +147,7 @@ El compilador buscará un sitio en la tabla de mensajes correspondientes y le as
 
 11) La sintaxis de los procesos es más flexible que en DC:
 
-; Todo en una lineaº
+; Todo en una línea
 > _ _ AT 7 CARRIED 2 LET 127 12 MESSAGE 15 CREATE 2 DONE
 
 
@@ -173,17 +173,17 @@ El compilador buscará un sitio en la tabla de mensajes correspondientes y le as
 _ 
 _  AT 7 
  CARRIED 
- 2 LET 127 12 MESSAGE ; comment
- 15 CREATE ; comment
+ 2 LET 127 12 MESSAGE ; comentario
+ 15 CREATE ; comentario
  2 DONE
 
 
-11) #debug hará que el compilador acepte un codnacto falso llamado DEBUG. Si #debug no está puesto, los condactos DEBUG será ignorados. DEBUG es un condacto falso que hace que el 
+11) #debug hará que el compilador acepte un condacto falso llamado DEBUG. Si #debug no está puesto, los condactos DEBUG serán ignorados. DEBUG es un condacto falso que hace que el 
 emulador ZesarUX entre en modo de debug de DAAD si está activado el "DAAD BReakpoint".
 
-12) La directiva #classic afecta al backend y al front end. Por defecto el compilador hace optmizacioens experimentales, si se pone  #classic no las hace.
+12) La directiva #classic afecta al backend y al front end. Por defecto el compilador hace optimizacioens experimentales, si se pone  #classic no las hace.
 
-1)  Optimizaciones para ahorrar espacio no relacionadas con la compresion de texto
+1)  Optimizaciones para ahorrar espacio no relacionadas con la compresión de texto
 2)  Automatizaciones que hacen que DRC recoloque mensajes en otras tablas si la tabla de mensajes de usuario se llena.  Es decir, si pones MESSAGE "xxxxx" y ya no hay sitio en MTX  lo pondrá en STX o LTX y cambiará el MESSAGE por un SYSMESS o DESC, y un NEWLINE.
 
 13) DRC soporta frases sinónimas, lo cual viene a querer decir que esto:
@@ -209,7 +209,7 @@ Es lo mismo que esto:
    MESSSAGE "No tienes la llave-"
    DONE
 
-Esto no solo salva espacio al teclear, y ayuda a que no se nos olvide cambiar un mensaje en una de las entradas y cosas así, sino que dado que DRC es capaz de detectar entradas idénticas y reutilizarlas cuando las vuelva, hace que la segunda entrada apenas ocupe más que lo que ocupa su verbo y nombre.
+Esto no sólo salva espacio al teclear, y ayuda a que no se nos olvide cambiar un mensaje en una de las entradas y cosas así, sino que dado que DRC es capaz de detectar entradas idénticas y reutilizarlas cuando las vuelva, hace que la segunda entrada apenas ocupe más que lo que ocupa su verbo y nombre.
 
 Se pueden añadir cuantas entradas se quiera:
 
@@ -219,28 +219,28 @@ Se pueden añadir cuantas entradas se quiera:
 > SALTAR REJA
  <condactos>
 
-COMO COMPILAR
+CÓMO COMPILAR
 =============
 
-1) Primero llamamos al  front end (drf):
+1) Primero llamamos al front end (drf):
 
-DRF <maquina> [video_mode] <file.DSF> [output.json]
+DRF <máquina> [modo_de_vídeo] <fichero.DSF> [salida.json]
 
-<maquina> puede ser zx, cpc, msx, c64, amiga, pcw, st, pc or msx2.
+<máquina> puede ser zx, cpc, msx, c64, amiga, pcw, st, pc or msx2.
 
-La maquina es automaticamente creada como un #define, así que si llamas al compilador con "c64" entonces  [#ifdef "C64"] sería una condición cierta.
+La máquina es automáticamente creada como un #define, así que si llamas al compilador con "c64" entonces [#ifdef "C64"] sería una condición cierta.
 
-DRF también crea los defines  "bit8" o "bit16" dependiendo de la maquina, demodo que puedas usar [#ifdef/#ifndef "bit8"]
+DRF también crea los defines  "bit8" o "bit16" dependiendo de la máquina, de modo que puedas usar [#ifdef/#ifndef "bit8"]
 
-DRF crea automaticamente el simboo  COLS al igual que DC, dependiendo de la maquina, pero crea además el simbolo ROWS, cosa que DC no hace.
+DRF crea automáticamente el símbolo COLS al igual que DC, dependiendo de la máquina, pero crea además el símbolo ROWS, cosa que DC no hace.
 
-DRF también crea los símbolos LAST_OBJECT, LAST_LOCATION, NUM_OBJECTS and NUM_LOCATIONS
+DRF también crea los símbolos LAST_OBJECT, LAST_LOCATION, NUM_OBJECTS y NUM_LOCATIONS
 
-[video_mode] solo se debe especificar si la maquina es  PC (video modes VGA, CGA, EGA and TEXT) o MSX2 (video modes 5_6,5_8,6_6,6_8,7_6,7_8,8_6 and 8_8)
+[modo_de_vídeo] sólo se debe especificar si la máquina es PC (modos de vídeo VGA, CGA, EGA y TEXT) o MSX2 (modos de vídeo 5_6, 5_8, 6_6, 6_8, 7_6, 7_8, 8_6 y 8_8)
 
-[output.json] es el nombre del fichero de salida, si no lo pones, se creará uno de igual nombre que el fichero DSF, pero con extensión JSON.
+[salida.json] es el nombre del fichero de salida, si no lo pones, se creará uno de igual nombre que el fichero DSF, pero con extensión JSON.
 
-El target MSX2 es un nuevo target para un intérprete siendo desarrollado en este momento (April, 2018).
+El target MSX2 es un nuevo target para un intérprete siendo desarrollado en este momento (Abril 2018).
 
 Ejemplos:
 
@@ -251,9 +251,9 @@ drf msx2 5_8 mijuego.dsf
 
 2) Despues tenemos que llamar al backen, así
 
-drb <maquina> [video_mode] <lenguaje> <fichero.json> [output.ddb]
+drb <máquina> [modo_de_vídeo] <lenguaje> <fichero.json> [salida.ddb]
 
-<maquina> y  [video_mode] son igual que antes, el lenguaje puede ser "es" o "en" (para Español o Inglés)
+<máquina> y  [modo_de_vídeo] son igual que antes, el lenguaje puede ser "es" o "en" (para español o inglés)
 
 Una vez más, el último parámetro es opcional, si no lo pones se generará uno con el mismo nombre que el .json de entrada, pero con extensión DDB
 
@@ -263,10 +263,10 @@ drb zx en mijuego.json
 drb pc vga es mijuego.json
 drb msx en mijuego.dsf final.json
 
-Oye! el drb no es un ejecutable!
-================================
+¡Oye! ¡el drb no es un ejecutable!
+==================================
 
-Pues es verdad ,es un scrip php, así que debes instalar php en tu ordenador y luego llamarle así :
+Pues es verdad, es un script PHP, así que debes instalar PHP en tu ordenador y luego llamarle así:
 
 php drb.php zx en mijuego.json
 php drb.php pc vga es mijuego.json
@@ -276,32 +276,32 @@ php drb.php msx en mijuego.json final.ddb
 INSTALANDO PHP
 ==============
 
-OS X: php ya viene con todas las últimas versions de OS X, no tienes que instalar nada
+OS X: php ya viene con todas las últimas versiones de OS X, no tienes que instalar nada
 
 Linux: instala los paquetes "php" and "php-xml"
 
-Windows: ve aqui (https://www.php.net/downloads.php), pulsa en  "Windows Downloads" (al final del primer bloque). Baja el zip mas nuevo que haya y extraelo en la carpeta que mas te guste (por ejemplo C:\php).
-         Tras eso, bien pones esa tarjeta en el path, o bien tendrás que llamar a drp con la ruta completa al fichero php.exe que hay en ese carpeta, en vez de:
+Windows: ve aquí (https://www.php.net/downloads.php), pulsa en  "Windows Downloads" (al final del primer bloque). Baja el zip más nuevo que haya y extráelo en la carpeta que más te guste (por ejemplo C:\php).
+         Tras eso, bien pones esa tarjeta en el path, o bien tendrás que llamar a drb con la ruta completa al fichero php.exe que hay en ese carpeta, en vez de:
          
-         php drb.php msx en mygame.json final.ddb
+         php drb.php msx en mijuego.json final.ddb
 
          tendrás que escribir (si instalaste en C:\php):
          
-         C:\php\php.exe drb.php msx en mygame.json final.ddb
+         C:\php\php.exe drb.php msx en mijuego.json final.ddb
 
          Obviamente, añadir la carpeta al path es más cómodo a largo plazo.
 
 
-IMPORTANT NOTE
-==============
-Muchos tenderéis a poner  las llamadas a DRF y DRB en un fichero bat o script. Es recomendable comprobar tras salir de DRF que lo hizo sin errores, antes de llamar a drb pensando que 
+NOTA IMPORTANTE
+===============
+Muchos tenderéis a poner las llamadas a DRF y DRB en un fichero bat o script. Es recomendable comprobar tras salir de DRF que lo hizo sin errores, antes de llamar a drb pensando que 
 funcionó, y compilando el json anterior.
 
-En LInux, MSYS y probablemente en OS X, añadir esta linea tras la llamada a DRF hará esa función:
+En Linux, MSYS y probablemente en OS X, añadir esta linea tras la llamada a DRF hará esa función:
 
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
-En windows, puedes poner esto:
+En Windows, puedes poner esto:
 
 IF ERRORLEVEL 1 EXIT
 
@@ -315,17 +315,17 @@ Además, puedes añadir opcionalmente:
 
 - Una base de datos de gráficos y caracteres generada por DG, en formato .SDG. Si no añades ninguna DAADMAKER añadirá una con solo el juego de caracteres estándar de DAAD y sin gráficos.
 - Una pantalla de carga en formato .SCR. Si no la añades el juego cargará sin pantalla de carga.
-- Un cargador personalizado. Si no te gusta el cargador basic por defecto que pone DAADMAKER, puedes hacer uno a tu gusto, solo tienes que grabarlo en un .TAP e indicarselo a DAADMAKER. Es importante
+- Un cargador personalizado. Si no te gusta el cargador BASIC por defecto que pone DAADMAKER, puedes hacer uno a tu gusto, solo tienes que grabarlo en un .TAP e indicárselo a DAADMAKER. Es importante
   que si lo haces, te asegures de poner tres LOAD "" CODE en el cargador, o cuatro si estás añadiendo una pantalla de carga.
 
 Por ejemplo puedes hacer:
 
-daadmaker OUTPUT.TAP DS48IS.P3F JUEGO.DDB JUEGO.SDG PANTALLA.SRC   --> Crea OUTPUT.TAP con JUEGO.DDB, JUEGO.SDG y PANTALLA.SCR
-daadmaker OUTPUT.TAP DS48IS.P3F JUEGO.DDB --> Crea OUTPUT.TAP con JUEGO.DDB, la fuente por defecto, sin gráficos y sin pantalla de carga.
-daadmaker OUTPUT.TAP DS48IS.P3F JUEGO.DDB PANTALLA.SCR --> Crea OUTPUT.TAP con JUEGO.DDB,la fuente por defecto, sin gráficos y con  PANTALLA.SCR como pantalla de carga.
-daadmaker OUTPUT.TAP DS48IS.P3F JUEGO.DDB JUEGO.SDG PANTALLA.SRC CARGADOR.TAP  --> Crea OUTPUT.TAP con JUEGO.DDB, JUEGO.SDG y PANTALLA.SCR usando CARGADOR.TAP como cargador.
+daadmaker SALIDA.TAP DS48IS.P3F JUEGO.DDB JUEGO.SDG PANTALLA.SRC   --> Crea SALIDA.TAP con JUEGO.DDB, JUEGO.SDG y PANTALLA.SCR
+daadmaker SALIDA.TAP DS48IS.P3F JUEGO.DDB --> Crea SALIDA.TAP con JUEGO.DDB, la fuente por defecto, sin gráficos y sin pantalla de carga.
+daadmaker SALIDA.TAP DS48IS.P3F JUEGO.DDB PANTALLA.SCR --> Crea SALIDA.TAP con JUEGO.DDB,la fuente por defecto, sin gráficos y con  PANTALLA.SCR como pantalla de carga.
+daadmaker SALIDA.TAP DS48IS.P3F JUEGO.DDB JUEGO.SDG PANTALLA.SRC CARGADOR.TAP  --> Crea SALIDA.TAP con JUEGO.DDB, JUEGO.SDG y PANTALLA.SCR usando CARGADOR.TAP como cargador.
 
-El paquete incluye TAP2DSK.TAP, un cargador a medida, que si lo usas el fichero tap que crees será un fichero preparado para ser cargado en un +3 (real o emulado) con un disquete vacio metido, y al cargarlo en 
+El paquete incluye TAP2DSK.TAP, un cargador a medida, que si lo usas el fichero tap que crees será un fichero preparado para ser cargado en un +3 (real o emulado) con un disquete vacío metido, y al cargarlo en 
 lugar de ejecutar el juego, lo que hará será grabar en disco el juego para poder cargarlo desde disco. Este TAP2DSK.TAP asume que el juego tiene pantalla de carga, así que no funcionará si no pones una.
 
 MCRF
@@ -336,13 +336,13 @@ MCRF es descrito en el manual de DAAD , sección "4.2.2 The CPC".
 BUILDING DRC
 ============
 
-Para compilar, descaga freepascal y ejecuta:
+Para compilar, descarga freepascal y ejecuta:
 
 fpc DRC.pas
 fpc daadmaker.pas
 
-En caso de tener que cambiar el fichero lexer  (DSF.l)  borra lexer.pas y regeneralo con:
+En caso de tener que cambiar el fichero lexer  (DSF.l)  borra lexer.pas y regenéralo con:
 
 plex DSF.l lexer.pas
 
-Plex suele estar inclyuido con freepascal, asegurate de tener instalado fpc y fpc-src.
+Plex suele estar incluido con freepascal, asegúrate de tener instalado fpc y fpc-src.
