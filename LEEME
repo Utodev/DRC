@@ -305,6 +305,13 @@ En Windows, puedes poner esto:
 
 IF ERRORLEVEL 1 EXIT
 
+¡HEY! ¿Y QUÉ HAY DE LA COMPRESIÓN DE TEXTOS?
+============================================
+El backend del compilador incluye los tokens incluidos en las bases de datos por defecto tanto para inglés como para español, así que no tienes que preocuparte de ello. He trabajado un poco tratando de lograr mejores tokens
+para los mensajes actuales, pero no he tenido buen resultado. Aún así, DRC ahorra espacio comparado con DC, pero es debido a otras optimizaciones no relacionadas con la compresión de textos. DRC siempre
+aplica compresión a las secciones MTX y STX. En caso que no quieras eso, edita el fichero drb.php y en la línea donde veas "advanced", reemplaza eso con "basic".
+
+Trabajaré en mejorar la compresión de textos más adelante, pero de momento, creo que el compilador ya ahorra suficiente espacio mediante otras optimizaciones.
 
 DAADMAKER
 =========
