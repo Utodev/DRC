@@ -1,8 +1,6 @@
 PREFACE     (Para las instrucciones en español, lee el fichero LEEME)
 =======
 
-
-
 DRC is the new DAAD compiler, DRC stands for "DAAD Reborn Compiler" and it has two parts:
 
 - The front-end, which takes a .DSF file (DAAD Source File), a format very similar to SCE but not the same, and generates a .json file which 

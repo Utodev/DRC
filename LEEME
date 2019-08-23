@@ -1,8 +1,6 @@
 PREFACIO   (For English instructions please check README file)
 ========
 
-
-
 DRC es el nuevo compilador de  DAAD compiler, DRC  significa  "DAAD Reborn Compiler" (Compilador de DAAD Renacido) y tiene dos partes:
 
 - El front-end, que toma un fichero  .DSF  (DAAD Source File), un formato muy similar al SCE pero no igual, y genera un fichero .json que contiene toda la información del juego.
