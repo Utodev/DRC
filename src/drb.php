@@ -893,7 +893,6 @@ $language = strtoupper($argv[$nextParam]); $nextParam++;
 if (($language!='ES') && ($language!='EN')) Error('Invalid target language');
 $inputFileName = $argv[$nextParam]; $nextParam++;
 if (!file_exists($inputFileName)) Error('File not found');
-$tokensFilename = replace_extension($inputFileName, 'TOK');
 $json = file_get_contents($inputFileName);
 $adventure = json_decode(utf8_encode($json));
 if (!$adventure) 
@@ -910,6 +909,15 @@ if (!$adventure)
         break;
     }
     Error($error);
+}
+
+$tokensFilename = replace_extension($inputFileName, 'tok');
+if (!file_exists($tokensFilename)) {
+    if (file_exists(strtolower($tokensFilename))) $tokensFilename = strtolower($tokensFilename);
+    else {
+        $tokensFilename = replace_extension($inputFileName, 'TOK');
+        if (file_exists(strtolower($tokensFilename))) $tokensFilename = strtolower($tokensFilename);
+    }
 }
 
 // Parse optional parameters
@@ -1019,7 +1027,6 @@ $currentAddress+=26;
 $compressionData = null;
 $bestTokensDetails = null;
 
-if (file_exists(strtolower($tokensFilename))) $tokensFilename = strtolower($tokensFilename);
 if (file_exists($tokensFilename)) 
 {
     if ($adventure->verbose) echo "Loading tokens from $tokensFilename.\n";
