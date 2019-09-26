@@ -81,7 +81,7 @@ END;
 
 FUNCTION ExtractValue():Longint;
 BEGIN
-	IF (CurrentTokenID=T_STRING) THEN Result := GetExpressionValue()	ELSE 
+	IF (CurrentTokenID=T_STRING) THEN Result := GetExpressionValue() ELSE 
 	IF (CurrentTokenID=T_NUMBER) OR (CurrentTokenID= T_IDENTIFIER) THEN Result := GetIdentifierValue() ELSE Result := MAXINT;
 	IF (Result = MAXINT) AND (CurrentTokenID=T_STRING) THEN SyntaxError('"'+CurrentText+'" is not a valid expression');
 	IF (Result = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
@@ -497,11 +497,13 @@ BEGIN
 						Value := CurrentIntVal;
 						CurrentText := IntToStr(Value);
 					END;
-					IF (CurrentTokenID <> T_NUMBER) AND (CurrentTokenID <> T_IDENTIFIER) AND (CurrentTokenID<> T_UNDERSCORE) THEN SyntaxError('Invalid condact parameter');
+					IF (CurrentTokenID <> T_NUMBER) AND (CurrentTokenID <> T_IDENTIFIER) AND (CurrentTokenID<> T_UNDERSCORE) AND (CurrentTokenID<>T_STRING) THEN SyntaxError('Invalid condact parameter');
 
 					// Lets'de termine the value of the parameter
 					Value := MAXINT;
-					// If  an udnerscore, value is clear
+					// IF a string then eveluate expression
+					if CurrentTokenID = T_STRING THEN  Value  := GetExpressionValue();
+					// If  an underscore, value is clear
 					IF CurrentTokenID = T_UNDERSCORE THEN Value:= NO_WORD;
 					// Otherwise if the condact accepts words as parameters, check vocabulary first
 					IF (Value = MAXINT) AND  (Opcode in [SYNONYM_OPCODE, PREP_OPCODE, NOUN2_OPCODE, ADJECT1_OPCODE, ADVERB_OPCODE, ADJECT2_OPCODE]) THEN Value:= GetWordParamValue(CurrentText, Opcode, i);

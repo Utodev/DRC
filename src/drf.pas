@@ -3,14 +3,14 @@ PROGRAM DRC;
 {$I-}
 
 
-uses sysutils, ULexTokens, ULexLib, UTokenList, USintactic, UConstants, USymbolList, UCodeGeneration, UCondacts;
+uses strutils, sysutils, ULexTokens, ULexLib, UTokenList, USintactic, UConstants, USymbolList, UCodeGeneration, UCondacts;
 
 
 PROCEDURE SYNTAX();
 VAR AppName :String;
 BEGIN
 	AppName := ChangeFileExt(ExtractFileName(ParamStr(0)),'');
-	WriteLn('Syntax: ', AppName, ' <target> [subtarget] <file.DSF> [output.json] ');
+	WriteLn('Syntax: ', AppName, ' <target> [subtarget] <file.DSF> [output.json] [additional symbols]');
   WriteLn();
 	WriteLn('file.DSF is a DAAD', ' ', version_hi, '.', version_lo, ' source file.');
   WriteLn();
@@ -19,6 +19,8 @@ BEGIN
 	WriteLn('[subtarget] is an parameter only required when the target is MSX2 or PC. Will define the internal variable COLS, which can later be used in DAAD processes. For MSX2 values can be 5_6, 5_8, 6_6, 6_8, 7_6, 7_8, 8_6 or 8_8. The first number is the video mode (5-8), the second one is the characters width in pixels (6 or 8). For PC values can be VGA, EGA, CGA or TEXT.');
   WriteLn();
 	WriteLn('[output.json] is optional file name for output json file, if missing, '+AppName+' will just use same name of input file, but with .json extension.');
+  WriteLn();
+	WriteLn('[additional symbols] is an optional comma separated list of other symbols that would be created, so for instance if that parameter is "p3", then #ifdef "p3" will be true, and if that parameter is "p3,p4" then also #ifdef "p4" would be true.');
 	Halt(1);
 END;
 
@@ -82,15 +84,18 @@ END;
 
 VAR Target, SubTarget: AnsiString;
   	OutputFileName, InputFileName : String;
+    AdditionalSymbols : String;
+    AuxString : String;
     AppName : String;
     NextParam : Byte;
 
 {$i lexer.pas} 
 
 
-PROCEDURE CompileForTarget(Target: String; Subtarget: AnsiString; OutputFileName: String);
+PROCEDURE CompileForTarget(Target: String; Subtarget: AnsiString; OutputFileName: String; AdditionalSymbols: String);
 var machine : AnsiString;
-   cols: byte;
+    cols: byte;
+    i :byte;
 BEGIN
   Writeln('Reading ' + InputFileName);
   AssignFile(yyinput, InputFileName);
@@ -122,6 +127,17 @@ BEGIN
   AddSymbol(SymbolList, 'WORN', LOC_WORN);
   AddSymbol(SymbolList, 'HERE', LOC_HERE);
   AddSymbol(SymbolList, 'HERE', LOC_HERE);
+  // Add additionalSymbols if present
+  i := 1;
+  REPEAT
+    AuxString := ExtractWord(i, AdditionalSymbols, [',']);
+    if (AuxString<>'') THEN 
+    BEGIN
+     AddSymbol(SymbolList, AuxString, i);
+     WriteLn('Additional symbol ', AuxString, ' added with value ', i);
+    END;
+    Inc(i);
+  UNTIL AuxString='';
   WriteLn('Checking Syntax...');
   Sintactic();
   Write('Generating ',OutputFileName,' [Classic mode O');
@@ -141,7 +157,7 @@ BEGIN
   if (CurrentYear()<>2018) THEN Write('-', CurrentYear());
   WriteLn();
   // Check Parameters
-  IF (ParamCount()>4) OR (ParamCount()<2) THEN SYNTAX();
+  IF (ParamCount()>5) OR (ParamCount()<2) THEN SYNTAX();
   Target := UpperCase(ParamStr(1));
   NextParam := 2;
   SubTarget := '';
@@ -154,10 +170,22 @@ BEGIN
   InputFileName := ParamStr(NextParam);
   IF (NOT FileExists(InputFileName)) THEN ParamError('Input file not found: "'+InputFileName+'"');
   Inc(NextParam);
-  IF  ParamCount>= NextParam THEN OutputFileName := ParamStr(NextParam)
-                             ELSE OutputFileName := ChangeFileExt(InputFileName, '.json');
+  IF  ParamCount>= NextParam THEN AuxString := ParamStr(NextParam);
+  IF Pos('.',AuxString) <> 0 THEN 
+                              BEGIN
+                                OutputFileName := AuxString;
+                                Inc(NextParam);
+                              END
+                              ELSE 
+                              BEGIN
+                                OutputFileName := ChangeFileExt(InputFileName, '.json');
+                              END;
+  IF ParamCount>= NextParam THEN AdditionalSymbols := ParamStr(NextParam)
+                            ELSE AdditionalSymbols := '';
+  
+
   //LoadPlugins(); 
-  CompileForTarget(Target, SubTarget, OutputFileName);
+  CompileForTarget(Target, SubTarget, OutputFileName, AdditionalSymbols);
 END.
 
 
