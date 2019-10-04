@@ -203,7 +203,7 @@ class daadToChr
 var $conversions = array('ª', '¡', '¿', '«', '»', 'á', 'é', 'í', 'ó', 'ú', 'ñ', 'Ñ', 'ç', 'Ç', 'ü', 'Ü');
 }
 define('VERSION_HI',0);
-define('VERSION_LO',12);
+define('VERSION_LO',13);
 
 
 function prettyFormat($value)
@@ -359,7 +359,6 @@ function generateMessages($messageList, &$currentAddress, $outputFileHandler,  $
         $currentAddress++;
         
     }
-
     // Write the messages table
     addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
     for ($messageID=0;$messageID<sizeof($messageList);$messageID++)
@@ -397,7 +396,7 @@ function generateOTX($adventure, &$currentAddress, $outputFileHandler, $isLittle
 //================================================================= connections ========================================================
 
 
-function generateConnections($adventure, &$currentAddress, $outputFileHandler, $isLittleEndian)
+function generateConnections($adventure, $target, &$currentAddress, $outputFileHandler, $isLittleEndian)
 {
 
     $connectionsTable = array();
@@ -415,6 +414,7 @@ function generateConnections($adventure, &$currentAddress, $outputFileHandler, $
     $connectionsOffset = array();
     for ($locID=0;$locID<sizeof($adventure->locations);$locID++)
     {
+        addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
         $connectionsOffset[$locID] = $currentAddress;
         $connections = $connectionsTable[$locID];
         foreach ($connections as $connection)
@@ -428,6 +428,7 @@ function generateConnections($adventure, &$currentAddress, $outputFileHandler, $
     }
 
     // Write the Lookup table
+    addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
     for ($locID=0;$locID<sizeof($adventure->locations);$locID++)
     {
         writeWord($outputFileHandler, $connectionsOffset[$locID], $isLittleEndian);
@@ -1089,7 +1090,7 @@ $locationLookupOffset =  $currentAddress - 2 * sizeof($adventure->locations);
 if ($adventure->verbose) echo "Locations         [" . prettyFormat($locationLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Connections
-generateConnections($adventure, $currentAddress, $outputFileHandler,$isLittleEndian);
+generateConnections($adventure, $target, $currentAddress, $outputFileHandler,$isLittleEndian);
 $connectionsLookupOffset = $currentAddress - 2 * sizeof($adventure->locations) ;
 if ($adventure->verbose) echo "Connections       [" . prettyFormat($connectionsLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
