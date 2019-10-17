@@ -225,7 +225,7 @@ function replace_extension($filename, $new_extension) {
 function addPaddingIfRequired($target, $outputFileHandler, &$currentAddress)
 {
     if ($GLOBALS['adventure']->forcedNoPadding) exit;
-    if (isPaddingPlatform($target) && (($currentAddress % 2)==1)) 
+    if (((isPaddingPlatform($target)) || ($GLOBALS['adventure']->forcedPadding)) && (($currentAddress % 2)==1)) 
     {
         writeZero($outputFileHandler); // Fill with one byte for padding
         $currentAddress++;
@@ -807,6 +807,7 @@ function Syntax()
     echo ("          -c  : Forced classic mode\n");
     echo ("          -d  : Forced debug mode\n");
     echo ("          -np : Forced no padding on padding platforms\n");
+    echo ("          -p  : Forced padding on non padding platforms\n");
     echo "\n";
     echo "Examples:\n";
     echo "php drb zx es game.json\n";
@@ -842,6 +843,7 @@ function parseOptionalParameters($argv, $nextParam, &$adventure)
                 case "-C" : $adventure->forcedClassicMode = true; break;
                 case "-D" : $adventure->forcedDebugMode = true; break;
                 case "-NP" : $adventure->forcedNoPadding = true; break;
+                case "-P" : $adventure->forcedPadding = true; break;
                 default: Error("$currentParam is not a valid option");
             }
         } 
@@ -927,9 +929,12 @@ $adventure->prependC64Header = false;
 $adventure->forcedClassicMode = false;
 $adventure->forcedDebugMode = false;
 $adventure->forcedNoPadding = false;
+$adventure->forcedPadding = false;
 $outputFileName = parseOptionalParameters($argv, $nextParam, $adventure);
 if ($outputFileName=='') $outputFileName = replace_extension($inputFileName, 'DDB');
 if ($outputFileName==$inputFileName) Error('Input and output file name cannot be the same');
+
+if (($adventure->forcedPadding) && ($adventure->forcedNoPadding)) Error("You can't force padding and no padding at the same time");
 
 if ($adventure->verbose) echo ("Verbose mode on\n");
 
@@ -958,11 +963,15 @@ if (($adventure->debugMode) && ($target!='ZX') && ($target!='CPC'))
     echo "Debug mode active, but target is not ZX. Debug mode deactivated.";
     $adventure->debugMode = false;
 } 
+
+
+
 if ($adventure->verbose) 
 {
     if ($adventure->classicMode) echo "Classic mode ON, optimizations disabled.\n"; else echo "Classic mode OFF, optimizations enabled.\n";
     if ($adventure->debugMode) echo "Debug mode ON, generating DEBUG information for ZesarUX debugger.\n";
     if ($adventure->forcedNoPadding) echo "No padding has been forced.\n";
+    if ($adventure->forcedPadding) echo "Padding has been forced.\n";
 }                            
 
 
