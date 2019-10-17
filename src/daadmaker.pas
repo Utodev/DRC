@@ -159,8 +159,18 @@ begin
 end;
 
 procedure SaveBlockFromFile(Blockname: ShortString; var Foutput: file;var Finput: file; Address: word);
+VAR P3Str: ShortString;
+    i: integer;
+    failed: boolean;
 begin
  Blockread(Finput, Buffer,  filesize(Finput));
+ // Check if file has +3 DOS header
+ P3Str := 'PLUS3DOS';
+ failed := false;
+ for i:= 1 to 8 DO 
+  IF char(Buffer[i-1]) <> P3STR[i] THEN failed := true;
+ if not failed then Error('One of your input files seem to contain PLUS3 header. Please use headerless files.');
+ // Save the block nevertheless
  SaveBlockFromBuffer(Blockname,Foutput, Buffer, filesize(Finput), Address);
 end;
 
