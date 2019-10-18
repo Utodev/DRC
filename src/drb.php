@@ -804,6 +804,7 @@ function Syntax()
     echo("+ [options]: one or more of the following:\n");
     echo ("          -v  : verbose output\n");
     echo ("          -ch : Prepend C64 header to DDB file (ch stands for 'Commodore header')\n");
+    echo ("          -3h : Prepend +3 header to DDB file (3h stands for 'Three header')\n");
     echo ("          -c  : Forced classic mode\n");
     echo ("          -d  : Forced debug mode\n");
     echo ("          -np : Forced no padding on padding platforms\n");
@@ -839,6 +840,7 @@ function parseOptionalParameters($argv, $nextParam, &$adventure)
             switch ($currentParam)
             {
                 case "-CH" : $adventure->prependC64Header = true; break;
+                case "-3H" : $adventure->prependPlus3Header = true; break;
                 case "-V" : $adventure->verbose = true; break;
                 case "-C" : $adventure->forcedClassicMode = true; break;
                 case "-D" : $adventure->forcedDebugMode = true; break;
@@ -855,19 +857,69 @@ function parseOptionalParameters($argv, $nextParam, &$adventure)
     return $result; // output file name
 }
 
-function prependC64HeaderToDDB($outputFileName)
+
+function prependPlus3HeaderToDDB($outputFileName)
 {
+    
+    $fileSize = filesize($outputFileName) + 128; // Final file size wit header
     $inputHandle = fopen($outputFileName, 'r');
-    $outpuHandle = fopen("prepend.tmp", "w");
-    fputs($outpuHandle, chr(0x80), 1);
-    fputs($outpuHandle, chr(0x38), 1);
+    $outputHandle = fopen("prepend.tmp", "w");
+
+    $header = array();
+    $header[]= ord('P');
+    $header[]= ord('L');
+    $header[]= ord('U');
+    $header[]= ord('S');
+    $header[]= ord('3');
+    $header[]= ord('D');
+    $header[]= ord('O');
+    $header[]= ord('S');
+    $header[]= 0x1A; // Soft EOF
+    $header[]= 0x01; // Issue
+    $header[]= 0x00; // Version
+    $header[]= $fileSize & 0XFF;  // Four bytes for file size
+    $header[]= ($fileSize & 0xFF00) >> 8;
+    $header[]= ($fileSize & 0xFF0000) >> 16;
+    $header[]= ($fileSize & 0xFF000000) >> 24;  
+    $header[]= 0x03; // Bytes:
+    $fileSize -= 128; // Get original size
+    $header[]= $fileSize & 0x00FF;  // Two bytes for data size
+    $header[]= ($fileSize & 0xFF00) >> 8;
+    $header[]= 0x00; // Two Bytes for load addres 0x8400
+    $header[]= 0x84; 
+    while (sizeof($header)<127) $header[]= 0; // Fillers
+    $checksum = 0;
+    for ($i=0;$i<127;$i++)  $checksum+=$header[$i];
+    $header[]= $checksum & 0xFF; // Checksum
+    
+    // Dump header
+    for ($i=0;$i<128;$i++) fputs($outputHandle, chr($header[$i]), 1);
+
+    // Dump original DDB
     while (!feof($inputHandle))
     {
         $c = fgetc($inputHandle);
-        fputs($outpuHandle,$c,1);
+        fputs($outputHandle,$c,1);
     }
     fclose($inputHandle);
-    fclose($outpuHandle);
+    fclose($outputHandle);
+    unlink($outputFileName);
+    rename("prepend.tmp" ,$outputFileName);
+}
+
+function prependC64HeaderToDDB($outputFileName)
+{
+    $inputHandle = fopen($outputFileName, 'r');
+    $outputHandle = fopen("prepend.tmp", "w");
+    fputs($outputHandle, chr(0x80), 1);
+    fputs($outputHandle, chr(0x38), 1);
+    while (!feof($inputHandle))
+    {
+        $c = fgetc($inputHandle);
+        fputs($outputHandle,$c,1);
+    }
+    fclose($inputHandle);
+    fclose($outputHandle);
     unlink($outputFileName);
     rename("prepend.tmp" ,$outputFileName);
 }
@@ -926,6 +978,7 @@ if (!file_exists($tokensFilename)) {
 // Parse optional parameters
 $adventure->verbose = false;
 $adventure->prependC64Header = false;
+$adventure->prependPlus3Header = false;
 $adventure->forcedClassicMode = false;
 $adventure->forcedDebugMode = false;
 $adventure->forcedNoPadding = false;
@@ -941,6 +994,7 @@ if ($adventure->verbose) echo ("Verbose mode on\n");
 
 // Check parameters
 if (($target!='C64') && ($adventure->prependC64Header)) Error('Adding C64 header was requested but target is not C64');
+if (($target!='ZX')  && ($adventure->prependPlus3Header)) Error('Adding +3 header was requested but target is not ZX Spectrum');
 
 // Create the vectors for extens and USRPTR
 $adventure->extvec = array();
@@ -1169,6 +1223,12 @@ if ($adventure->prependC64Header)
 {
     if ($adventure->verbose) echo ("Adding C64 header\n");
     prependC64HeaderToDDB($outputFileName);
+} 
+
+if ($adventure->prependPlus3Header)
+{
+    if ($adventure->verbose) echo ("Adding +3 header\n");
+    prependPlus3HeaderToDDB($outputFileName);
 } 
 
 
