@@ -206,6 +206,21 @@ define('VERSION_HI',0);
 define('VERSION_LO',13);
 
 
+function summary($adventure)
+{
+    echo "\n";
+    echo "Adventure Totals\n";
+    echo "================\n";
+    echo "Locations   : " . sizeof($adventure->locations) . "\n";
+    echo "Objects     : " . sizeof($adventure->locations) . "\n";
+    echo "Messages    : " . sizeof($adventure->messages) . "\n";
+    echo "Sysmess     : " . sizeof($adventure->sysmess) . "\n";
+    echo "Connections : " . sizeof($adventure->connections) . "\n";
+    echo "Processes   : " . sizeof($adventure->processes) . "\n";
+    echo "\n";
+
+}
+
 function prettyFormat($value)
 {
     $value = strtoupper(dechex($value));
@@ -1215,6 +1230,7 @@ writeWord($outputFileHandler, $fileSize, $isLittleEndian);
 for($i=0;$i<13;$i++)
     writeWord($outputFileHandler, $adventure->extvec[$i],$isLittleEndian);
 fclose($outputFileHandler);
+if ($adventure->verbose) summary($adventure);
 if ($adventure->verbose) echo "$outputFileName for $target created.\n";
 if ($currentAddress>0xFFFF) echo "Warning: DDB file goes " . ($currentAddress - 0xFFFF) . " bytes over the 65535 memory address boundary.\n";
 echo "DDB size is " . ($fileSize - $baseAddress) . " bytes.\nDatabase ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
@@ -1230,6 +1246,7 @@ if ($adventure->prependPlus3Header)
     if ($adventure->verbose) echo ("Adding +3 header\n");
     prependPlus3HeaderToDDB($outputFileName);
 } 
+
 
 
  
