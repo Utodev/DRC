@@ -47,8 +47,8 @@ PROCEDURE GenerateJSON(OutputFileName: string);
 VAR JSON : Text;
     TempObjectList : TPObjectList;	
     Aux,i,j : Word;
-    MessageListsArray : array [0..3] of TPMessageList;
-    MessageListsnames : array [0..3] of String;
+    MessageListsArray : array [0..4] of TPMessageList;
+    MessageListsnames : array [0..4] of String;
     TempMessageList : TPMessageList;
     TempEntriesList : TPProcessEntryList;
     TempCondactList : TPProcessCondactList;
@@ -152,13 +152,15 @@ BEGIN
     MessageListsArray[1]:=STX;
     MessageListsArray[2]:=LTX;
     MessageListsArray[3]:=OTX;
+    MessageListsArray[4]:=XTX;
 
     MessageListsnames[0]:='messages';
     MessageListsnames[1]:='sysmess';
     MessageListsnames[2]:='locations';
     MessageListsnames[3]:='objects';
+    MessageListsnames[4]:='xmessages';
 
-    for i := 0 to 3 DO
+    for i := 0 to 4 DO
     BEGIN
         TempMessageList := MessageListsArray[i];
         WriteLn(JSON,tabs(),'"',MessageListsnames[i],'":');

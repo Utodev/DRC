@@ -461,6 +461,7 @@ VAR Opcode : Longint;
 	AuxByte: Byte;
 	AuxLong :Longint;
 	HexByte, HexString : AnsiString;
+	MaxMessages : Longint;
 BEGIN
 	REPEAT
 		IF (SomeEntryCondacts<>nil) THEN Scan(); // Get Condact, skip first time when the condact list is empy cause it's already read
@@ -484,11 +485,21 @@ BEGIN
 					  Scan();
 					END;
 			
-					IF (CurrentTokenID = T_STRING) AND (Opcode in [MESSAGE_OPCODE,MES_OPCODE, SYSMESS_OPCODE]) THEN  
+					IF (CurrentTokenID = T_STRING) AND (Opcode in [MESSAGE_OPCODE,MES_OPCODE, SYSMESS_OPCODE, XMESSAGE_OPCODE]) THEN  
 					BEGIN
 						CurrentText := Copy(CurrentText, 2, Length(CurrentText)-2);
-						CurrentIntVal := insertMessageFromProcess(Opcode, CurrentText, ClassicMode);
-	 				  IF CurrentIntVal>=MAX_MESSAGES_PER_TABLE THEN
+						IF (Opcode = XMESSAGE_OPCODE) THEN  
+						BEGIN
+							CurrentIntVal := insertMessageFromProcessIntoSpecificList(XTX, CurrentText);
+							MaxMessages := MAXLONGINT;
+						END
+						ELSE
+						BEGIN
+						  CurrentIntVal := insertMessageFromProcess(Opcode, CurrentText, ClassicMode);
+						  MaxMessages :=MAX_MESSAGES_PER_TABLE;
+						END;   
+
+	 				  IF CurrentIntVal>=MaxMessages THEN
 						BEGIN
 						 IF ClassicMode THEN SyntaxError('Too many messages, max messages per message table is ' +  IntToStr(MAX_MESSAGES_PER_TABLE))
 						                ELSE SyntaxError('Too many messages, total messages in  MTX, STX and LTX tables, plus "MESSAGE" strings is ' +  IntToStr(3*MAX_MESSAGES_PER_TABLE));
@@ -514,7 +525,12 @@ BEGIN
 					// If still Maxint, then it should be a bad parameter
 					IF Value = MAXINT THEN SyntaxError('Invalid parameter #' + IntToStr(i+1) + ': "'+CurrentText+'"');
 					IF (Opcode=SKIP_OPCODE) AND (Value<0) THEN Value := 256 + Value;
-					IF (Value<0)  OR (Value>MAX_PARAMETER_RANGE) THEN SyntaxError('Invalid parameter value "'+CurrentText+'"');
+					IF (Opcode = XMESSAGE_OPCODE) THEN 
+					BEGIN
+						IF (Value<0) THEN SyntaxError('Invalid parameter value "'+CurrentText+'"');
+					END 
+					ELSE IF (Value<0)  OR (Value>MAX_PARAMETER_RANGE) THEN SyntaxError('Invalid parameter value "'+CurrentText+'"');
+					
 					CurrentCondactParams[i].Value := Value;
 				END;
 				AddProcessCondact(SomeEntryCondacts, Opcode, GetNumParams(Opcode), CurrentCondactParams, false);
