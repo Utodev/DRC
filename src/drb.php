@@ -212,7 +212,7 @@ function summary($adventure)
     echo "Adventure Totals\n";
     echo "================\n";
     echo "Locations   : " . sizeof($adventure->locations) . "\n";
-    echo "Objects     : " . sizeof($adventure->locations) . "\n";
+    echo "Objects     : " . sizeof($adventure->objects) . "\n";
     echo "Messages    : " . sizeof($adventure->messages) . "\n";
     echo "Sysmess     : " . sizeof($adventure->sysmess) . "\n";
     echo "Connections : " . sizeof($adventure->connections) . "\n";
