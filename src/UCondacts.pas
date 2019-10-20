@@ -142,7 +142,7 @@ CONST Condacts : ARRAY[0..NUM_CONDACTS+NUM_FAKE_CONDACTS - 1] OF TCondact = (
 (NumParams:0;Condact:'RESET' ),  // 127 
 
 // Additional fake condacts
-(Numparams:1;Condact:'XMESSAGE') //128
+(Numparams:1;Condact:'XMES') //128
 
 
 );

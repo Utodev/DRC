@@ -28,7 +28,7 @@ CONST version_hi = 0;
       MESSAGE_OPCODE = 38;
       MES_OPCODE =77;
       SYSMESS_OPCODE = 54;
-      XMESSAGE_OPCODE = 128;
+      XMES_OPCODE = 128;
       DESC_OPCODE = 19;
       SKIP_OPCODE = 116;
 
