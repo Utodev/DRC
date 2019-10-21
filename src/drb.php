@@ -1,6 +1,11 @@
 <?php
 
 global $adventure;
+global $xMessageOffsets;
+global $xMessageSize;
+global $maxFileSizeForXMessages;
+
+$xMessageSize = 0;
 
 // (C) Uto & Jose Manuel Ferrer 2019 - This code is released under the GPL v3 license
 // To build the backend of DAAD reborn compiler I have had aid from Jose Manuel Ferrer Ortiz's DAAD database code,
@@ -10,6 +15,8 @@ global $adventure;
 
 define('FAKE_DEBUG_CONDACT_CODE',220);
 define('FAKE_USERPTR_CONDACT_CODE',256);    
+define('XMESSAGE_OPCODE', 128);
+define('EXTERN_OPCODE', 61);
 
 //================================================================= filewrite ========================================================
 
@@ -91,8 +98,8 @@ function generateExterns(&$adventure, &$currentAddress, $outputFileHandler)
 // Tokens array is data is a JSON object with two values:
 // - compression: whose value may be "advanced", "basic" or "none". Lets DRB know if you want to compress MTX+LTX+STX (advanced), just LTX (basic) or nothing (none)
 // - tokens: and array of tokens where each element is an hexadecimal encoded (ISO-8599-1) string. First token should be an impossible token, due to a bug in some intrepreters. So make sure the string can't be found in your texts (i.e. "0000")
-$compressionJSON_ES  = '{ "compression": "advanced","tokens": ["0000","2071756520","6120646520","6f20646520","20756e6120","2064656c20","7320646520","206465206c","20636f6e20","656e746520","20706f7220","2065737415","7469656e65","7320756e20","616e746520","2070617261","206c617320","656e747261","6e20656c20","6520646520","61206c6120","6572696f72","6369186e20","616e646f20","69656e7465","20656c20","206c6120","20646520","20636f6e","20656e20","6c6f7320","61646f20","20736520","65737461","20756e20","6c617320","656e7461","20646573","20616c20","61646120","617320","657320","6f7320","207920","61646f","746520","616461","6c6120","656e74","726573","717565","616e20","6f2070","726563","69646f","732c20","616e74","696e61","696461","6c6172","65726f","6d706c","6120","6f20","6572","6573","6f72","6172","616c","656e","6173","6f73","6520","616e","656c","6f6e","696e","6369","756e","2e20","636f","7265","6469","2c20","7572","7472","6465","7375","6162","6f6c","616d","7374","6375","7320","6163","696c","6772","6164","7465","7920","696d","746f","7565","7069","6775","6368","6361","6c61","6e20","726f","7269","6c6f","6d69","6c20","7469","6f62","6d65","7369","7065","206e","7475","6174","6669","646f","656d","6179","222e","6c6c"] }';
-$compressionJSON_EN  = '{ "compression": "advanced","tokens": ["0000","2074686520","20796f7520","2061726520","696e6720","20746f20","20616e64","20697320","596f7520","616e6420","54686520","6e277420","206f6620","20796f75","696e67","656420","206120","206f70","697468","6f7574","656e74","20746f","20696e","616c6c","207468","206974","746572","617665","206265","766572","686572","616e64","656172","596f75","206f6e","656e20","6f7365","6e6f","6963","6170","2062","6768","2020","6164","6973","2063","6972","6179","7572","756e","6f6f","2064","6c6f","726f","6163","7365","7269","6c69","7469","6f6d","626c","636b","4920","6564","6565","2066","6861","7065","6520","7420","696e","7320","7468","2c20","6572","6420","6f6e","746f","616e","6172","656e","6f75","6f72","7374","2e20","6f77","6c65","6174","616c","7265","7920","6368","616d","656c","2077","6173","6573","6974","2073","6c6c","646f","6f70","7368","6d65","6865","626f","6869","6361","706c","696c","636c","2061","6f66","2068","7474","6d6f","6b65","7665","736f","652e","642e","742e","7669","6c79","6964","7363","2070","656d","7220"] }';
+$compressionJSON_ES  = '{ "compression": "advanced","tokens": ["00","2071756520","6120646520","6f20646520","20756e6120","2064656c20","7320646520","206465206c","20636f6e20","656e746520","20706f7220","2065737415","7469656e65","7320756e20","616e746520","2070617261","206c617320","656e747261","6e20656c20","6520646520","61206c6120","6572696f72","6369186e20","616e646f20","69656e7465","20656c20","206c6120","20646520","20636f6e","20656e20","6c6f7320","61646f20","20736520","65737461","20756e20","6c617320","656e7461","20646573","20616c20","61646120","617320","657320","6f7320","207920","61646f","746520","616461","6c6120","656e74","726573","717565","616e20","6f2070","726563","69646f","732c20","616e74","696e61","696461","6c6172","65726f","6d706c","6120","6f20","6572","6573","6f72","6172","616c","656e","6173","6f73","6520","616e","656c","6f6e","696e","6369","756e","2e20","636f","7265","6469","2c20","7572","7472","6465","7375","6162","6f6c","616d","7374","6375","7320","6163","696c","6772","6164","7465","7920","696d","746f","7565","7069","6775","6368","6361","6c61","6e20","726f","7269","6c6f","6d69","6c20","7469","6f62","6d65","7369","7065","206e","7475","6174","6669","646f","656d","6179","222e","6c6c"] }';
+$compressionJSON_EN  = '{ "compression": "advanced","tokens": ["00","2074686520","20796f7520","2061726520","696e6720","20746f20","20616e64","20697320","596f7520","616e6420","54686520","6e277420","206f6620","20796f75","696e67","656420","206120","206f70","697468","6f7574","656e74","20746f","20696e","616c6c","207468","206974","746572","617665","206265","766572","686572","616e64","656172","596f75","206f6e","656e20","6f7365","6e6f","6963","6170","2062","6768","2020","6164","6973","2063","6972","6179","7572","756e","6f6f","2064","6c6f","726f","6163","7365","7269","6c69","7469","6f6d","626c","636b","4920","6564","6565","2066","6861","7065","6520","7420","696e","7320","7468","2c20","6572","6420","6f6e","746f","616e","6172","656e","6f75","6f72","7374","2e20","6f77","6c65","6174","616c","7265","7920","6368","616d","656c","2077","6173","6573","6974","2073","6c6c","646f","6f70","7368","6d65","6865","626f","6869","6361","706c","696c","636c","2061","6f66","2068","7474","6d6f","6b65","7665","736f","652e","642e","742e","7669","6c79","6964","7363","2070","656d","7220"] }';
 // A .TOK alternative file can be placed together with input JSON file (just use same name, .TOK extension. It's content should a JSON object just like the ones above)
 
 
@@ -203,8 +210,24 @@ class daadToChr
 var $conversions = array('ª', '¡', '¿', '«', '»', 'á', 'é', 'í', 'ó', 'ú', 'ñ', 'Ñ', 'ç', 'Ç', 'ü', 'Ü');
 }
 define('VERSION_HI',0);
-define('VERSION_LO',13);
+define('VERSION_LO',14);
 
+
+function summary($adventure)
+{
+    echo "\n";
+    echo "Adventure Totals\n";
+    echo "================\n";
+    echo "Locations   : " . sizeof($adventure->locations) . "\n";
+    echo "Objects     : " . sizeof($adventure->objects) . "\n";
+    echo "Messages    : " . sizeof($adventure->messages) . "\n";
+    echo "Sysmess     : " . sizeof($adventure->sysmess) . "\n";
+    if (sizeof($adventure->xmessages)) echo "XMessages   : " . sizeof($adventure->xmessages) . "\n";
+    echo "Connections : " . sizeof($adventure->connections) . "\n";
+    echo "Processes   : " . sizeof($adventure->processes) . "\n";
+    echo "\n";
+
+}
 
 function prettyFormat($value)
 {
@@ -250,7 +273,7 @@ function getCompressableTables($compression, &$adventure)
     switch ($compression)
     {
      case 'basic': $compressableTables = array($adventure->locations); break;
-     case 'advanced':  $compressableTables = array($adventure->locations, $adventure->messages, $adventure->sysmess); break;
+     case 'advanced':  $compressableTables = array($adventure->locations, $adventure->messages, $adventure->sysmess, $adventure->xmessages); break;
     }
     return $compressableTables;
 }
@@ -340,6 +363,50 @@ function checkStrings($adventure)
 }
 
 
+// Returns File Size
+function getXMessageFileSizeByTarget($target, $adventure) 
+{
+    $xMessagesForDiskLoading = $adventure->xMessagesForDiskLoading;
+    switch ($target) 
+    {
+        case 'ZX': return 16; // For Spectrum it doesn't matter if loding from DISKk or RAM, always 16K
+        default: return 0;
+    }
+}
+
+
+function generateXMessages($adventure, $target, $outputFileName)
+{
+    $currentOffset = 0;
+    $currentFile = 0;
+    $maxFileSize = getXMessageFileSizeByTarget($target, $adventure);
+    $GLOBALS['maxFileSizeForXMessages'] = $maxFileSize;
+    $maxFileSize *= 1024; // Convert K to byte
+    $outputFileName = replace_extension($outputFileName, "M$currentFile");
+    $fileHandler = fopen($outputFileName, "w");
+    for($i=0;$i<sizeof($adventure->xmessages);$i++)
+    {
+        $message = $adventure->xmessages[$i];
+        if (strlen($message->Text)+ $currentOffset + 1 > $maxFileSize) // Won't fit, next File
+        {
+            fclose($fileHandler);
+            $currentFile++;
+            $currentOffset = 0;
+            $outputFileName = replace_extension($outputFileName, "M$currentFile");
+            $fileHandler = fopen($outputFileName, "w");
+        }
+        $GLOBALS['xMessageOffsets'][$i] = $currentOffset + $currentFile * $maxFileSize;
+        for ($j=0;$j<strlen($message->Text);$j++)
+        {   
+            writeByte($fileHandler, ord($message->Text[$j]) ^ OFUSCATE_VALUE);
+            $currentOffset++;
+        }
+        writeByte($fileHandler,ord("\n") ^ OFUSCATE_VALUE ); //mark of end of string
+        $currentOffset++;
+    }
+    fclose($fileHandler);
+    $GLOBALS['xMessageSize'] = $maxFileSize * $currentFile + $currentOffset;
+}
 
 function generateMessages($messageList, &$currentAddress, $outputFileHandler,  $isLittleEndian, $target)
 {
@@ -578,8 +645,45 @@ function getCondactsHash($adventure, $condacts, $from)
     return $hash;
 }
 
+function checkMaluva($adventure)
+{
+    foreach ($adventure->externs as $extern)
+    {
+        if (strrpos($extern->FilePath, ('MLV_')) !== false) return true;
+    }
+    return false;
+}
+
 function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $isLittleEndian, $target)
 {     
+    //PASS ZERO, CHECK THE PROCESSES AND REPLACE XMESSAGE WITH PROPER EXTERN CALLS. MAKE SURE MALUVA IS INCLUDED
+    for ($procID=0;$procID<sizeof($adventure->processes);$procID++)
+    {
+        $process = $adventure->processes[$procID];
+        for ($entryID=0;$entryID<sizeof($process->entries);$entryID++)
+        {
+            $entry = $process->entries[$entryID];
+            for($condactID=0;$condactID<sizeof($entry->condacts); $condactID++)
+            {
+                $condact = $entry->condacts[$condactID];
+                if ($condact->Opcode == XMESSAGE_OPCODE)  // Convert XMESSAGE in a Maluva CALL
+                {
+                    if (!CheckMaluva($adventure)) Error('XMESSAGE condact requires Maluva Extension');
+                    $condact->Opcode = EXTERN_OPCODE;
+                    $messno = $condact->Param1;
+                    $offset = $GLOBALS['xMessageOffsets'][$messno];
+                    $condact->NumParams = 3;
+                    $condact->Param2 = 3; // Maluva's function 3
+                    $condact->Param1 = $offset & 0xFF; // Offset LSB
+                    $condact->Param3 = ($offset & 0xFF00) >> 8; // Offset MSB
+                    $condact->Condact = 'EXTERN';
+                    $adveture->processes[$procID]->entries[$entryID]->condacts[$condactID] = $condact;
+                }
+            }
+        }
+    }
+
+
     $terminatorOpcodes = array(22, 23,103, 116,117,108);  //DONE/OK/NOTDONE/SKIP/RESTART/REDO
     $condactsOffsets = array();
     // PASS ONE, GENERATE HASHES UNLESS CLASSICMODE IS ON
@@ -664,6 +768,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                 if (($opcode == FAKE_DEBUG_CONDACT_CODE) && ($adventure->verbose)) echo "Debug condact found, inserted.\n";
                 writeByte($outputFileHandler, $opcode);
                 $currentAddress++;
+                
                 for($i=0;$i<$condact->NumParams;$i++) 
                 {
                     switch ($i)
@@ -673,6 +778,10 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                                 break;
 
                         case 1: $param = $condact->Param2;
+                                writeByte($outputFileHandler, $param); 
+                                break;
+
+                        case 2: $param = $condact->Param3;
                                 writeByte($outputFileHandler, $param); 
                                 break;
                     }
@@ -804,10 +913,12 @@ function Syntax()
     echo("+ [options]: one or more of the following:\n");
     echo ("          -v  : verbose output\n");
     echo ("          -ch : Prepend C64 header to DDB file (ch stands for 'Commodore header')\n");
+    echo ("          -3h : Prepend +3 header to DDB file (3h stands for 'Three header')\n");
     echo ("          -c  : Forced classic mode\n");
     echo ("          -d  : Forced debug mode\n");
     echo ("          -np : Forced no padding on padding platforms\n");
     echo ("          -p  : Forced padding on non padding platforms\n");
+    echo ("          -xd : For XMESSAGES, generate files for in-game disk loading\n");
     echo "\n";
     echo "Examples:\n";
     echo "php drb zx es game.json\n";
@@ -839,6 +950,8 @@ function parseOptionalParameters($argv, $nextParam, &$adventure)
             switch ($currentParam)
             {
                 case "-CH" : $adventure->prependC64Header = true; break;
+                case "-3H" : $adventure->prependPlus3Header = true; break;
+                case "-XD" : $adventure->xMessagesForDiskLoading = true; break;
                 case "-V" : $adventure->verbose = true; break;
                 case "-C" : $adventure->forcedClassicMode = true; break;
                 case "-D" : $adventure->forcedDebugMode = true; break;
@@ -855,19 +968,69 @@ function parseOptionalParameters($argv, $nextParam, &$adventure)
     return $result; // output file name
 }
 
-function prependC64HeaderToDDB($outputFileName)
+
+function prependPlus3HeaderToDDB($outputFileName)
 {
+    
+    $fileSize = filesize($outputFileName) + 128; // Final file size wit header
     $inputHandle = fopen($outputFileName, 'r');
-    $outpuHandle = fopen("prepend.tmp", "w");
-    fputs($outpuHandle, chr(0x80), 1);
-    fputs($outpuHandle, chr(0x38), 1);
+    $outputHandle = fopen("prepend.tmp", "w");
+
+    $header = array();
+    $header[]= ord('P');
+    $header[]= ord('L');
+    $header[]= ord('U');
+    $header[]= ord('S');
+    $header[]= ord('3');
+    $header[]= ord('D');
+    $header[]= ord('O');
+    $header[]= ord('S');
+    $header[]= 0x1A; // Soft EOF
+    $header[]= 0x01; // Issue
+    $header[]= 0x00; // Version
+    $header[]= $fileSize & 0XFF;  // Four bytes for file size
+    $header[]= ($fileSize & 0xFF00) >> 8;
+    $header[]= ($fileSize & 0xFF0000) >> 16;
+    $header[]= ($fileSize & 0xFF000000) >> 24;  
+    $header[]= 0x03; // Bytes:
+    $fileSize -= 128; // Get original size
+    $header[]= $fileSize & 0x00FF;  // Two bytes for data size
+    $header[]= ($fileSize & 0xFF00) >> 8;
+    $header[]= 0x00; // Two Bytes for load addres 0x8400
+    $header[]= 0x84; 
+    while (sizeof($header)<127) $header[]= 0; // Fillers
+    $checksum = 0;
+    for ($i=0;$i<127;$i++)  $checksum+=$header[$i];
+    $header[]= $checksum & 0xFF; // Checksum
+    
+    // Dump header
+    for ($i=0;$i<128;$i++) fputs($outputHandle, chr($header[$i]), 1);
+
+    // Dump original DDB
     while (!feof($inputHandle))
     {
         $c = fgetc($inputHandle);
-        fputs($outpuHandle,$c,1);
+        fputs($outputHandle,$c,1);
     }
     fclose($inputHandle);
-    fclose($outpuHandle);
+    fclose($outputHandle);
+    unlink($outputFileName);
+    rename("prepend.tmp" ,$outputFileName);
+}
+
+function prependC64HeaderToDDB($outputFileName)
+{
+    $inputHandle = fopen($outputFileName, 'r');
+    $outputHandle = fopen("prepend.tmp", "w");
+    fputs($outputHandle, chr(0x80), 1);
+    fputs($outputHandle, chr(0x38), 1);
+    while (!feof($inputHandle))
+    {
+        $c = fgetc($inputHandle);
+        fputs($outputHandle,$c,1);
+    }
+    fclose($inputHandle);
+    fclose($outputHandle);
     unlink($outputFileName);
     rename("prepend.tmp" ,$outputFileName);
 }
@@ -926,6 +1089,8 @@ if (!file_exists($tokensFilename)) {
 // Parse optional parameters
 $adventure->verbose = false;
 $adventure->prependC64Header = false;
+$adventure->prependPlus3Header = false;
+$adventure->xMessagesForDiskLoading = false;
 $adventure->forcedClassicMode = false;
 $adventure->forcedDebugMode = false;
 $adventure->forcedNoPadding = false;
@@ -941,6 +1106,8 @@ if ($adventure->verbose) echo ("Verbose mode on\n");
 
 // Check parameters
 if (($target!='C64') && ($adventure->prependC64Header)) Error('Adding C64 header was requested but target is not C64');
+if (($target!='ZX')  && ($adventure->prependPlus3Header)) Error('Adding +3DOS header was requested but target is not ZX Spectrum');
+if (($target!='ZX')  && ($adventure->xMessagesForDiskLoading)) Error('Extended messages are only avaliable for ZX target');
 
 // Create the vectors for extens and USRPTR
 $adventure->extvec = array();
@@ -1121,6 +1288,9 @@ $initiallyAtOffset = $currentAddress;
 if ($adventure->verbose) echo "Initially at      [" . prettyFormat($initiallyAtOffset) . "]\n";
 generateObjectInitially($adventure, $currentAddress, $outputFileHandler);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+// Dump XMessagess if avaliable
+generateXmessages($adventure, $target, $outputFileName);
+
 // Dump Processes
 generateProcesses($adventure, $currentAddress, $outputFileHandler, $isLittleEndian, $target);
 $processListOffset = $currentAddress - sizeof($adventure->processes) * 2;
@@ -1161,9 +1331,11 @@ writeWord($outputFileHandler, $fileSize, $isLittleEndian);
 for($i=0;$i<13;$i++)
     writeWord($outputFileHandler, $adventure->extvec[$i],$isLittleEndian);
 fclose($outputFileHandler);
+if ($adventure->verbose) summary($adventure);
 if ($adventure->verbose) echo "$outputFileName for $target created.\n";
 if ($currentAddress>0xFFFF) echo "Warning: DDB file goes " . ($currentAddress - 0xFFFF) . " bytes over the 65535 memory address boundary.\n";
 echo "DDB size is " . ($fileSize - $baseAddress) . " bytes.\nDatabase ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
+if ($xMessageSize) echo "XMessages size is $xMessageSize bytes in files of ". $maxFileSizeForXMessages. "K.\n";
 if ($textSavings>0) echo "Text compression saving: $textSavings bytes.\n";
 if ($adventure->prependC64Header)
 {
@@ -1171,6 +1343,10 @@ if ($adventure->prependC64Header)
     prependC64HeaderToDDB($outputFileName);
 } 
 
+if ($adventure->prependPlus3Header)
+{
+    prependPlus3HeaderToDDB($outputFileName);
+    if ($adventure->verbose) echo ("+3DOS header added\n");
+} 
 
- 
 

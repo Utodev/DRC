@@ -343,7 +343,7 @@ BUILDING DRC
 
 Para compilar, descarga freepascal y ejecuta:
 
-fpc DRC.pas
+fpc DRF.pas
 fpc daadmaker.pas
 
 En caso de tener que cambiar el fichero lexer  (DSF.l)  borra lexer.pas y regenéralo con:

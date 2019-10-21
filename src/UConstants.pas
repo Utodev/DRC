@@ -4,7 +4,7 @@ UNIT UConstants;
 INTERFACE
 
 CONST version_hi = 0;
-	version_lo = 12;
+	version_lo = 14;
 
       LOC_CARRIED = 254;
       LOC_WORN = 253;       
@@ -23,10 +23,12 @@ CONST version_hi = 0;
       MAX_PARAMETER_RANGE = 255;
 
       NUM_CONDACTS  =128;
+      NUM_FAKE_CONDACTS = 1;
 
       MESSAGE_OPCODE = 38;
       MES_OPCODE =77;
       SYSMESS_OPCODE = 54;
+      XMES_OPCODE = 128;
       DESC_OPCODE = 19;
       SKIP_OPCODE = 116;
 

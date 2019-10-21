@@ -11,7 +11,7 @@ TYPE TCondact = record
 				end; 
 
 
-CONST Condacts : ARRAY[0..NUM_CONDACTS - 1] OF TCondact = (
+CONST Condacts : ARRAY[0..NUM_CONDACTS+NUM_FAKE_CONDACTS - 1] OF TCondact = (
 (NumParams:1;Condact:'AT'    ), //   0
 (NumParams:1;Condact:'NOTAT' ), //   1
 (NumParams:1;Condact:'ATGT'  ), //   2
@@ -139,7 +139,12 @@ CONST Condacts : ARRAY[0..NUM_CONDACTS - 1] OF TCondact = (
 (NumParams:0;Condact:'dumb'  ), // 124 (according DAAD manual, internal)
 (NumParams:2;Condact:'COPYFF' ), // 125 
 (NumParams:2;Condact:'COPYBF' ), // 126 
-(NumParams:0;Condact:'RESET' )  // 127 
+(NumParams:0;Condact:'RESET' ),  // 127 
+
+// Additional fake condacts
+(Numparams:1;Condact:'XMES') //128
+
+
 );
 
 (* Returns the condact index in the codacts table, or -1 if not found*)
@@ -164,7 +169,7 @@ BEGIN
 	BEGIN 
 		i := 0;
 		found := false;
-		while (i < 128) AND (NOT found) DO
+		while (i < NUM_CONDACTS+NUM_FAKE_CONDACTS) AND (NOT found) DO
 		BEGIN
 			if (AnsiUpperCase(Condact) = AnsiUpperCase(Condacts[i].Condact)) THEN
 			BEGIN

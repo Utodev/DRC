@@ -12,10 +12,11 @@ TYPE TPMessageList = ^TMessageList;
 				Next : TPMessageList;
 			  end;
 
-var MTX, STX, LTX, OTX : TPMessageList;	
-	MTXCount, STXCount, LTXCount, OTXCount : Longint;		  
+var MTX, STX, LTX, OTX, XTX : TPMessageList;	 // XTX is the message table for fake condact XMESSAGE
+	MTXCount, STXCount, LTXCount, OTXCount, XTXCount : Longint;		  
 
 FUNCTION insertMessageFromProcess(Var Opcode: Longint; AText : AnsiString; ClassicMode: Boolean ): Longint;
+FUNCTION insertMessageFromProcessIntoSpecificList(VAR AMessageList: TPMessageList; Var AText : AnsiString ): Longint;
 
 PROCEDURE AddMessage(VAR AMessageList:TPMessageList; AMessageID: Longint; AText: AnsiString);			     
 
@@ -59,11 +60,12 @@ BEGIN
 			LastMessageID := TmpMessageList^.MessageID;
 			TmpMessageList := TmpMessageList^.next;
 		END;
-		If LastMessageID = MAX_MESSAGES_PER_TABLE-1 THEN
-		BEGIN
-		  Result := Maxint; // Return Maxint to signal error
-		  exit;
-		END;
+		IF AMessageList <> XTX THEN // XTX has no limit by default
+			IF LastMessageID = MAX_MESSAGES_PER_TABLE-1 THEN
+			BEGIN
+				Result := Maxint; // Return Maxint to signal error
+				exit;
+			END;
 		AddMessage(AMessageList, LastMessageID + 1, AText);
 		Result :=  LastMessageID + 1;
 	END;
