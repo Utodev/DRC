@@ -734,7 +734,7 @@ function isValidTarget($target)
 function isValidSubtarget($target, $subtarget)
 {
     if (($target!='MSX2') && ($target!='PC')) return false;
-    if ($target=='MSX2') return ($subtarget == '5_6') || ($subtarget == '5_8') ||  ($subtarget == '6_6') ||  ($subtarget == '6_8') ||  ($subtarget == '7_6') ||  ($subtarget == '7_8') ||  ($target == '8_6') ||  ($target == '8_8');
+    if ($target=='MSX2') return ($subtarget == '5_6') || ($subtarget == '5_8') ||  ($subtarget == '6_6') ||  ($subtarget == '6_8') ||  ($subtarget == '7_6') ||  ($subtarget == '7_8') ||  ($subtarget == '8_6') ||  ($subtarget == '8_8');
     // In fact, drb doesn't care about PC subtargets, but just for coherence with drf, we make sure they are correct, despite we will not use them
     if ($target=='PC') return ($subtarget == 'VGA') || ($subtarget == 'CGA') ||  ($subtarget == 'EGA') ||  ($subtarget == 'TEXT');
 
