@@ -369,7 +369,9 @@ function getXMessageFileSizeByTarget($target, $adventure)
     $xMessagesForDiskLoading = $adventure->xMessagesForDiskLoading;
     switch ($target) 
     {
-        case 'ZX': return 16; // For Spectrum it doesn't matter if loding from DISKk or RAM, always 16K
+        case 'ZX'  : return 16; // For Spectrum it doesn't matter if loding from DISK or RAM, always 16K
+        case 'MSX2': return 16; // For MSX2 it doesn't matter if loding from DISK or RAM, always 16K
+        // case 'xx' : if xMessagesForDiskLoading return X else return
         default: return 0;
     }
 }
@@ -1107,7 +1109,7 @@ if ($adventure->verbose) echo ("Verbose mode on\n");
 // Check parameters
 if (($target!='C64') && ($adventure->prependC64Header)) Error('Adding C64 header was requested but target is not C64');
 if (($target!='ZX')  && ($adventure->prependPlus3Header)) Error('Adding +3DOS header was requested but target is not ZX Spectrum');
-if (($target!='ZX')  && ($adventure->xMessagesForDiskLoading)) Error('Extended messages are only avaliable for ZX target');
+if (!in_array($target, array('MSX2'))   && ($adventure->xMessagesForDiskLoading)) Error('Extended messages are only avaliable for ZX and MSX2 targets');
 
 // Create the vectors for extens and USRPTR
 $adventure->extvec = array();
