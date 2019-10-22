@@ -23,12 +23,13 @@ CONST version_hi = 0;
       MAX_PARAMETER_RANGE = 255;
 
       NUM_CONDACTS  =128;
-      NUM_FAKE_CONDACTS = 1;
+      NUM_FAKE_CONDACTS = 2;
 
       MESSAGE_OPCODE = 38;
       MES_OPCODE =77;
       SYSMESS_OPCODE = 54;
       XMES_OPCODE = 128;
+      XMESSAGE_OPCODE = 129;
       DESC_OPCODE = 19;
       SKIP_OPCODE = 116;
 

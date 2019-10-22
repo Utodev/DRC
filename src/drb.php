@@ -15,7 +15,9 @@ $xMessageSize = 0;
 
 define('FAKE_DEBUG_CONDACT_CODE',220);
 define('FAKE_USERPTR_CONDACT_CODE',256);    
-define('XMESSAGE_OPCODE', 128);
+define('XMES_OPCODE', 128);
+define('XMESSAGE_OPCODE', 129);
+define('NEWLINE_OPCODE', 52);
 define('EXTERN_OPCODE', 61);
 
 //================================================================= filewrite ========================================================
@@ -366,13 +368,16 @@ function checkStrings($adventure)
 // Returns File Size
 function getXMessageFileSizeByTarget($target, $adventure) 
 {
-    $xMessagesForDiskLoading = $adventure->xMessagesForDiskLoading;
     switch ($target) 
     {
-        case 'ZX'  : return 16; // For Spectrum it doesn't matter if loding from DISK or RAM, always 16K
-        case 'MSX2': return 16; // For MSX2 it doesn't matter if loding from DISK or RAM, always 16K
-        // case 'xx' : if xMessagesForDiskLoading return X else return
-        default: return 0;
+        case 'ZX'  :
+        case 'MSX2':
+          return 16; 
+/*        case 'C64': 
+          return 2;
+        case 'CPC': 
+          return 4;
+*/        default: return 0;
     }
 }
 
@@ -383,13 +388,15 @@ function generateXMessages($adventure, $target, $outputFileName)
     $currentFile = 0;
     $maxFileSize = getXMessageFileSizeByTarget($target, $adventure);
     $GLOBALS['maxFileSizeForXMessages'] = $maxFileSize;
+    if (!$maxFileSize) Error("XMessages are not supported by target $target");
     $maxFileSize *= 1024; // Convert K to byte
     $outputFileName = replace_extension($outputFileName, "M$currentFile");
     $fileHandler = fopen($outputFileName, "w");
     for($i=0;$i<sizeof($adventure->xmessages);$i++)
     {
         $message = $adventure->xmessages[$i];
-        if (strlen($message->Text)+ $currentOffset + 1 > $maxFileSize) // Won't fit, next File
+        $messageLength = strlen($message->Text);
+        if ($messageLength + $currentOffset + 1 + 1 > $maxFileSize) // Won't fit, next File  , +1 +1, one for the end of message mark, one for the length byte
         {
             fclose($fileHandler);
             $currentFile++;
@@ -398,7 +405,10 @@ function generateXMessages($adventure, $target, $outputFileName)
             $fileHandler = fopen($outputFileName, "w");
         }
         $GLOBALS['xMessageOffsets'][$i] = $currentOffset + $currentFile * $maxFileSize;
-        for ($j=0;$j<strlen($message->Text);$j++)
+        // Saving length as a truncated value to make it fit in one byte, the printing routine will have to recover the missing bit by filling with 1. That will provide 
+        // a length which could be maximum 1 bytes longer than real, what is not really important cause the end of message mark will avoid that extra char being printed
+        writeByte($fileHandler, ($messageLength+1) >> 1);  // +1 cause we include the end of message mark
+        for ($j=0;$j<$messageLength;$j++)
         {   
             writeByte($fileHandler, ord($message->Text[$j]) ^ OFUSCATE_VALUE);
             $currentOffset++;
@@ -668,9 +678,9 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
             for($condactID=0;$condactID<sizeof($entry->condacts); $condactID++)
             {
                 $condact = $entry->condacts[$condactID];
-                if ($condact->Opcode == XMESSAGE_OPCODE)  // Convert XMESSAGE in a Maluva CALL
+                if ( ($condact->Opcode == XMESSAGE_OPCODE) || ($condact->Opcode == XMES_OPCODE))  // Convert XMESSAGE in a Maluva CALL
                 {
-                    if (!CheckMaluva($adventure)) Error('XMESSAGE condact requires Maluva Extension');
+                    $hasNewline =  ($condact->Opcode == XMESSAGE_OPCODE);
                     $condact->Opcode = EXTERN_OPCODE;
                     $messno = $condact->Param1;
                     $offset = $GLOBALS['xMessageOffsets'][$messno];
@@ -679,6 +689,14 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Param1 = $offset & 0xFF; // Offset LSB
                     $condact->Param3 = ($offset & 0xFF00) >> 8; // Offset MSB
                     $condact->Condact = 'EXTERN';
+                    // This is a strange way of adding a NEWLINE condact without properly adding a new CONDACT to the $entry->condacts
+                    // What we do is making the current condact have an additional 4th parameter, that is actually the opcode of NEWLINE
+                    // That way that newline is dumped just after the real params.
+                    if ($hasNewline)
+                    {
+                        $condat->NumParams++;
+                        $condact->Param4 =  NEWLINE_OPCODE;
+                    }
                     $adveture->processes[$procID]->entries[$entryID]->condacts[$condactID] = $condact;
                 }
             }
@@ -784,6 +802,9 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                                 break;
 
                         case 2: $param = $condact->Param3;
+                                writeByte($outputFileHandler, $param); 
+                                break;
+                         case 3: $param = $condact->Param4;
                                 writeByte($outputFileHandler, $param); 
                                 break;
                     }
@@ -920,7 +941,6 @@ function Syntax()
     echo ("          -d  : Forced debug mode\n");
     echo ("          -np : Forced no padding on padding platforms\n");
     echo ("          -p  : Forced padding on non padding platforms\n");
-    echo ("          -xd : For XMESSAGES, generate files for in-game disk loading\n");
     echo "\n";
     echo "Examples:\n";
     echo "php drb zx es game.json\n";
@@ -953,7 +973,6 @@ function parseOptionalParameters($argv, $nextParam, &$adventure)
             {
                 case "-CH" : $adventure->prependC64Header = true; break;
                 case "-3H" : $adventure->prependPlus3Header = true; break;
-                case "-XD" : $adventure->xMessagesForDiskLoading = true; break;
                 case "-V" : $adventure->verbose = true; break;
                 case "-C" : $adventure->forcedClassicMode = true; break;
                 case "-D" : $adventure->forcedDebugMode = true; break;
@@ -1092,7 +1111,6 @@ if (!file_exists($tokensFilename)) {
 $adventure->verbose = false;
 $adventure->prependC64Header = false;
 $adventure->prependPlus3Header = false;
-$adventure->xMessagesForDiskLoading = false;
 $adventure->forcedClassicMode = false;
 $adventure->forcedDebugMode = false;
 $adventure->forcedNoPadding = false;
@@ -1109,7 +1127,6 @@ if ($adventure->verbose) echo ("Verbose mode on\n");
 // Check parameters
 if (($target!='C64') && ($adventure->prependC64Header)) Error('Adding C64 header was requested but target is not C64');
 if (($target!='ZX')  && ($adventure->prependPlus3Header)) Error('Adding +3DOS header was requested but target is not ZX Spectrum');
-if (!in_array($target, array('MSX2'))   && ($adventure->xMessagesForDiskLoading)) Error('Extended messages are only avaliable for ZX and MSX2 targets');
 
 // Create the vectors for extens and USRPTR
 $adventure->extvec = array();
@@ -1291,7 +1308,11 @@ if ($adventure->verbose) echo "Initially at      [" . prettyFormat($initiallyAtO
 generateObjectInitially($adventure, $currentAddress, $outputFileHandler);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Dump XMessagess if avaliable
-generateXmessages($adventure, $target, $outputFileName);
+if (sizeof($adventure->xmessages))
+{
+    if ((!CheckMaluva($adventure)) && ($target=!'MSX2')) Error('XMESSAGE condact requires Maluva Extension');
+    generateXmessages($adventure, $target, $outputFileName);
+}
 
 // Dump Processes
 generateProcesses($adventure, $currentAddress, $outputFileHandler, $isLittleEndian, $target);

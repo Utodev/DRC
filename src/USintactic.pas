@@ -485,16 +485,21 @@ BEGIN
 					  Scan();
 					END;
 			
-					IF (CurrentTokenID = T_STRING) AND (Opcode in [MESSAGE_OPCODE,MES_OPCODE, SYSMESS_OPCODE, XMES_OPCODE]) THEN  
+					IF (CurrentTokenID = T_STRING) AND (Opcode in [MESSAGE_OPCODE,MES_OPCODE, SYSMESS_OPCODE, XMES_OPCODE, XMESSAGE_OPCODE]) THEN  
 					BEGIN
 						CurrentText := Copy(CurrentText, 2, Length(CurrentText)-2);
-						IF (Opcode = XMES_OPCODE) THEN  
+						IF (Opcode IN [XMES_OPCODE, XMESSAGE_OPCODE]) AND (GetSymbolValue(SymbolList, 'BIT16')=MAXINT) THEN  
 						BEGIN
+							IF (length(CurrentText)>511) THEN SyntaxError('Extended messages can be only up to 511 characters long.');
 							CurrentIntVal := insertMessageFromProcessIntoSpecificList(XTX, CurrentText);
 							MaXMESs := MAXLONGINT;
 						END
 						ELSE
 						BEGIN
+						 CASE Opcode OF  // In case we are ina  16 bits machine, XMESSAGES are converted to normal messages
+							  XMES_OPCODE : Opcode := MES_OPCODE;
+							  XMESSAGE_OPCODE :Opcode := MESSAGE_OPCODE;
+						  END;
 						  CurrentIntVal := insertMessageFromProcess(Opcode, CurrentText, ClassicMode);
 						  MaXMESs :=MAX_MESSAGES_PER_TABLE;
 						END;   
@@ -525,7 +530,7 @@ BEGIN
 					// If still Maxint, then it should be a bad parameter
 					IF Value = MAXINT THEN SyntaxError('Invalid parameter #' + IntToStr(i+1) + ': "'+CurrentText+'"');
 					IF (Opcode=SKIP_OPCODE) AND (Value<0) THEN Value := 256 + Value;
-					IF (Opcode = XMES_OPCODE) THEN 
+					IF (Opcode in [XMES_OPCODE, XMESSAGE_OPCODE]) THEN 
 					BEGIN
 						IF (Value<0) THEN SyntaxError('Invalid parameter value "'+CurrentText+'"');
 					END 
