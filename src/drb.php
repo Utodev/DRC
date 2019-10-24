@@ -1,5 +1,8 @@
 <?php
 
+
+
+
 global $adventure;
 global $xMessageOffsets;
 global $xMessageSize;
@@ -328,7 +331,7 @@ function replaceChars($str)
 
 function replaceEscapeChars(&$adventure)
 {
-    $tables = array($adventure->messages, $adventure->sysmess, $adventure->locations, $adventure->objects);
+    $tables = array($adventure->messages, $adventure->sysmess, $adventure->locations, $adventure->objects, $adventure->xmessages);
     foreach ($tables as $table)
      foreach($table as $message)
      {
@@ -408,6 +411,7 @@ function generateXMessages($adventure, $target, $outputFileName)
         // Saving length as a truncated value to make it fit in one byte, the printing routine will have to recover the missing bit by filling with 1. That will provide 
         // a length which could be maximum 1 bytes longer than real, what is not really important cause the end of message mark will avoid that extra char being printed
         writeByte($fileHandler, ($messageLength+1) >> 1);  // +1 cause we include the end of message mark
+        $currentOffset++;
         for ($j=0;$j<$messageLength;$j++)
         {   
             writeByte($fileHandler, ord($message->Text[$j]) ^ OFUSCATE_VALUE);
@@ -1310,7 +1314,7 @@ addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Dump XMessagess if avaliable
 if (sizeof($adventure->xmessages))
 {
-    if ((!CheckMaluva($adventure)) && ($target=!'MSX2')) Error('XMESSAGE condact requires Maluva Extension');
+    if ((!CheckMaluva($adventure)) && ($target!'MSX2')) Error('XMESSAGE condact requires Maluva Extension');
     generateXmessages($adventure, $target, $outputFileName);
 }
 
