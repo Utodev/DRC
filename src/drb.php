@@ -402,7 +402,7 @@ function generateXMessages($adventure, $target, $outputFileName)
             fclose($fileHandler);
             $currentFile++;
             $currentOffset = 0;
-            $outputFileName = replace_extension($outputFileName, "M$currentFile");
+            $outputFileName = replace_extension("XMES.M$currentFile");
             $fileHandler = fopen($outputFileName, "w");
         }
         $GLOBALS['xMessageOffsets'][$i] = $currentOffset + $currentFile * $maxFileSize;
