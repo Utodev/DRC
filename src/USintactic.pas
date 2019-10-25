@@ -493,10 +493,13 @@ BEGIN
 							IF (length(CurrentText)>511) THEN SyntaxError('Extended messages can be only up to 511 characters long.');
 							CurrentIntVal := insertMessageFromProcessIntoSpecificList(XTX, CurrentText);
 							MaXMESs := MAXLONGINT;
+							// Convert XMESSAGE into XMES with a string with #n at the end
+							IF Opcode = XMESSAGE_OPCODE THEN CurrentText := CurrentText + '#n';
+							Opcode := XMES_OPCODE;
 						END
 						ELSE
 						BEGIN
-						 CASE Opcode OF  // In case we are ina  16 bits machine, XMESSAGES are converted to normal messages
+						 CASE Opcode OF  // In case we are in a 16 bit machine, XMESSAGES are converted to normal messages
 							  XMES_OPCODE : Opcode := MES_OPCODE;
 							  XMESSAGE_OPCODE :Opcode := MESSAGE_OPCODE;
 						  END;

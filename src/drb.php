@@ -19,8 +19,6 @@ $xMessageSize = 0;
 define('FAKE_DEBUG_CONDACT_CODE',220);
 define('FAKE_USERPTR_CONDACT_CODE',256);    
 define('XMES_OPCODE', 128);
-define('XMESSAGE_OPCODE', 129);
-define('NEWLINE_OPCODE', 52);
 define('EXTERN_OPCODE', 61);
 
 //================================================================= filewrite ========================================================
@@ -682,9 +680,8 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
             for($condactID=0;$condactID<sizeof($entry->condacts); $condactID++)
             {
                 $condact = $entry->condacts[$condactID];
-                if ( ($condact->Opcode == XMESSAGE_OPCODE) || ($condact->Opcode == XMES_OPCODE))  // Convert XMESSAGE in a Maluva CALL
+                if  ($condact->Opcode == XMES_OPCODE)  // Convert XMESS in a Maluva CALL, XMESSAGE does not actually get to drb, as drf already converts all XMESSAGE into XMESS with a \n added to the string
                 {
-                    $hasNewline =  ($condact->Opcode == XMESSAGE_OPCODE);
                     $condact->Opcode = EXTERN_OPCODE;
                     $messno = $condact->Param1;
                     $offset = $GLOBALS['xMessageOffsets'][$messno];
@@ -696,11 +693,6 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     // This is a strange way of adding a NEWLINE condact without properly adding a new CONDACT to the $entry->condacts
                     // What we do is making the current condact have an additional 4th parameter, that is actually the opcode of NEWLINE
                     // That way that newline is dumped just after the real params.
-                    if ($hasNewline)
-                    {
-                        $condact->NumParams++;
-                        $condact->Param4 =  NEWLINE_OPCODE;
-                    }
                     $adveture->processes[$procID]->entries[$entryID]->condacts[$condactID] = $condact;
                 }
             }
