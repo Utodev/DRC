@@ -491,11 +491,11 @@ BEGIN
 						IF (Opcode IN [XMES_OPCODE, XMESSAGE_OPCODE]) AND (GetSymbolValue(SymbolList, 'BIT16')=MAXINT) THEN  
 						BEGIN
 							IF (length(CurrentText)>511) THEN SyntaxError('Extended messages can be only up to 511 characters long.');
-							CurrentIntVal := insertMessageFromProcessIntoSpecificList(XTX, CurrentText);
-							MaXMESs := MAXLONGINT;
 							// Convert XMESSAGE into XMES with a string with #n at the end
 							IF Opcode = XMESSAGE_OPCODE THEN CurrentText := CurrentText + '#n';
 							Opcode := XMES_OPCODE;
+							CurrentIntVal := insertMessageFromProcessIntoSpecificList(XTX, CurrentText);
+							MaXMESs := MAXLONGINT;
 						END
 						ELSE
 						BEGIN
