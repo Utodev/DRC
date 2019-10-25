@@ -54,6 +54,25 @@ BEGIN
  ELSE Result :=53;  // Conservative
 END;
 
+FUNCTION CheckEND(Filename: String):Boolean;
+VAR T: TEXT;
+    S: WideString;
+    Found : Boolean;
+BEGIN
+ Assign(T, Filename);
+ Reset(T);
+ Found := false;
+ WHILE (NOT EOF(T)) AND (NOT Found)
+ DO
+ BEGIN
+  ReadLn(T, S);
+  S := Trim(S);
+  IF (S='/END') THEN Found := True;
+ END;
+ Close(T);
+ Result := Found;
+END;
+
 
 FUNCTION getColsByTarget(Target:String;SubTarget:AnsiString):Byte;
 BEGIN
@@ -185,6 +204,7 @@ BEGIN
   
 
   //LoadPlugins(); 
+  IF NOT CheckEND(InputFileName) THEN ParamError('Input file has no /END section');
   CompileForTarget(Target, SubTarget, OutputFileName, AdditionalSymbols);
 END.
 

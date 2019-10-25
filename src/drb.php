@@ -698,7 +698,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     // That way that newline is dumped just after the real params.
                     if ($hasNewline)
                     {
-                        $condat->NumParams++;
+                        $condact->NumParams++;
                         $condact->Param4 =  NEWLINE_OPCODE;
                     }
                     $adveture->processes[$procID]->entries[$entryID]->condacts[$condactID] = $condact;
@@ -1314,7 +1314,7 @@ addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Dump XMessagess if avaliable
 if (sizeof($adventure->xmessages))
 {
-    if ((!CheckMaluva($adventure)) && ($target!'MSX2')) Error('XMESSAGE condact requires Maluva Extension');
+    if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XMESSAGE condact requires Maluva Extension');
     generateXmessages($adventure, $target, $outputFileName);
 }
 
