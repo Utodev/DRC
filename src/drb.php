@@ -371,9 +371,10 @@ function getXMessageFileSizeByTarget($target, $adventure)
 {
     switch ($target) 
     {
-        case 'ZX'  :
-        case 'MSX2':
-          return 16; 
+        case 'ZX'  : return 64; 
+        case 'MSX' : return 64; 
+        case 'MSX2': return 16; 
+          
 /*        case 'C64': 
           return 2;
         case 'CPC': 
@@ -391,25 +392,23 @@ function generateXMessages($adventure, $target, $outputFileName)
     $GLOBALS['maxFileSizeForXMessages'] = $maxFileSize;
     if (!$maxFileSize) Error("XMessages are not supported by target $target");
     $maxFileSize *= 1024; // Convert K to byte
-    $outputFileName = replace_extension($outputFileName, "M$currentFile");
+    $outputFileName = "$currentFile.XMB";
     $fileHandler = fopen($outputFileName, "w");
     for($i=0;$i<sizeof($adventure->xmessages);$i++)
     {
         $message = $adventure->xmessages[$i];
         $messageLength = strlen($message->Text);
-        if ($messageLength + $currentOffset + 1 + 1 > $maxFileSize) // Won't fit, next File  , +1 +1, one for the end of message mark, one for the length byte
+        if ($messageLength + $currentOffset + 1  > $maxFileSize) // Won't fit, next File  , +1  for the end of message mark
         {
             fclose($fileHandler);
             $currentFile++;
             $currentOffset = 0;
-            $outputFileName = replace_extension("XMES.M$currentFile");
+            $outputFileName = "$currentFile.XMB";
             $fileHandler = fopen($outputFileName, "w");
         }
         $GLOBALS['xMessageOffsets'][$i] = $currentOffset + $currentFile * $maxFileSize;
         // Saving length as a truncated value to make it fit in one byte, the printing routine will have to recover the missing bit by filling with 1. That will provide 
         // a length which could be maximum 1 bytes longer than real, what is not really important cause the end of message mark will avoid that extra char being printed
-        writeByte($fileHandler, ($messageLength+1) >> 1);  // +1 cause we include the end of message mark
-        $currentOffset++;
         for ($j=0;$j<$messageLength;$j++)
         {   
             writeByte($fileHandler, ord($message->Text[$j]) ^ OFUSCATE_VALUE);
