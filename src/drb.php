@@ -374,6 +374,8 @@ function getXMessageFileSizeByTarget($target, $adventure)
         case 'ZX'  : return 64; 
         case 'MSX' : return 64; 
         case 'MSX2': return 16; 
+        case 'CPC' : return 2;
+        case 'C64' : return 2;
           
 /*        case 'C64': 
           return 2;
@@ -392,6 +394,7 @@ function generateXMessages($adventure, $target, $outputFileName)
     $GLOBALS['maxFileSizeForXMessages'] = $maxFileSize;
     if (!$maxFileSize) Error("XMessages are not supported by target $target");
     $maxFileSize *= 1024; // Convert K to byte
+    if (($maxFileSize==2048) && ($currentFile<10)) $currentFile = "0$currentFile";
     $outputFileName = "$currentFile.XMB";
     $fileHandler = fopen($outputFileName, "w");
     for($i=0;$i<sizeof($adventure->xmessages);$i++)
@@ -403,6 +406,7 @@ function generateXMessages($adventure, $target, $outputFileName)
             fclose($fileHandler);
             $currentFile++;
             $currentOffset = 0;
+            if (($maxFileSize==2048) && ($currentFile<10)) $currentFile = "0$currentFile";
             $outputFileName = "$currentFile.XMB";
             $fileHandler = fopen($outputFileName, "w");
         }
