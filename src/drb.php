@@ -19,6 +19,9 @@ $xMessageSize = 0;
 define('FAKE_DEBUG_CONDACT_CODE',220);
 define('FAKE_USERPTR_CONDACT_CODE',256);    
 define('XMES_OPCODE', 128);
+define('XPICTURE_OPCODE',130);
+define('XSAVE_OPCODE',131);
+define('XLOAD_OPCODE',132);
 define('EXTERN_OPCODE', 61);
 
 //================================================================= filewrite ========================================================
@@ -693,10 +696,30 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Param1 = $offset & 0xFF; // Offset LSB
                     $condact->Param3 = ($offset & 0xFF00) >> 8; // Offset MSB
                     $condact->Condact = 'EXTERN';
-                    // This is a strange way of adding a NEWLINE condact without properly adding a new CONDACT to the $entry->condacts
-                    // What we do is making the current condact have an additional 4th parameter, that is actually the opcode of NEWLINE
-                    // That way that newline is dumped just after the real params.
-                    $adveture->processes[$procID]->entries[$entryID]->condacts[$condactID] = $condact;
+                } 
+                else if ($condact->Opcode == XPICTURE_OPCODE)
+                {
+                    $condact->Opcode = EXTERN_OPCODE;
+                    $condact->NumParams=2;
+                    $condact->Param2 = 0; // Maluva function 0
+                    $condact->Condact = 'EXTERN';
+                    if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XPICTURE condact requires Maluva Extension');
+                }
+                else if ($condact->Opcode == XSAVE_OPCODE)
+                {
+                    $condact->Opcode = EXTERN_OPCODE;
+                    $condact->NumParams=2;
+                    $condact->Param2 = 1; // Maluva function 1 
+                    $condact->Condact = 'EXTERN';
+                    if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XSAVE condact requires Maluva Extension');
+                }
+                else if ($condact->Opcode == XSAVE_OPCODE)
+                {
+                    $condact->Opcode = EXTERN_OPCODE;
+                    $condact->NumParams=2;
+                    $condact->Param2 = 2; // Maluva function 2
+                    $condact->Condact = 'EXTERN';
+                    if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XLOAD condact requires Maluva Extension');
                 }
             }
         }

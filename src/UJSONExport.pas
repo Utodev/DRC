@@ -66,7 +66,7 @@ BEGIN
     WriteLn(JSON,tabs(),'"settings":');
     INC(Indent);     
     WriteLn(JSON,tabs(),'[');
-    WriteLn(JSON,tabs(),'{"classic_mode":', byte(ClassicMode), ', "debug_mode":', byte(DebugMode) , '}');
+    WriteLn(JSON,tabs(),'{"classic_mode":', byte(ClassicMode), ', "debug_mode":', byte(DebugMode) , ', "maluva_used":', byte(MaluvaUsed), '}');
     WriteLn(JSON,tabs(),'],');
     DEC(Indent);
     // Symbols

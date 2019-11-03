@@ -16,7 +16,7 @@ BEGIN
   WriteLn();
 	WriteLn('<target> is the target machine, one of this list: ZX, CPC, C64, MSX, MSX2, PCW, PC, AMIGA or ST. The target machine will be added as if there were a ''#define <target> '' in the code, so you can make the code depend on target platform.');
   WriteLn();
-	WriteLn('[subtarget] is an parameter only required when the target is MSX2 or PC. Will define the internal variable COLS, which can later be used in DAAD processes. For MSX2 values can be 5_6, 5_8, 6_6, 6_8, 7_6, 7_8, 8_6 or 8_8. The first number is the video mode (5-8), the second one is the characters width in pixels (6 or 8). For PC values can be VGA, EGA, CGA or TEXT.');
+	WriteLn('[subtarget] is an parameter only required when the target is ZX, MSX2 or PC. Will define the internal variable COLS, which can later be used in DAAD processes. For MSX2 values can be 5_6, 5_8, 6_6, 6_8, 7_6, 7_8, 8_6 or 8_8. The first number is the video mode (5-8), the second one is the characters width in pixels (6 or 8). For PC values can be VGA, EGA, CGA or TEXT. For ZX the values can be PLUS3, ESXDOS or NEXT.');
   WriteLn();
 	WriteLn('[output.json] is optional file name for output json file, if missing, '+AppName+' will just use same name of input file, but with .json extension.');
   WriteLn();
@@ -111,7 +111,7 @@ VAR Target, SubTarget: AnsiString;
 {$i lexer.pas} 
 
 
-PROCEDURE CompileForTarget(Target: String; Subtarget: AnsiString; OutputFileName: String; AdditionalSymbols: String);
+PROCEDURE CompileForTarget(Target: AnsiString; Subtarget: AnsiString; OutputFileName: String; AdditionalSymbols: String);
 var machine : AnsiString;
     cols: byte;
     i :byte;
@@ -158,7 +158,7 @@ BEGIN
     Inc(i);
   UNTIL AuxString='';
   WriteLn('Checking Syntax...');
-  Sintactic();
+  Sintactic(target, subtarget);
   Write('Generating ',OutputFileName,' [Classic mode O');
   if (ClassicMode) THEN WriteLn('N]') ELSE WriteLn('FF]');
 	GenerateOutput(OutputFileName, Target);
@@ -168,6 +168,7 @@ FUNCTION isValidSubTarget(Target, Subtarget: AnsiString): Boolean;
 BEGIN
  if Target='MSX2' THEN  Result :=  (Subtarget = '5_6') OR (Subtarget = '5_8') OR  (Subtarget = '6_6') OR  (Subtarget = '6_8') OR  (Subtarget = '7_6') OR  (Subtarget = '7_8') OR  (Subtarget = '8_6') OR  (Subtarget = '8_8');
  if Target='PC'   THEN Result := (Subtarget = 'VGA') OR (Subtarget = 'EGA') OR  (Subtarget = 'CGA') OR  (Subtarget = 'TEXT');
+ if Target='ZX' THEN Result :=  (Subtarget = 'PLUS3') OR (Subtarget = 'ESXDOS') OR  (Subtarget = 'NEXT');
 END;
 
 BEGIN
@@ -180,7 +181,7 @@ BEGIN
   Target := UpperCase(ParamStr(1));
   NextParam := 2;
   SubTarget := '';
-  IF (Target='MSX2') OR (Target='PC') THEN 
+  IF (Target='MSX2') OR (Target='PC') OR (Target='ZX') THEN 
   BEGIN
    SubTarget := UpperCase(ParamStr(NextParam));
    if (NOT isValidSubTarget(Target,Subtarget)) THEN ParamError('"' + Subtarget + '" is not a valid subtarget for target "' + Target + '". Please specify a valid subtarget. Call DRF without parameters for more information.');

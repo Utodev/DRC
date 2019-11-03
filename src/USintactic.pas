@@ -6,10 +6,12 @@ INTERFACE
 
 USES UTokenList;
 
-PROCEDURE Sintactic();
+PROCEDURE Sintactic(ATarget, ASubtarget: AnsiString);
 
 var ClassicMode : Boolean;
-	  DebugMode : Boolean;
+	DebugMode : Boolean;
+	Target, Subtarget: AnsiString;
+	MaluvaUsed : Boolean;
 
 
 
@@ -99,12 +101,23 @@ BEGIN
 	if NOT AddSymbol(SymbolList, Symbol, Value) THEN SyntaxError('"' + Symbol + '" already defined');
 END;
 
+FUNCTION getMaluvaFilename(): String;
+BEGIN
+  IF (target='ZX') AND (Subtarget='P3') THEN Result:='MLV_P3.BIN' ELSE
+  IF (target='ZX') AND (Subtarget='NEXT') THEN Result:='MLV_NEXT.BIN' ELSE
+  IF (target='ZX') AND (Subtarget='ESXDOS') THEN Result:='MLV_ESX.BIN' ELSE
+  IF target='MSX' THEN Result:='MLV_MSX.BIN' ELSE
+  IF target='C64' THEN Result:='MLV_C64.BIN' ELSE
+  IF target='CPC' THEN Result:='MLV_CPC.BIN' ELSE  Result:='MALUVA';
+END;
+
 PROCEDURE ParseExtern(ExternType: String);
 VAR Filename : String;
 BEGIN
 	Scan();
 	IF CurrentTokenID <> T_STRING THEN SyntaxError('Included extern file should be in between quotes');
 	FileName := Copy(CurrentText, 2, length(CurrentText) - 2);
+	IF Filename = 'MALUVA' THEN FileName := getMaluvaFilename();
 	IF NOT FileExists(Filename) THEN SyntaxError('Extern file "'+FileName+'" not found');
 	WriteLn('#'+ExternType+''' "' + Filename + '" processed.');
 	AddCTL_Extern(CTLExternList, FileName, ExternType); // Adds the file to binary files to be included
@@ -472,8 +485,32 @@ BEGIN
 		IF (CurrentTokenID<>T_INCBIN) AND (CurrentTokenID<>T_DB) AND (CurrentTokenID<>T_DW) AND (CurrentTokenID<>T_HEX) AND (CurrentTokenID<>T_USERPTR) THEN
 		BEGIN
 		  IF (CurrentTokenID = T_PROCESS_ENTRY_SIGN) OR (CurrentTokenID = T_SECTION_END) OR (CurrentTokenID = T_SECTION_PRO) THEN Opcode := -2 ELSE Opcode := GetCondact(CurrentText);
+		    
 			IF Opcode >= 0 THEN
 			BEGIN
+				// Check what to do with fake condacts
+				IF Opcode>=NUM_CONDACTS THEN  
+				BEGIN
+					IF Opcode = XPICTURE_OPCODE THEN
+					BEGIN
+						IF GetSymbolValue(SymbolList, 'BIT16')<>MAXINT THEN Opcode := PICTURE_OPCODE  // If 16 bit machine, no XPICTURE
+						ELSE IF target='PCW' THEN Opcode := PICTURE_OPCODE // If target PCW, no XPICTURE
+						ELSE MaluvaUsed := true;
+					END ELSE
+					IF Opcode = XSAVE_OPCODE THEN
+					BEGIN
+						IF GetSymbolValue(SymbolList, 'BIT16')<>MAXINT THEN Opcode := SAVE_OPCODE  // If 16 bit machine, no XSAVE
+						ELSE IF (Target='PCW') OR (Target='CPC') OR (Target='C64') THEN Opcode := SAVE_OPCODE // If target PCW/C64/CPC, no XSAVE
+						ELSE MaluvaUsed := true;
+					END ELSE
+					IF Opcode = XLOAD_OPCODE THEN
+					BEGIN
+						IF GetSymbolValue(SymbolList, 'BIT16')<>MAXINT THEN Opcode := LOAD_OPCODE  // If 16 bit machine, no XLOAD
+						ELSE IF (Target='PCW') OR (Target='CPC') OR (Target='C64') THEN Opcode := LOAD_OPCODE // If target PCW/C64/CPC, no XLOAD
+						ELSE MaluvaUsed := true;
+					END;
+				END; 
+				// Get Parameters
 				FOR i:= 0 TO GetNumParams(Opcode) - 1 DO
 				BEGIN
 					Scan();
@@ -721,16 +758,19 @@ BEGIN
 	UNTIL CurrentTokenID = T_SECTION_END;
 END; 		
 
-PROCEDURE Sintactic();
+PROCEDURE Sintactic(ATarget, ASubtarget: AnsiString);
 BEGIN
 	CurrTokenPTR := TokenList;
 	ClassicMode := false;
+	MaluvaUsed := false;
 	DebugMode := false;
 	OnIfdefMode := false;
 	MTXCount := 0;
 	STXCount := 0;
 	LTXCount := 0;
 	OTXCount := 0;
+	Target := ATarget;
+	Subtarget := ASubtarget;
 	ParseCTL();
 	ParseVOC();
 	ParseSTX();
