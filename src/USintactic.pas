@@ -490,7 +490,7 @@ BEGIN
 						CurrentText := Copy(CurrentText, 2, Length(CurrentText)-2);
 						IF (Opcode IN [XMES_OPCODE, XMESSAGE_OPCODE]) AND (GetSymbolValue(SymbolList, 'BIT16')=MAXINT) THEN  
 						BEGIN
-							IF (length(CurrentText)>511) THEN SyntaxError('Extended messages can be only up to 511 characters long.');
+							IF (length(CurrentText)>511) THEN SyntaxError('Extended messages can be only up to 511 characters long. Your message is ' + IntToStr(length(CurrentText))+ ' long.');
 							// Convert XMESSAGE into XMES with a string with #n at the end
 							IF Opcode = XMESSAGE_OPCODE THEN CurrentText := CurrentText + '#n';
 							Opcode := XMES_OPCODE;
