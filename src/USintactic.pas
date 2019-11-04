@@ -494,19 +494,19 @@ BEGIN
 					IF Opcode = XPICTURE_OPCODE THEN
 					BEGIN
 						IF GetSymbolValue(SymbolList, 'BIT16')<>MAXINT THEN Opcode := PICTURE_OPCODE  // If 16 bit machine, no XPICTURE
-						ELSE IF target='PCW' THEN Opcode := PICTURE_OPCODE // If target PCW, no XPICTURE
+						ELSE IF (target='PCW') OR (Target='MSX') THEN Opcode := PICTURE_OPCODE // If target PCW, no XPICTURE
 						ELSE MaluvaUsed := true;
 					END ELSE
 					IF Opcode = XSAVE_OPCODE THEN
 					BEGIN
 						IF GetSymbolValue(SymbolList, 'BIT16')<>MAXINT THEN Opcode := SAVE_OPCODE  // If 16 bit machine, no XSAVE
-						ELSE IF (Target='PCW') OR (Target='CPC') OR (Target='C64') THEN Opcode := SAVE_OPCODE // If target PCW/C64/CPC, no XSAVE
+						ELSE IF (Target='PCW') OR (Target='CPC') OR (Target='C64') OR (Target='MSX') THEN Opcode := SAVE_OPCODE // If target PCW/C64/CPC, no XSAVE
 						ELSE MaluvaUsed := true;
 					END ELSE
 					IF Opcode = XLOAD_OPCODE THEN
 					BEGIN
 						IF GetSymbolValue(SymbolList, 'BIT16')<>MAXINT THEN Opcode := LOAD_OPCODE  // If 16 bit machine, no XLOAD
-						ELSE IF (Target='PCW') OR (Target='CPC') OR (Target='C64') THEN Opcode := LOAD_OPCODE // If target PCW/C64/CPC, no XLOAD
+						ELSE IF (Target='PCW') OR (Target='CPC') OR (Target='C64') OR (Target='MSX') THEN Opcode := LOAD_OPCODE // If target PCW/C64/CPC, no XLOAD
 						ELSE MaluvaUsed := true;
 					END;
 				END; 
