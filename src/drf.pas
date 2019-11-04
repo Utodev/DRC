@@ -17,6 +17,7 @@ BEGIN
 	WriteLn('<target> is the target machine, one of this list: ZX, CPC, C64, MSX, MSX2, PCW, PC, AMIGA or ST. The target machine will be added as if there were a ''#define <target> '' in the code, so you can make the code depend on target platform.');
   WriteLn();
 	WriteLn('[subtarget] is an parameter only required when the target is ZX, MSX2 or PC. Will define the internal variable COLS, which can later be used in DAAD processes. For MSX2 values can be 5_6, 5_8, 6_6, 6_8, 7_6, 7_8, 8_6 or 8_8. The first number is the video mode (5-8), the second one is the characters width in pixels (6 or 8). For PC values can be VGA, EGA, CGA or TEXT. For ZX the values can be PLUS3, ESXDOS or NEXT.');
+  WriteLn('Please notice subtarget for ZX is only relevant if you use Maluva, if you don''t use it or you don''t know what it is, choose any of the targets, i.e. plus3');
   WriteLn();
 	WriteLn('[output.json] is optional file name for output json file, if missing, '+AppName+' will just use same name of input file, but with .json extension.');
   WriteLn();
