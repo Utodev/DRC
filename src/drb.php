@@ -406,12 +406,21 @@ function generateXMessages($adventure, $target, $outputFileName)
         $messageLength = strlen($message->Text);
         if ($messageLength + $currentOffset + 1  > $maxFileSize) // Won't fit, next File  , +1  for the end of message mark
         {
-            fclose($fileHandler);
-            $currentFile++;
-            $currentOffset = 0;
-            if (($maxFileSize==2048) && ($currentFile<10)) $currentFile = "0$currentFile";
-            $outputFileName = "$currentFile.XMB";
-            $fileHandler = fopen($outputFileName, "w");
+            if ($target=="MSX2") 
+            {
+                writeBlock($fileHandler, $maxFileSize - $currentOffset);
+                $currentFile++;
+                $currentOffset = 0;
+            }
+            else 
+            {
+                fclose($fileHandler);
+                $currentFile++;
+                $currentOffset = 0;
+                if (($maxFileSize==2048) && ($currentFile<10)) $currentFile = "0$currentFile";
+                $outputFileName = "$currentFile.XMB";
+                $fileHandler = fopen($outputFileName, "w");
+            }
         }
         $GLOBALS['xMessageOffsets'][$i] = $currentOffset + $currentFile * $maxFileSize;
         // Saving length as a truncated value to make it fit in one byte, the printing routine will have to recover the missing bit by filling with 1. That will provide 
