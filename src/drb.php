@@ -700,6 +700,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Opcode = EXTERN_OPCODE;
                     $messno = $condact->Param1;
                     $offset = $GLOBALS['xMessageOffsets'][$messno];
+                    if ($offset>0xFFFF) Error('Size of xMessages exceeds the 64K limit');
                     $condact->NumParams = 3;
                     $condact->Param2 = 3; // Maluva's function 3
                     $condact->Param1 = $offset & 0xFF; // Offset LSB
