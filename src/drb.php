@@ -22,7 +22,7 @@ define('XMES_OPCODE', 128);
 define('XPICTURE_OPCODE',130);
 define('XSAVE_OPCODE',131);
 define('XLOAD_OPCODE',132);
-define('XPART_OPCODE', 133)
+define('XPART_OPCODE', 133);
 define('EXTERN_OPCODE', 61);
 
 //================================================================= filewrite ========================================================
