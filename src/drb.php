@@ -22,6 +22,7 @@ define('XMES_OPCODE', 128);
 define('XPICTURE_OPCODE',130);
 define('XSAVE_OPCODE',131);
 define('XLOAD_OPCODE',132);
+define('XPART_OPCODE', 133)
 define('EXTERN_OPCODE', 61);
 
 //================================================================= filewrite ========================================================
@@ -723,13 +724,21 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Condact = 'EXTERN';
                     if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XSAVE condact requires Maluva Extension');
                 }
-                else if ($condact->Opcode == XSAVE_OPCODE)
+                else if ($condact->Opcode == XLOAD_OPCODE)
                 {
                     $condact->Opcode = EXTERN_OPCODE;
                     $condact->NumParams=2;
                     $condact->Param2 = 2; // Maluva function 2
                     $condact->Condact = 'EXTERN';
                     if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XLOAD condact requires Maluva Extension');
+                }
+                else if ($condact->Opcode == XPART_OPCODE)
+                {
+                    $condact->Opcode = EXTERN_OPCODE;
+                    $condact->NumParams=2;
+                    $condact->Param2 = 4; // Maluva function 4
+                    $condact->Condact = 'EXTERN';
+                    if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XPART condact requires Maluva Extension');
                 }
             }
         }

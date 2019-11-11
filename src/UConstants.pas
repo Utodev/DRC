@@ -23,7 +23,7 @@ CONST version_hi = 0;
       MAX_PARAMETER_RANGE = 255;
 
       NUM_CONDACTS  =128;
-      NUM_FAKE_CONDACTS = 5;
+      NUM_FAKE_CONDACTS = 6;
 
       MESSAGE_OPCODE = 38;
       MES_OPCODE =77;

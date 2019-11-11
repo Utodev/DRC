@@ -146,9 +146,8 @@ CONST Condacts : ARRAY[0..NUM_CONDACTS+NUM_FAKE_CONDACTS - 1] OF TCondact = (
 (Numparams:1;Condact:'XMESSAGE'),  //129
 (Numparams:1;Condact:'XPICTURE'),  //130
 (Numparams:1;Condact:'XSAVE'),    //131
-(Numparams:1;Condact:'XLOAD')  //132
-
-
+(Numparams:1;Condact:'XLOAD'),  //132
+(Numparams:1;Condact:'XPART')  //133
 );
 
 (* Returns the condact index in the codacts table, or -1 if not found*)
