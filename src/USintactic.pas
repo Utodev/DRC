@@ -108,7 +108,8 @@ BEGIN
   IF (target='ZX') AND (Subtarget='ESXDOS') THEN Result:='MLV_ESX.BIN' ELSE
   IF target='MSX' THEN Result:='MLV_MSX.BIN' ELSE
   IF target='C64' THEN Result:='MLV_C64.BIN' ELSE
-  IF target='CPC' THEN Result:='MLV_CPC.BIN' ELSE  Result:='MALUVA';
+  IF target='CPC' THEN Result:='MLV_CPC.BIN' 
+  IF target='MSX2' THEN Result:= 'MSX2'  ELSE  Result:='MALUVA';
 END;
 
 PROCEDURE ParseExtern(ExternType: String);
@@ -117,7 +118,15 @@ BEGIN
 	Scan();
 	IF CurrentTokenID <> T_STRING THEN SyntaxError('Included extern file should be in between quotes');
 	FileName := Copy(CurrentText, 2, length(CurrentText) - 2);
-	IF Filename = 'MALUVA' THEN FileName := getMaluvaFilename();
+	IF Filename = 'MALUVA' THEN 
+	BEGIN
+			IF (target='MSX2') and (ExternType='EXTERN') THEN
+			BEGIN
+				WriteLn('#'+ExternType+''' "' + Filename + '" skipped as target is MSX2.');		
+				Exit;
+			END;
+			FileName := getMaluvaFilename();
+	END;
 	IF NOT FileExists(Filename) THEN SyntaxError('Extern file "'+FileName+'" not found');
 	WriteLn('#'+ExternType+''' "' + Filename + '" processed.');
 	AddCTL_Extern(CTLExternList, FileName, ExternType); // Adds the file to binary files to be included
