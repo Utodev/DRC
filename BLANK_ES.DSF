@@ -374,14 +374,14 @@ LUEGO   2       conjugation
                 DESC    0               ; Introducción
                 ANYKEY
                 CLS
-                CLEAR   255             ; Pone a cero todas las banderas
+                SET   255             
 
-> _       _     NOTEQ   255     fGFlags  ; menos GFlags!!!
+> _       _     MINUS  255 1          ; Pone a cero todos los flags
+                NOTEQ   255  fGFlags  ; menos GFlags!!!
                 CLEAR   @255
 
-> _       _     PLUS    255     1
-                LT      255     255     ; Al final lo dejamos con valor 255
-                SKIP    -2              ; para indicar que hemos inicializado
+> _       _     NOTZERO 255             
+                SKIP    -2              
 
 > _       _     RESET                   ; Objetos a su loc. inicial / Flag 1
                 LET     fStrength 10
