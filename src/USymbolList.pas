@@ -24,17 +24,19 @@ FUNCTION GetSymbolValue(ASymbolList: TPSymbolList; ASymbol: AnsiString): Longint
 
 IMPLEMENTATION
 
-uses sysutils;
+uses sysutils, UConstants;
 
 FUNCTION AddSymbol(VAR ASymbolList: TPSymbolList; ASymbol: AnsiString; AValue : Longint):boolean;
 BEGIN
+	ASymbol := AnsiUpperCase(ASymbol);
 	if (ASymbolList = nil) THEN
 	BEGIN
 		New(ASymbolList);
-		ASymbolList^.Symbol := AnsiUpperCase(ASymbol);;
+		ASymbolList^.Symbol := ASymbol;
 		ASymbolList^.Value := AValue;
 		ASymbolList^.Next := nil;
 		Result := true;
+		IF Verbose AND (Copy(ASymbol, 1, 4)<>'_VOC') then WriteLn('Added Symbol: ', ASymbol, '=', Avalue);
 	END 
 	ELSE
 	BEGIN

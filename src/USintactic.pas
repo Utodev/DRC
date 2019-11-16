@@ -34,6 +34,12 @@ BEGIN
   Halt(1);
 END;
 
+PROCEDURE Warning(msg: String);
+BEGIN
+  Writeln('Warning: ' , CurrLineno,':', CurrColno, ': ', msg,'.');
+END;
+
+
 PROCEDURE Scan(); forward;
 
 
@@ -538,7 +544,7 @@ BEGIN
 					BEGIN
 						SemanticExempt := true;
 						CurrentText := Copy(CurrentText, 2, Length(CurrentText)-2);
-						IF (Opcode IN [XMES_OPCODE, XMESSAGE_OPCODE]) AND (GetSymbolValue(SymbolList, 'BIT16')=MAXINT) THEN  
+						IF (Opcode IN [XMES_OPCODE, XMESSAGE_OPCODE]) AND (GetSymbolValue(SymbolList, 'BIT16')=MAXINT)  AND (NOT ForceNormalMessages) THEN  
 						BEGIN
 							IF (length(CurrentText)>511) THEN SyntaxError('Extended messages can be only up to 511 characters long. Your message is ' + IntToStr(length(CurrentText))+ ' long.');
 							// Convert XMESSAGE into XMES with a string with #n at the end
@@ -591,10 +597,14 @@ BEGIN
 					
 					CurrentCondactParams[i].Value := Value;
 					// Semantic Check
-					IF (NOT CurrentCondactParams[i].Indirection) AND (NOT SemanticExempt) THEN
+					IF (NOT CurrentCondactParams[i].Indirection) AND (NOT SemanticExempt) AND NOt (NoSemantic) THEN
 					BEGIN
 						SemanticError := SemanticCheck(Opcode, i+1, Value);
-						if (SemanticError<>'') THEN SyntaxError(SemanticError);
+						if (SemanticError<>'') THEN 
+						BEGIN
+						 IF SemanticWarnings THEN Warning(SemanticError) 
+						 					 ELSE SyntaxError(SemanticError);
+						END; 
 					END;
 
 				END;
@@ -610,7 +620,7 @@ BEGIN
 			Scan();
 			IF (CurrentTokenID<>T_NUMBER) THEN SyntaxError('#userptr parameter should be numeric');
 			IF (CurrentIntVal<0) OR (CurrentIntVal>9) THEN SyntaxError('#userptr parameter should be 0-9');
-			WriteLn('#USERPTR ' + CurrentText + ' processed');
+			IF Verbose THEN WriteLn('#USERPTR ' + CurrentText + ' processed');
 			CurrentCondactParams[0].Value := CurrentIntVal;
 			CurrentCondactParams[0].Indirection := false;
 			AddProcessCondact(SomeEntryCondacts, FAKE_USERPTR_CONDACT_CODE , 1, CurrentCondactParams, false); // adds a fake condact value as OPCODE and zero parameters
@@ -622,7 +632,7 @@ BEGIN
 			AuxLong := ExtractValue();
 			IF (AuxLong=MAXINT) THEN SyntaxError('#DB Unknown value "'+CurrentText+'"');
 			IF (AuxLong<0) OR (AuxLong>255) THEN SyntaxError('DB value should be between 0 and 255');
-			WriteLn('#DB ' + CurrentText + '('+IntToStr(AuxLong)+') processed');
+			IF Verbose THEN WriteLn('#DB ' + CurrentText + '('+IntToStr(AuxLong)+') processed');
 			AddProcessCondact(SomeEntryCondacts,CurrentIntVal , 0, CurrentCondactParams, true); // adds a fake condact, with the DB value as OPCODE and zero parameters
 		END
 		ELSE 	
@@ -632,7 +642,7 @@ BEGIN
 			AuxLong := ExtractValue();
 			IF (AuxLong=MAXINT) THEN SyntaxError('#DW Unknown value "'+CurrentText+'"');
 			IF (AuxLong<0) OR (AuxLong>65535) THEN SyntaxError('DW value should be between 0 and 65535');
-			WriteLn('#DW ' + CurrentText + '('+IntToStr(AuxLong)+') processed');
+			IF Verbose THEN WriteLn('#DW ' + CurrentText + '('+IntToStr(AuxLong)+') processed');
 			AddProcessCondact(SomeEntryCondacts,CurrentIntVal AND $FF , 0, CurrentCondactParams, true); 
 			AddProcessCondact(SomeEntryCondacts,(CurrentIntVal AND $FF00)>>8, 0, CurrentCondactParams, true); // adds DW as two DBs
 		END 
@@ -650,7 +660,7 @@ BEGIN
 			 AuxByte := Hex2Dec(HexByte);
 			 AddProcessCondact(SomeEntryCondacts,AuxByte, 0, CurrentCondactParams, true); // Queues one fake condact per each hex value
 			END;
-			WriteLn('#HEX ' + CurrentText + ' processed');
+			IF Verbose THEN WriteLn('#HEX ' + CurrentText + ' processed');
 		END
 		ELSE 	
 		IF CurrentTokenID=T_INCBIN THEN 
@@ -661,7 +671,7 @@ BEGIN
 			IF NOT FileExists(Filename) THEN SyntaxError('Included file "' + FileName + '" not found');
 			AssignFile(IncludedFile, Filename);
 			Reset(IncludedFile,1);
-			WriteLn('#incbin "' + Filename + '" processed.');
+			IF Verbose THEN WriteLn('#incbin "' + Filename + '" processed.');
 			WHILE NOT EOF(IncludedFile) DO
 			BEGIN
 				BlockRead(IncludedFile, AuxByte, 1);

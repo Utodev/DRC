@@ -52,6 +52,17 @@ CONST version_hi = 0;
 
       FAKE_USERPTR_CONDACT_CODE = 256;    
 
+// Compile options
+VAR ForceNormalMessages : Boolean;
+    NoSemantic : Boolean;
+    SemanticWarnings : Boolean;
+    Verbose: Boolean;
+
 IMPLEMENTATION
 
+BEGIN
+       ForceNormalMessages := false;
+       NoSemantic := false;
+       SemanticWarnings := false;
+       Verbose := false;
 END.

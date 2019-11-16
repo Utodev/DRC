@@ -215,7 +215,7 @@ BEGIN
  ExpectedType := GetParamType(Opcode, ParamNum);
  Result := '';
  case ExpectedType of
- locno: IF ParamValue >= LTXCount THEN Result := 'Location  ' + IntToStr(ParamValue) + ' does not exist';
+ locno: IF ParamValue >= LTXCount THEN Result := 'Location ' + IntToStr(ParamValue) + ' does not exist';
  objno: IF ParamValue >= OTXCount THEN Result := 'Object ' + IntToStr(ParamValue) + ' does not exist';
  flagno: Result := '';
  sysno: IF ParamValue >= STXCount THEN Result := 'System message ' + IntToStr(ParamValue) + ' does not exist';
