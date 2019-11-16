@@ -108,8 +108,8 @@ BEGIN
   IF (target='ZX') AND (Subtarget='ESXDOS') THEN Result:='MLV_ESX.BIN' ELSE
   IF target='MSX' THEN Result:='MLV_MSX.BIN' ELSE
   IF target='C64' THEN Result:='MLV_C64.BIN' ELSE
-  IF target='CPC' THEN Result:='MLV_CPC.BIN' 
-  IF target='MSX2' THEN Result:= 'MSX2'  ELSE  Result:='MALUVA';
+  IF target='CPC' THEN Result:='MLV_CPC.BIN' ELSE
+  IF target='MSX2' THEN Result:= 'MSX2' ELSE  Result:='MALUVA';
 END;
 
 PROCEDURE ParseExtern(ExternType: String);
@@ -484,6 +484,8 @@ VAR Opcode : Longint;
 	AuxLong :Longint;
 	HexByte, HexString : AnsiString;
 	MaXMESs : Longint;
+	SemanticError : AnsiString;
+	SemanticExempt : Boolean;
 BEGIN
 	REPEAT
 		IF (SomeEntryCondacts<>nil) THEN Scan(); // Get Condact, skip first time when the condact list is empy cause it's already read
@@ -523,6 +525,7 @@ BEGIN
 				FOR i:= 0 TO GetNumParams(Opcode) - 1 DO
 				BEGIN
 					Scan();
+					SemanticExempt := false;
 					CurrentCondactParams[i].Indirection := false;
 					IF (CurrentTokenID = T_INDIRECT) THEN
 					BEGIN
@@ -533,6 +536,7 @@ BEGIN
 			
 					IF (CurrentTokenID = T_STRING) AND (Opcode in [MESSAGE_OPCODE,MES_OPCODE, SYSMESS_OPCODE, XMES_OPCODE, XMESSAGE_OPCODE]) THEN  
 					BEGIN
+						SemanticExempt := true;
 						CurrentText := Copy(CurrentText, 2, Length(CurrentText)-2);
 						IF (Opcode IN [XMES_OPCODE, XMESSAGE_OPCODE]) AND (GetSymbolValue(SymbolList, 'BIT16')=MAXINT) THEN  
 						BEGIN
@@ -586,6 +590,13 @@ BEGIN
 					ELSE IF (Value<0)  OR (Value>MAX_PARAMETER_RANGE) THEN SyntaxError('Invalid parameter value "'+CurrentText+'"');
 					
 					CurrentCondactParams[i].Value := Value;
+					// Semantic Check
+					IF (NOT CurrentCondactParams[i].Indirection) AND (NOT SemanticExempt) THEN
+					BEGIN
+						SemanticError := SemanticCheck(Opcode, i+1, Value);
+						if (SemanticError<>'') THEN SyntaxError(SemanticError);
+					END;
+
 				END;
 				AddProcessCondact(SomeEntryCondacts, Opcode, GetNumParams(Opcode), CurrentCondactParams, false);
 			END 
