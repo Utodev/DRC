@@ -22,8 +22,17 @@ define('XMES_OPCODE', 128);
 define('XPICTURE_OPCODE',130);
 define('XSAVE_OPCODE',131);
 define('XLOAD_OPCODE',132);
-define('XPART_OPCODE', 133);
+define('XPART_OPCODE',133);
+define('XPLAY_OPCODE',134);
+
+define('PAUSE_OPCODE',  35);
 define('EXTERN_OPCODE', 61);
+define('BEEP_OPCODE',   64);
+
+define('XPLAY_OCTAVE', 0);
+define('XPLAY_VOLUME', 1);
+define('XPLAY_LENGTH', 2);
+define('XPLAY_TEMPO',  3);
 
 //================================================================= filewrite ========================================================
 
@@ -740,6 +749,25 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Condact = 'EXTERN';
                     if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XPART condact requires Maluva Extension');
                 }
+                else if ($condact->Opcode == XPLAY_OPCODE)
+                {
+                    // Default values
+                    $values = array(XPLAY_OCTAVE => 4, XPLAY_VOLUME => 8, XPLAY_LENGTH =>4, XPLAY_TEMPO => 120);
+                    $xplay = array();
+                    $mml = strtoupper($adventure->mml[$condact->Param1]);
+
+                    while ($mml) {
+                        $next = strpbrk(substr($mml, 1), "ABCDEFGABLNORTVSM<>");
+                        if ($next!==false)
+                            $note = substr($mml, 0, strlen($mml)-strlen($next));
+                        else 
+                            $note = $mml;
+                        $beep = mmlToBeep($note, $values);
+                        if ($beep!==NULL) $xplay[] = $beep;
+                        $mml = $next;
+                    }
+                    array_splice($entry->condacts, $condactID, 1, $xplay);
+                }
             }
         }
     }
@@ -1095,6 +1123,103 @@ function prependC64HeaderToDDB($outputFileName)
     fclose($outputHandle);
     unlink($outputFileName);
     rename("prepend.tmp" ,$outputFileName);
+}
+
+//********************************************** XPLAY *************************************************************** */
+
+function mmlToBeep($note, &$values)
+{
+    $condact = NULL;
+    $noteIdx = array('C'=>0, 'C#'=>1, 'D'=>2, 'D#'=>3, 'E'=>4,  'F'=>5, 'F#'=>6, 'G'=>7, 'G#'=>8, 'A'=>9, 'A#'=>10, 'B'=>11,
+                     'C+'=>1,         'D+'=>3,         'E+'=>5, 'F+'=>6,         'G+'=>8,         'A+'=>10,         'B+'=>12,
+                     'C-'=>-1,        'D-'=>1,         'E-'=>3, 'F-'=>4,         'G-'=>6,         'A-'=>8,          'B-'=>10);
+    $baseLength = 100; // Full note (2 sec)
+
+    $cmd = $note[0];
+    // ############ Note: [A-G][#:halftone][num:length][.:period]
+    if ($cmd>='A' && $cmd<='G') {
+        $period = 1;                        //Period increase length
+        while (substr($note, -1)=='.') {
+            $period *= 1.5;
+            $note = substr($note, 0, strlen($note)-1);
+        }
+        $length = $values[XPLAY_LENGTH] * $period;
+        
+        $end = 1;                           //Note index
+        if (@$note[1]=='#' || @$note[1]=='-' || @$note[1]=='+') $end++;
+        $idx = $noteIdx[substr($note, 0, $end)];
+        
+        if ($end<strlen($note))             //Length
+            $length = intval(substr($note, $end)) * $period;
+
+        $condact = new stdClass();
+        $condact->Opcode = BEEP_OPCODE;
+        $condact->NumParams = 2;
+        $condact->Param1 = intval(round($baseLength * $values[XPLAY_TEMPO] / $length));
+        $condact->Param2 = 24 + $values[XPLAY_OCTAVE]*24 + $idx*2;
+        $condact->Indirection1 = 0;
+        $condact->Condact = 'BEEP';
+    } else
+    // ############ Note lenght [1-64] (1=full note, 2=half note, 3=third note, ..., default:4)
+    if ($cmd=='L') {
+        $values[XPLAY_LENGTH] = intval(substr($note, 1));
+    } else
+    // ############ Pause [1-64] (1=full pause, 2=half pause, 3=third pause, ...)
+    if ($cmd=='R') {
+        $period = 1;
+        while (substr($note, -1)=='.') {
+            $period *= 1.5;
+            $note = substr($note, 0, strlen($note)-1);
+        }
+        $length = intval(substr($note, 1)) * $period;
+
+        $condact = new stdClass();
+        $condact->Opcode = PAUSE_OPCODE;
+        $condact->NumParams = 1;
+        $condact->Param1 = intval(round($baseLength * $values[XPLAY_TEMPO] / $length));
+        $condact->Indirection1 = 0;
+        $condact->Condact = 'PAUSE';
+    } else
+    // ############ Note Pitch [0-96]
+    if ($cmd=='N') {
+        $period = 1;                        //Period increase length
+        while (substr($note, -1)=='.') {
+            $period *= 1.5;
+            $note = substr($note, 0, strlen($note)-1);
+        }
+        $length = $values['length'] * $period;
+
+        $idx = intval(substr($note, 1));    //Note index
+
+        $condact = new stdClass();
+        $condact->Opcode = BEEP_OPCODE;
+        $condact->NumParams = 2;
+        $condact->Param1 = intval(round($baseLength * $values['tempo'] / $length));
+        $condact->Param2 = 48 + $idx*2;
+        $condact->Indirection1 = 0;
+        $condact->Condact = 'BEEP';
+    } else
+    // ############ Octave [1-8] (default:4)
+    if ($cmd=='O') {
+        $values[XPLAY_OCTAVE] = intval(substr($note, 1));
+    } else
+    // ############ Tempo [32-255] (indicates the number of quarter notes per minute, default:120)
+    if ($cmd=='T') {
+        $values[XPLAY_TEMPO] = 120 / (intval(substr($note, 1)) & 255);
+    } else
+    // ############ Volume [0-15] (default:8)
+    if ($cmd=='V') {
+        $values[XPLAY_VOLUME] = intval(substr($note, 1)) & 15;  //[**Not supported by original BEEP DAAD condact**]
+    } else
+    // ############ Decreases one octave
+    if ($cmd=='<') {
+        if ($values[XPLAY_OCTAVE]>1) $values[XPLAY_OCTAVE]--;
+    } else
+    // ############ Increases one octave
+    if ($cmd=='>') {
+        if ($values[XPLAY_OCTAVE]<8) $values[XPLAY_OCTAVE]++;
+    }
+    return $condact;
 }
 
 
