@@ -540,7 +540,7 @@ BEGIN
 					  Scan();
 					END;
 			
-					IF (CurrentTokenID = T_STRING) AND (Opcode in [MESSAGE_OPCODE,MES_OPCODE, SYSMESS_OPCODE, XMES_OPCODE, XMESSAGE_OPCODE]) THEN  
+					IF (CurrentTokenID = T_STRING) AND (Opcode in [MESSAGE_OPCODE,MES_OPCODE, SYSMESS_OPCODE, XMES_OPCODE, XMESSAGE_OPCODE, XPLAY_OPCODE]) THEN  
 					BEGIN
 						SemanticExempt := true;
 						CurrentText := Copy(CurrentText, 2, Length(CurrentText)-2);
@@ -559,8 +559,16 @@ BEGIN
 							  XMES_OPCODE : Opcode := MES_OPCODE;
 							  XMESSAGE_OPCODE :Opcode := MESSAGE_OPCODE;
 						  END;
-						  CurrentIntVal := insertMessageFromProcess(Opcode, CurrentText, ClassicMode);
-						  MaXMESs :=MAX_MESSAGES_PER_TABLE;
+						  IF Opcode = XPLAY_OPCODE THEN 
+						  BEGIN
+						  	CurrentIntVal := insertMessageFromProcessIntoSpecificList(OtherTX, CurrentText);
+							MaXMESs := MAXINT;
+						  END
+						  ELSE
+						  BEGIN
+							CurrentIntVal := insertMessageFromProcess(Opcode, CurrentText, ClassicMode);
+							MaXMESs :=MAX_MESSAGES_PER_TABLE;
+						  END;
 						END;   
 
 	 				  IF CurrentIntVal>=MaXMESs THEN
@@ -799,6 +807,7 @@ BEGIN
 	STXCount := 0;
 	LTXCount := 0;
 	OTXCount := 0;
+	OtherTXCount := 0;
 	Target := ATarget;
 	Subtarget := ASubtarget;
 	ParseCTL();

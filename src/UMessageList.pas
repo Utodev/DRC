@@ -12,9 +12,9 @@ TYPE TPMessageList = ^TMessageList;
 				Next : TPMessageList;
 			  end;
 
-var MTX, STX, LTX, OTX, XTX : TPMessageList;	 // XTX is the message table for fake condact XMESSAGE
+var MTX, STX, LTX, OTX, XTX, OtherTX : TPMessageList;	 // XTX is the message table for fake condact XMESSAGE
 
-	MTXCount, STXCount, LTXCount, OTXCount, XTXCount : Longint;		  
+	MTXCount, STXCount, LTXCount, OTXCount, XTXCount, OtherTXCount : Longint;		  
 
 FUNCTION insertMessageFromProcess(Var Opcode: Longint; AText : AnsiString; ClassicMode: Boolean ): Longint;
 
@@ -108,5 +108,11 @@ BEGIN
   Result := MessageID;
 END;
 
-
+BEGIN
+	MTX := nil;
+	STX := nil;
+	OTX := nil;
+	LTX := nil;
+	XTX := nil;
+	OtherTX := nil;
 END.			     

@@ -6,8 +6,7 @@ INTERFACE
 USES UConstants;
 
 type TParamType = (none, locno, objno, flagno, sysno, mesno, procno, value, locno_, percent, vocabulary, 
-				   skip,
-				   xmes,
+				   skip, string_,
 				   window // 0-7
 				   );
 
@@ -150,12 +149,13 @@ CONST Condacts : ARRAY[0..NUM_CONDACTS+NUM_FAKE_CONDACTS - 1] OF TCondact = (
 (NumParams:0;Condact:'RESET' ;Type1: none; Type2: none),  // 127 
 
 // Additional fake condacts
-(Numparams:1;Condact:'XMES';Type1: xmes; Type2: none),     //128
-(Numparams:1;Condact:'XMESSAGE';Type1: xmes; Type2: none),  //129
+(Numparams:1;Condact:'XMES';Type1: string_; Type2: none),     //128
+(Numparams:1;Condact:'XMESSAGE';Type1: string_; Type2: none),  //129
 (Numparams:1;Condact:'XPICTURE';Type1: value; Type2: none),  //130
 (Numparams:1;Condact:'XSAVE';Type1: value; Type2: none),    //131
 (Numparams:1;Condact:'XLOAD';Type1: value; Type2: none),  //132
-(Numparams:1;Condact:'XPART';Type1: value; Type2: none)  //133
+(Numparams:1;Condact:'XPART';Type1: value; Type2: none),  //133
+(Numparams:1;Condact:'XPLAY';Type1: string_; Type2: none) //134
 );
 
 (* Returns the condact index in the codacts table, or -1 if not found*)
@@ -214,22 +214,22 @@ VAR ExpectedType : TParamType;
 BEGIN
  ExpectedType := GetParamType(Opcode, ParamNum);
  Result := '';
- case ExpectedType of
- locno: IF ParamValue >= LTXCount THEN Result := 'Location ' + IntToStr(ParamValue) + ' does not exist';
- objno: IF ParamValue >= OTXCount THEN Result := 'Object ' + IntToStr(ParamValue) + ' does not exist';
- flagno: Result := '';
- sysno: IF ParamValue >= STXCount THEN Result := 'System message ' + IntToStr(ParamValue) + ' does not exist';
- mesno: IF ParamValue >= MTXCount THEN Result := 'Message ' + IntToStr(ParamValue) + ' does not exist';
- procno: Result := ''; // For the time being we don't check procno as there could be forward references
- value: Result := '';
- locno_: IF (ParamValue >= LTXCount) AND (ParamValue< 252) THEN Result := 'Location  ' + IntToStr(ParamValue) + ' does not exist';
- percent: IF ParamValue > 100 THEN Result := '';
- vocabulary : Result := ''; 
- skip: Result := '';
- xmes : Result := '';
- window :  IF ParamValue > 7  then Result := 'Invalid window number, must be in the 0-7 range';
- else Result := '';
- end; //case
+ CASE ExpectedType OF
+	locno: IF ParamValue >= LTXCount THEN Result := 'Location ' + IntToStr(ParamValue) + ' does not exist';
+	objno: IF ParamValue >= OTXCount THEN Result := 'Object ' + IntToStr(ParamValue) + ' does not exist';
+	flagno: Result := '';
+	sysno: IF ParamValue >= STXCount THEN Result := 'System message ' + IntToStr(ParamValue) + ' does not exist';
+	mesno: IF ParamValue >= MTXCount THEN Result := 'Message ' + IntToStr(ParamValue) + ' does not exist';
+	procno: Result := ''; // For the time being we don't check procno as there could be forward references
+	value: Result := '';
+	locno_: IF (ParamValue >= LTXCount) AND (ParamValue< 252) THEN Result := 'Location  ' + IntToStr(ParamValue) + ' does not exist';
+	percent: IF ParamValue > 100 THEN Result := '';
+	vocabulary : Result := ''; 
+	skip: Result := '';
+	string_ : Result := '';
+	window :  IF ParamValue > 7  THEN Result := 'Invalid window number, must be in the 0-7 range';
+	ELSE Result := '';
+ END; //case
 END;
 
 END.
