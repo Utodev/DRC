@@ -768,6 +768,15 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     }
                     array_splice($entry->condacts, $condactID, 1, $xplay);
                 }
+                else if ($condact->Opcode == BEEP_OPCODE)
+                {
+                    if ($target=='ZX')  // Zx Spectrum expects BEEP parameters in opposite order
+                    {
+                        $tmp = $condact->Param1;
+                        $condact->Param1 = $condact->Param2;
+                        $condact->Param2 = $tmp;
+                    }
+                }
             }
         }
     }
@@ -1165,12 +1174,6 @@ function mmlToBeep($note, &$values, $target)
         if ($target == 'C64') $condact->Param2 -= 24; // C64 interpreter pitch it's too high otherwise
         $condact->Indirection1 = 0;
         $condact->Condact = 'BEEP';
-        if ($target=='ZX')  // Zx Spectrum expects the parameters in opposite order
-        {
-            $tmp = $condact->Param1;
-            $condact->Param1 = $condact->Param2;
-            $condact->Param2 = $tmp;
-        }
     } else
     // ############ Note lenght [1-64] (1=full note, 2=half note, 3=third note, ..., default:4)
     if ($cmd=='L') {
@@ -1536,7 +1539,7 @@ if ($adventure->verbose) summary($adventure);
 if ($adventure->verbose) echo "$outputFileName for $target created.\n";
 if ($currentAddress>0xFFFF) echo "Warning: DDB file goes " . ($currentAddress - 0xFFFF) . " bytes over the 65535 memory address boundary.\n";
 echo "DDB size is " . ($fileSize - $baseAddress) . " bytes.\nDatabase ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
-if ($xMessageSize) echo "XMessages size is $xMessageSize bytes in files of ". $maxFileSizeForXMessages. "K.\n";
+if ($xMessageSize) echo "XMessages size is $  bytes in files of ". $maxFileSizeForXMessages. "K.\n";
 if ($textSavings>0) echo "Text compression saving: $textSavings bytes.\n";
 if ($adventure->prependC64Header)
 {
