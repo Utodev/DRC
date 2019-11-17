@@ -749,6 +749,15 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Condact = 'EXTERN';
                     if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XPART condact requires Maluva Extension');
                 }
+                else if ($condact->Opcode == BEEP_OPCODE)
+                {
+                    if ($target=='ZX')  // Zx Spectrum expects BEEP parameters in opposite order
+                    {
+                        $tmp = $condact->Param1;
+                        $condact->Param1 = $condact->Param2;
+                        $condact->Param2 = $tmp;
+                    }
+                }
                 else if ($condact->Opcode == XPLAY_OPCODE)
                 {
                     // Default values
@@ -767,15 +776,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                         $mml = $next;
                     }
                     array_splice($entry->condacts, $condactID, 1, $xplay);
-                }
-                else if ($condact->Opcode == BEEP_OPCODE)
-                {
-                    if ($target=='ZX')  // Zx Spectrum expects BEEP parameters in opposite order
-                    {
-                        $tmp = $condact->Param1;
-                        $condact->Param1 = $condact->Param2;
-                        $condact->Param2 = $tmp;
-                    }
+                    if (sizeof($xplay))  $condactID --; // As the current condact has been replaced with a sequentia of BEEPs, we move the pointer one step back to make sure the changes made for BEEP in ZX Spectrum applies
                 }
             }
         }
