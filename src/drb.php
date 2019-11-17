@@ -695,7 +695,8 @@ function checkMaluva($adventure)
 
 function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $isLittleEndian, $target)
 {     
-    //PASS ZERO, CHECK THE PROCESSES AND REPLACE XMESSAGE WITH PROPER EXTERN CALLS. MAKE SURE MALUVA IS INCLUDED
+    //PASS ZERO, CHECK THE PROCESSES AND REPLACE SOME CONDACTS LIKE XMESSAGE WITH PROPER EXTERN CALLS. MAKE SURE MALUVA IS INCLUDED
+    //           ALSO FIX SOME BUGS LIKE ZX BEEP CONDACT WRONG ORDER
     for ($procID=0;$procID<sizeof($adventure->processes);$procID++)
     {
         $process = $adventure->processes[$procID];
@@ -1142,7 +1143,7 @@ function mmlToBeep($note, &$values, $target)
     // These targets don't support BEEP condact
     if ($target=='MSX') return NULL;
     if ($target=='CPC') return NULL;
-
+    if ($target=='ST') return NULL;
 
     $condact = NULL;
     $noteIdx = array('C'=>0, 'C#'=>1, 'D'=>2, 'D#'=>3, 'E'=>4,  'F'=>5, 'F#'=>6, 'G'=>7, 'G#'=>8, 'A'=>9, 'A#'=>10, 'B'=>11,
@@ -1210,7 +1211,7 @@ function mmlToBeep($note, &$values, $target)
         $condact = new stdClass();
         $condact->Opcode = BEEP_OPCODE;
         $condact->NumParams = 2;
-        $condact->Param1 = intval(round($baseLength * $values[XPLAY_TEMPO] / $length));
+        $condact->Param1 = intval(round($baseLength * (120 / $values[XPLAY_TEMPO]) / $length));
         $condact->Param2 = 48 + $idx*2;
         $condact->Indirection1 = 0;
         $condact->Condact = 'BEEP';
@@ -1540,7 +1541,7 @@ if ($adventure->verbose) summary($adventure);
 if ($adventure->verbose) echo "$outputFileName for $target created.\n";
 if ($currentAddress>0xFFFF) echo "Warning: DDB file goes " . ($currentAddress - 0xFFFF) . " bytes over the 65535 memory address boundary.\n";
 echo "DDB size is " . ($fileSize - $baseAddress) . " bytes.\nDatabase ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
-if ($xMessageSize) echo "XMessages size is $  bytes in files of ". $maxFileSizeForXMessages. "K.\n";
+if ($xMessageSize) echo "XMessages size is $xMessageSize bytes in files of ". $maxFileSizeForXMessages. "K.\n";
 if ($textSavings>0) echo "Text compression saving: $textSavings bytes.\n";
 if ($adventure->prependC64Header)
 {
