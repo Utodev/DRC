@@ -1,8 +1,5 @@
 <?php
 
-
-
-
 global $adventure;
 global $xMessageOffsets;
 global $xMessageSize;
@@ -24,6 +21,7 @@ define('XSAVE_OPCODE',131);
 define('XLOAD_OPCODE',132);
 define('XPART_OPCODE',133);
 define('XPLAY_OPCODE',134);
+define('XBEEP_OPCODE',135);
 
 define('PAUSE_OPCODE',  35);
 define('EXTERN_OPCODE', 61);
@@ -750,13 +748,50 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Condact = 'EXTERN';
                     if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XPART condact requires Maluva Extension');
                 }
+                else if ($condact->Opcode == XBEEP_OPCODE)
+                {
+                    if (($condact->Param2<48) || ($condact->Param2>238)) 
+                    {
+                        $condact->Opcode = PAUSE_OPCODE;
+                        $condact->Condact = 'PAUSE';
+                        $condact->NumParams = 1;
+                    }
+                    else
+                    {
+                        $condact->Opcode = EXTERN_OPCODE;
+                        $condact->NumParams=3;
+                        $condact->Param3 = $condact->Param2; 
+                        $condact->Param2 = 5; // Maluva function 5
+                        $condact->Condact = 'EXTERN'; // XBEEP A B  ==> EXTERN A 5 B  (3 parameters)
+                        if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XBEEP condact requires Maluva Extension');
+                    }
+                }
                 else if ($condact->Opcode == BEEP_OPCODE)
                 {
-                    if ($target=='ZX')  // Zx Spectrum expects BEEP parameters in opposite order
+                    
+                    // Out of range values, replace BEEP with PAUSE
+                    if (($condact->Param2<48) || ($condact->Param2>238)) 
+                    {
+                        $condact->Opcode = PAUSE_OPCODE;
+                        $condact->Condact = 'PAUSE';
+                        $condact->NumParams = 1;
+                    }
+                    else
+                    if ($target=='ZX')  // Zx Spectrum interpreter expects BEEP parameters in opposite order
                     {
                         $tmp = $condact->Param1;
                         $condact->Param1 = $condact->Param2;
                         $condact->Param2 = $tmp;
+                    }
+                    else
+                    if (($target=='MSX') || (target=='CPC')) // Convert BEEP to XBEEP
+                    {
+                        $condact->Opcode = EXTERN_OPCODE;
+                        $condact->NumParams=3;
+                        $condact->Param3 = $condact->Param2; 
+                        $condact->Param2 = 5; // Maluva function 5
+                        $condact->Condact = 'EXTERN'; // XBEEP A B  ==> EXTERN A 5 B  (3 parameters)
+                        if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XBEEP condact requires Maluva Extension');
                     }
                 }
                 else if ($condact->Opcode == XPLAY_OPCODE)
@@ -777,7 +812,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                         $mml = $next;
                     }
                     array_splice($entry->condacts, $condactID, 1, $xplay);
-                    if (sizeof($xplay))  $condactID --; // As the current condact has been replaced with a sequentia of BEEPs, we move the pointer one step back to make sure the changes made for BEEP in ZX Spectrum applies
+                    if (sizeof($xplay)) $condactID --; // As the current condact has been replaced with a sequentia of BEEPs, we move the pointer one step back to make sure the changes made for BEEP in ZX Spectrum applies
                 }
             }
         }
@@ -1141,15 +1176,19 @@ function prependC64HeaderToDDB($outputFileName)
 function mmlToBeep($note, &$values, $target)
 {
     // These targets don't support BEEP condact
-    if ($target=='MSX') return NULL;
-    if ($target=='CPC') return NULL;
-    if ($target=='ST') return NULL;
+    if (($target=='ST') || ($target=='AMIGA') ||($target=='PC') || ($target=='PCW')) return NULL;
 
     $condact = NULL;
     $noteIdx = array('C'=>0, 'C#'=>1, 'D'=>2, 'D#'=>3, 'E'=>4,  'F'=>5, 'F#'=>6, 'G'=>7, 'G#'=>8, 'A'=>9, 'A#'=>10, 'B'=>11,
                      'C+'=>1,         'D+'=>3,         'E+'=>5, 'F+'=>6,         'G+'=>8,         'A+'=>10,         'B+'=>12,
                      'C-'=>-1,        'D-'=>1,         'E-'=>3, 'F-'=>4,         'G-'=>6,         'A-'=>8,          'B-'=>10);
-    $baseLength = 200; // Full note (1 sec)
+    switch ($target)
+    {
+        case 'ZX': $baseLength = 195; break;
+        case 'C64': $baseLength = 205; break;
+        default: $baseLength = 200; // Full note (1 sec)
+    }
+    
 
     $cmd = $note[0];
     // ############ Note: [A-G][#:halftone][num:length][.:period]
@@ -1159,23 +1198,23 @@ function mmlToBeep($note, &$values, $target)
             $period *= 1.5;
             $note = substr($note, 0, strlen($note)-1); 
         }
-        $length = $values[XPLAY_LENGTH] * $period;
+        $length = $values[XPLAY_LENGTH] / $period;
         
         $end = 1;                           //Note index
         if (@$note[1]=='#' || @$note[1]=='-' || @$note[1]=='+') $end++;
         $idx = $noteIdx[substr($note, 0, $end)];
         
         if ($end<strlen($note))             //Length
-            $length = intval(substr($note, $end)) * $period;
+            $length = intval(substr($note, $end)) / $period;
 
         $condact = new stdClass();
-        $condact->Opcode = BEEP_OPCODE;
+        if (($target=='MSX') || ($target=='CPC')) $condact->Opcode = XBEEP_OPCODE; else $condact->Opcode = BEEP_OPCODE;
         $condact->NumParams = 2;
         $condact->Param1 = intval(round($baseLength * (120 / $values[XPLAY_TEMPO]) / $length));
         $condact->Param2 = 24 + $values[XPLAY_OCTAVE]*24 + $idx*2;
         if ($target == 'C64') $condact->Param2 -= 24; // C64 interpreter pitch it's too high otherwise
         $condact->Indirection1 = 0;
-        $condact->Condact = 'BEEP';
+        if (($target=='MSX') ||($target=='CPC')) $condact->Condact = 'XBEEP'; else $condact->Condact = 'BEEP';
     } else
     // ############ Note lenght [1-64] (1=full note, 2=half note, 3=third note, ..., default:4)
     if ($cmd=='L') {
@@ -1188,7 +1227,7 @@ function mmlToBeep($note, &$values, $target)
             $period *= 1.5;
             $note = substr($note, 0, strlen($note)-1);
         }
-        $length = intval(substr($note, 1)) * $period;
+        $length = intval(substr($note, 1)) / $period;
 
         $condact = new stdClass();
         $condact->Opcode = PAUSE_OPCODE;
@@ -1204,17 +1243,17 @@ function mmlToBeep($note, &$values, $target)
             $period *= 1.5;
             $note = substr($note, 0, strlen($note)-1);
         }
-        $length = $values[XPLAY_LENGTH] * $period;
+        $length = $values[XPLAY_LENGTH] / $period;
 
         $idx = intval(@substr($note, 1));    //Note index
 
         $condact = new stdClass();
-        $condact->Opcode = BEEP_OPCODE;
+        if (($target=='MSX') || ($target=='CPC')) $condact->Opcode = XBEEP_OPCODE; else $condact->Opcode = BEEP_OPCODE;
         $condact->NumParams = 2;
         $condact->Param1 = intval(round($baseLength * (120 / $values[XPLAY_TEMPO]) / $length));
         $condact->Param2 = 48 + $idx*2;
         $condact->Indirection1 = 0;
-        $condact->Condact = 'BEEP';
+        if (($target=='MSX') ||($target=='CPC')) $condact->Condact = 'XBEEP'; else $condact->Condact = 'BEEP';
     } else
     // ############ Octave [1-8] (default:4)
     if ($cmd=='O') {
