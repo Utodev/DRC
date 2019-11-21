@@ -115,6 +115,7 @@ BEGIN
   IF target='MSX' THEN Result:='MLV_MSX.BIN' ELSE
   IF target='C64' THEN Result:='MLV_C64.BIN' ELSE
   IF target='CPC' THEN Result:='MLV_CPC.BIN' ELSE
+  IF target='PCW' THEN Result:='MLV_PCW.BIN' ELSE
   IF target='MSX2' THEN Result:= 'MSX2' ELSE  Result:='MALUVA';
 END;
 
