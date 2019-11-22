@@ -1,3 +1,5 @@
+// (C) Uto 2019 - This code is released under the GPL v3 license
+
 PROGRAM DRC;
 {$MODE OBJFPC}
 {$I-}
