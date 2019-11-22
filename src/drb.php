@@ -1,4 +1,8 @@
 <?php
+// (C) Uto & Jose Manuel Ferrer 2019 - This code is released under the GPL v3 license
+// To build the backend of DAAD reborn compiler I have had aid from Jose Manuel Ferrer Ortiz's DAAD database code,
+// which he glently provided me. In some cases the code has been even copied and pasted, so that's why he is also
+// in the copyright notice above. Thanks Jose Manuel for this invaluable aid.
 
 global $adventure;
 global $xMessageOffsets;
@@ -6,12 +10,6 @@ global $xMessageSize;
 global $maxFileSizeForXMessages;
 
 $xMessageSize = 0;
-
-// (C) Uto & Jose Manuel Ferrer 2019 - This code is released under the GPL v3 license
-// To build the backend of DAAD reborn compiler I have had aid from Jose Manuel Ferrer Ortiz's DAAD database code,
-// which he glently provided me. In some cases the code has been even copied and pasted, so that's why he is also
-// in the copyright notice above. Thanks Jose Manuel for this invaluable aid.
-
 
 define('FAKE_DEBUG_CONDACT_CODE',220);
 define('FAKE_USERPTR_CONDACT_CODE',256);    
