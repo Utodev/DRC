@@ -164,8 +164,8 @@ function generateTokens(&$adventure, &$currentAddress, $outputFileHandler, $hasT
             } 
             else if ($adventure->verbose)
             {
-                if ($tokenSavings[$j]==0) echo "Token [" . $compressionData->tokens[$j] . "] won't be used cause it was not used by any text.\n";
-                                     else echo "Token [" . $compressionData->tokens[$j] . "] won't be used cause using it wont save any bytes, but waste ".abs($tokenSavings[$j])." byte.\n";
+                if ($tokenSavings[$j]==0) echo "Warning: token [" . $compressionData->tokens[$j] . "] won't be used cause it was not used by any text.\n";
+                                     else echo "Warning: token [" . $compressionData->tokens[$j] . "] won't be used cause using it wont save any bytes, but waste ".abs($tokenSavings[$j])." byte.\n";
             } 
         }
         $savings = $totalSaving;
@@ -382,6 +382,7 @@ function getXMessageFileSizeByTarget($target, $adventure)
     {
         case 'ZX'  : return 64; 
         case 'MSX' : return 64; 
+        case 'PCW' : return 64; 
         case 'MSX2': return 16; 
         case 'CPC' : return 2;
         case 'C64' : return 2;
@@ -926,6 +927,18 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                 if (!$adventure->classicMode) if (in_array($opcode, $terminatorOpcodes)) 
                 {
                     $terminatorFound = true;
+                    if ($adventure->verbose)
+                    {
+                        if ($condactID != sizeof($entry->condacts) -1 ) // Terminator found, but additional condacts exists in the entry
+                        {
+                            $humanEntryID =$entryID + 1; // entryID increased so for human readability entries are from #1 to #n, not from #0 to #n
+                            $verb = $entry->Verb;
+                            $noun = $entry->Noun;
+                            $condactName = $entry->condacts[$condactID+1]->Condact;
+                            $dumped = ($adventure->classicMode) ? "has been" : "hasn't been";
+                            echo "Warning: There are condacts after a terminator condact in entry #$humanEntryID at process #$procID: $condactName. Condact $dumped dumped to DDB file.\n";
+                        }
+                    }
                     break; // If a terminator condact found, no more condacts in the entry will be ever executed, so we break the loop (normally there won't be more condacts anyway)
                 }
             }
