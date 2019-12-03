@@ -5,10 +5,11 @@ INTERFACE
 
 USES UConstants;
 
-type TParamType = (none, locno, objno, flagno, sysno, mesno, procno, value, locno_, percent, vocabulary, 
-				   skip, string_,
-				   window // 0-7
-				   );
+type TParamType = (none, locno, objno, flagno, sysno, mesno, procno, value, locno_, percent, 
+				  vocabularyVerb, vocabularyNoun, vocabularyPrep, vocabularyAdverb, vocabularyAdjective, 
+				  skip, string_,
+				  window // 0-7
+				  );
 
 TYPE TCondact = record
 				 NumParams : Byte;
@@ -35,8 +36,8 @@ CONST Condacts : ARRAY[0..NUM_CONDACTS+NUM_FAKE_CONDACTS - 1] OF TCondact = (
 (NumParams:2;Condact:'EQ'    ;Type1: flagno; Type2: value), //  13
 (NumParams:2;Condact:'GT'    ;Type1: flagno; Type2: value), //  14
 (NumParams:2;Condact:'LT'    ;Type1: flagno; Type2: value), //  15
-(NumParams:1;Condact:'ADJECT1';Type1: vocabulary; Type2: none), //  16
-(NumParams:1;Condact:'ADVERB' ;Type1: vocabulary; Type2: none), //  17
+(NumParams:1;Condact:'ADJECT1';Type1: vocabularyAdjective; Type2: none), //  16
+(NumParams:1;Condact:'ADVERB' ;Type1: vocabularyAdverb; Type2: none), //  17
 (NumParams:2;Condact:'SFX'   ;Type1: value; Type2: value), //  18 
 (NumParams:1;Condact:'DESC'  ;Type1: locno; Type2: none), //  19
 (NumParams:0;Condact:'QUIT'  ;Type1: none; Type2: none), //  20
@@ -55,7 +56,7 @@ CONST Condacts : ARRAY[0..NUM_CONDACTS+NUM_FAKE_CONDACTS - 1] OF TCondact = (
 (NumParams:0;Condact:'AUTOW' ;Type1: none; Type2: none), //  33
 (NumParams:0;Condact:'AUTOR' ;Type1: none; Type2: none), //  34
 (NumParams:1;Condact:'PAUSE' ;Type1: none; Type2: none), //  35
-(NumParams:2;Condact:'SYNONYM';Type1: vocabulary; Type2: vocabulary), //  36
+(NumParams:2;Condact:'SYNONYM';Type1: vocabularyVerb; Type2: vocabularyNoun), //  36
 (NumParams:1;Condact:'GOTO'  ;Type1: locno; Type2: none), //  37
 (NumParams:1;Condact:'MESSAGE';Type1: mesno; Type2: none), //  38
 (NumParams:1;Condact:'REMOVE' ;Type1: objno; Type2: none), //  39
@@ -87,9 +88,9 @@ CONST Condacts : ARRAY[0..NUM_CONDACTS+NUM_FAKE_CONDACTS - 1] OF TCondact = (
 (NumParams:1;Condact:'PAPER' ;Type1: value; Type2: none), //  65
 (NumParams:1;Condact:'INK'   ;Type1: value; Type2: none), //  66
 (NumParams:1;Condact:'BORDER' ;Type1: value; Type2: none), //  67
-(NumParams:1;Condact:'PREP'  ;Type1: vocabulary; Type2: none), //  68
-(NumParams:1;Condact:'NOUN2' ;Type1: vocabulary; Type2: none), //  69
-(NumParams:1;Condact:'ADJECT2';Type1: vocabulary; Type2: none), //  70
+(NumParams:1;Condact:'PREP'  ;Type1: vocabularyPrep; Type2: none), //  68
+(NumParams:1;Condact:'NOUN2' ;Type1: vocabularyNoun; Type2: none), //  69
+(NumParams:1;Condact:'ADJECT2';Type1: vocabularyAdjective; Type2: none), //  70
 (NumParams:2;Condact:'ADD'   ;Type1: flagno; Type2: flagno), //  71
 (NumParams:2;Condact:'SUB'   ;Type1: flagno; Type2: flagno), //  72
 (NumParams:1;Condact:'PARSE' ;Type1: value; Type2: none), //  73
@@ -166,12 +167,12 @@ FUNCTION GetCondact(Condact : String): Integer;
 FUNCTION GetNumParams(Opcode: Byte): Byte;
 
 (* Performs semantic check for parameters *)
-FUNCTION SemanticCheck(Opcode: Byte; ParamNum: Byte; ParamValue: Byte): AnsiString;
+FUNCTION SemanticCheck(Opcode: Byte; ParamNum: Byte; ParamValue: Byte;ParamAsString: AnsiString): AnsiString;
 
 
 IMPLEMENTATION	
 
-USES SysUtils, UMessageList;
+USES SysUtils, UMessageList, UVocabularyTree;
 
 FUNCTION GetCondact(Condact : String): Integer;
 VAR i : integer;
@@ -210,7 +211,20 @@ BEGIN
 				   ELSE Result := Condacts[Opcode].Type2;
 END;
 
-FUNCTION SemanticCheck(Opcode: Byte; ParamNum: Byte; ParamValue: Byte): AnsiString;
+FUNCTION SemanticVocabularyCheck(VocType: TVocType; AWord: AnsiString):AnsiString;
+VAR	AVocabularyTree: TPVocabularyTree;
+BEGIN
+	IF Aword='_' THEN Result := ''
+	ELSE
+	BEGIN
+		AVocabularyTree := GetVocabulary(VocabularyTree,AWord,VocType);
+		IF AVocabularyTree = nil THEN Result:='Word not defined in vocabulary or it has an unexpected word type : ' + AWord
+								ELSE Result := '';
+    END;								
+END;
+
+
+FUNCTION SemanticCheck(Opcode: Byte; ParamNum: Byte; ParamValue: Byte; ParamAsString: AnsiString): AnsiString;
 VAR ExpectedType : TParamType;
 BEGIN
  ExpectedType := GetParamType(Opcode, ParamNum);
@@ -225,12 +239,17 @@ BEGIN
 	value: Result := '';
 	locno_: IF (ParamValue >= LTXCount) AND (ParamValue< 252) THEN Result := 'Location  ' + IntToStr(ParamValue) + ' does not exist';
 	percent: IF ParamValue > 100 THEN Result := '';
-	vocabulary : Result := ''; 
+	vocabularyVerb : Result := SemanticVocabularyCheck(VOC_VERB, ParamAsString);
+	vocabularyNoun : Result := SemanticVocabularyCheck(VOC_NOUN, ParamAsString);
+	vocabularyPrep : Result := SemanticVocabularyCheck(VOC_PREPOSITION, ParamAsString);
+	vocabularyAdjective : Result := SemanticVocabularyCheck(VOC_ADJECT, ParamAsString);
+	vocabularyAdverb : Result := SemanticVocabularyCheck(VOC_ADVERB, ParamAsString);
 	skip: Result := '';
 	string_ : Result := '';
 	window :  IF ParamValue > 7  THEN Result := 'Invalid window number, must be in the 0-7 range';
 	ELSE Result := '';
  END; //case
 END;
+
 
 END.

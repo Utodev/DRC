@@ -613,7 +613,7 @@ BEGIN
 					// Semantic Check
 					IF (NOT CurrentCondactParams[i].Indirection) AND (NOT SemanticExempt) AND NOt (NoSemantic) THEN
 					BEGIN
-						SemanticError := SemanticCheck(Opcode, i+1, Value);
+						SemanticError := SemanticCheck(Opcode, i+1, Value, CurrentText);
 						if (SemanticError<>'') THEN 
 						BEGIN
 						 IF SemanticWarnings THEN Warning(SemanticError) 
