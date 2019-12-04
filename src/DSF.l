@@ -46,7 +46,8 @@
 _				BEGIN  AddToken(TokenList, T_UNDERSCORE, yytext, MaxLongInt, yylineno, yycolno); END;
 *				BEGIN  AddToken(TokenList, T_UNDERSCORE, yytext, MaxLongInt, yylineno, yycolno); END;
 >				BEGIN  AddToken(TokenList, T_PROCESS_ENTRY_SIGN, yytext, MaxLongInt, yylineno, yycolno); END;
-\/[0-9]+		BEGIN  AddToken(TokenList, T_LIST_ENTRY, yytext, StrToInt(Copy(yytext,2,Length(yytext)-1)), yylineno, yycolno); END;
+\/[0-9]+        BEGIN  AddToken(TokenList, T_LIST_ENTRY, yytext, StrToInt(Copy(yytext,2,Length(yytext)-1)), yylineno, yycolno); END;
+\/[_,a-zA-Z0-9·ÈÌÛ˙¸¡…Õ”⁄‹Ò—Á«]+ BEGIN  AddToken(TokenList, T_LIST_ENTRY, Copy(yytext,2,Length(yytext)-1), MaxLongInt, yylineno, yycolno); END;
 ;.*\n 			BEGIN  END;
 -?[0-9]+        BEGIN  AddToken(TokenList, T_NUMBER, yytext, StrToInt(yytext), yylineno, yycolno); END;
 [_,a-zA-Z0-9·ÈÌÛ˙¸¡…Õ”⁄‹Ò—Á«]+ BEGIN  AddToken(TokenList, T_IDENTIFIER, yytext, MaxLongInt, yylineno, yycolno); END;

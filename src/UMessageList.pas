@@ -65,7 +65,7 @@ BEGIN
 		IF AMessageList <> XTX THEN // XTX has no limit by default
 			IF LastMessageID = MAX_MESSAGES_PER_TABLE-1 THEN
 			BEGIN
-				Result := Maxint; // Return Maxint to signal error
+				Result := MAXLONGINT; // Return MAXLONGINT to signal error
 				exit;
 			END;
 		AddMessage(AMessageList, LastMessageID + 1, AText);
@@ -86,7 +86,7 @@ BEGIN
   END;
 	if (ClassicMode) THEN
   BEGIN
-   Result := Maxint;
+   Result := MAXLONGINT;
    exit;
   END;
 

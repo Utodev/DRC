@@ -13,8 +13,6 @@ var ClassicMode : Boolean;
 	Target, Subtarget: AnsiString;
 	MaluvaUsed : Boolean;
 
-
-
 IMPLEMENTATION
 
 USES sysutils, UConstants, ULexTokens, USymbolList, UVocabularyTree, UMessageList, UCondacts, UConnections, UObjects, UProcess, UProcessCondactList, UCTLExtern,fpexprpars, strings, strutils;
@@ -90,9 +88,9 @@ END;
 FUNCTION ExtractValue():Longint;
 BEGIN
 	IF (CurrentTokenID=T_STRING) THEN Result := GetExpressionValue() ELSE 
-	IF (CurrentTokenID=T_NUMBER) OR (CurrentTokenID= T_IDENTIFIER) THEN Result := GetIdentifierValue() ELSE Result := MAXINT;
-	IF (Result = MAXINT) AND (CurrentTokenID=T_STRING) THEN SyntaxError('"'+CurrentText+'" is not a valid expression');
-	IF (Result = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
+	IF (CurrentTokenID=T_NUMBER) OR (CurrentTokenID= T_IDENTIFIER) THEN Result := GetIdentifierValue() ELSE Result := MAXLONGINT;
+	IF (Result = MAXLONGINT) AND (CurrentTokenID=T_STRING) THEN SyntaxError('"'+CurrentText+'" is not a valid expression');
+	IF (Result = MAXLONGINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
 END;
 
 PROCEDURE ParseDefine();
@@ -175,7 +173,7 @@ BEGIN
 													if CurrTokenPTR^.TokenID <> T_STRING THEN SyntaxError('Invalid #ifdef/#ifndef label, please include the label in betwween quotes');
 	 												MyDefine := CurrTokenPTR^.Text;
 	 												MyDefine := Copy(MyDefine, 2, Length(MyDefine) - 2);
-	 												Evaluation:= GetSymbolValue(SymbolList, MyDefine)<>MAXINT;
+	 												Evaluation:= GetSymbolValue(SymbolList, MyDefine)<>MAXLONGINT;
 	 												IF CurrentTokenID = T_IFNDEF THEN Evaluation:= not Evaluation;
 													IF NOT Evaluation THEN // ifdef/ifndef failed
 													BEGIN
@@ -259,7 +257,7 @@ BEGIN
 	Scan();
 	IF (CurrentTokenID=T_NUMBER) OR (CurrentTokenID=T_IDENTIFIER) THEN Value := GetIdentifierValue() 
 	ELSE SyntaxError('Number or Identifier expected');
-	IF (Value = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
+	IF (Value = MAXLONGINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
 	Scan();
 	IF (AnsiUpperCase(CurrentText)='VERB') THEN TheType :=VOC_VERB ELSE
 	IF (AnsiUpperCase(CurrentText)='NOUN') THEN TheType :=VOC_NOUN ELSE
@@ -289,7 +287,9 @@ BEGIN
 		Scan();
 		IF (CurrentTokenID <> TerminatorToken)  THEN
 		BEGIN
-			IF (CurrentTokenID<>T_LIST_ENTRY) THEN SyntaxError('Entry number expected');
+			IF (CurrentTokenID<>T_LIST_ENTRY) THEN SyntaxError('List entry number expected');
+			If CurrentIntVal = MAXLONGINT THEN CurrentIntVal := GetIdentifierValue();
+			IF CurrentIntVal = MAXLONGINT THEN SyntaxError('Invalid or unknown symbol "' + CurrentText+ '"'); 
 			Value := CurrentIntVal;
 			Scan();
 			IF (CurrentTokenID<>T_STRING) THEN SyntaxError('String between quotes expected');
@@ -347,7 +347,7 @@ BEGIN
 			Scan();
 			if (CurrentTokenID <> T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Location number expected');
 			ToLoc := GetIdentifierValue();
-			IF (ToLoc = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
+			IF (ToLoc = MAXLONGINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
 			IF FindConnection(Connections, FromLoc, ToLoc, Direction) THEN SyntaxError('Connection already defined');
 			AddConnection(Connections, FromLoc, ToLoc, Direction);
 		END;
@@ -362,6 +362,8 @@ BEGIN
 	Scan();
 	REPEAT 
 		IF (CurrentTokenID <> T_LIST_ENTRY) THEN SyntaxError('Location entry expected but "'+CurrentText+'" found');
+		If CurrentIntVal = MAXLONGINT THEN CurrentIntVal := GetIdentifierValue();
+		IF CurrentIntVal = MAXLONGINT THEN SyntaxError('Invalid or unknown symbol "' + CurrentText+ '"'); 
 		IF CurrentIntVal<>CurrentLoc THEN SyntaxError('Connections for location #' + IntToStr(CurrentLoc) + ' expected but location #' + IntToStr(CurrentIntVal) + ' found');
 		IF (CurrentIntVal>=LTXCount) THEN SyntaxError ('Location ' + IntToStr(CurrentIntVal) + ' is not defined');
 		ParseLocationConnections(CurrentLoc);
@@ -390,6 +392,8 @@ BEGIN
 		IF CurrentTokenID <> T_SECTION_PRO THEN
 		BEGIN
 			IF (CurrentTokenID <> T_LIST_ENTRY) THEN SyntaxError('Object entry expected but "'+CurrentText+'" found');
+			If CurrentIntVal = MAXLONGINT THEN CurrentIntVal := GetIdentifierValue();
+			IF CurrentIntVal = MAXLONGINT THEN SyntaxError('Invalid or unknown symbol "' + CurrentText+ '"'); 
 			IF CurrentIntVal<>CurrentObj THEN SyntaxError('Definition for object #' + IntToStr(Currentobj) + ' expected but object #' + IntToStr(CurrentIntVal) + ' found');
 			IF (CurrentIntVal>=OTXCount) THEN SyntaxError ('Object #' + IntToStr(CurrentIntVal) + ' not defined');
 
@@ -399,14 +403,14 @@ BEGIN
 			ELSE
 			BEGIN
 				InitialyAt:=GetIdentifierValue();
-				IF (InitialyAt = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
+				IF (InitialyAt = MAXLONGINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
 			END;	
 			IF (InitialyAt >= LTXCount) AND (InitialyAt <> LOC_NOT_CREATED) AND (InitialyAt <> LOC_WORN) AND (InitialyAt <> LOC_CARRIED) THEN SyntaxError('Invalid initial location' + IntToStr(InitialyAt));
 
 			Scan(); // Get Weight
 			IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Object weight expected');
 			Weight := GetIdentifierValue();
-			IF (Weight = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
+			IF (Weight = MAXLONGINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
 			IF (Weight >= MAX_FLAG_VALUE) THEN SyntaxError('Invalid weight :' + CurrentText);
 
 
@@ -477,7 +481,7 @@ BEGIN
 						SYNONYM_OPCODE: IF ParameterNumber=0 THEN AuxVocType := VOC_VERB ELSE AuxVocType:= VOC_NOUN;
  					 END;
   AuxVocabularyPTR := GetVocabulary(VocabularyTree, TheWord, AuxVocType);
-  IF AuxVocabularyPTR = nil THEN Result := MAXINT ELSE  Result := AuxVocabularyPTR^.Value;
+  IF AuxVocabularyPTR = nil THEN Result := MAXLONGINT ELSE  Result := AuxVocabularyPTR^.Value;
 END;
 
 PROCEDURE ParseProcessCondacts(var SomeEntryCondacts :  TPProcessCondactList);
@@ -511,19 +515,19 @@ BEGIN
 				BEGIN
 					IF Opcode = XPICTURE_OPCODE THEN
 					BEGIN
-						IF GetSymbolValue(SymbolList, 'BIT16')<>MAXINT THEN Opcode := PICTURE_OPCODE  // If 16 bit machine, no XPICTURE
+						IF GetSymbolValue(SymbolList, 'BIT16')<>MAXLONGINT THEN Opcode := PICTURE_OPCODE  // If 16 bit machine, no XPICTURE
 						ELSE IF (target='PCW')  THEN Opcode := PICTURE_OPCODE // If target PCW, no XPICTURE
 						ELSE MaluvaUsed := true;
 					END ELSE
 					IF Opcode = XSAVE_OPCODE THEN
 					BEGIN
-						IF GetSymbolValue(SymbolList, 'BIT16')<>MAXINT THEN Opcode := SAVE_OPCODE  // If 16 bit machine, no XSAVE
+						IF GetSymbolValue(SymbolList, 'BIT16')<>MAXLONGINT THEN Opcode := SAVE_OPCODE  // If 16 bit machine, no XSAVE
 						ELSE IF (Target='PCW') OR (Target='CPC') OR (Target='C64')  THEN Opcode := SAVE_OPCODE // If target PCW/C64/CPC, no XSAVE
 						ELSE MaluvaUsed := true;
 					END ELSE
 					IF Opcode = XLOAD_OPCODE THEN
 					BEGIN
-						IF GetSymbolValue(SymbolList, 'BIT16')<>MAXINT THEN Opcode := LOAD_OPCODE  // If 16 bit machine, no XLOAD
+						IF GetSymbolValue(SymbolList, 'BIT16')<>MAXLONGINT THEN Opcode := LOAD_OPCODE  // If 16 bit machine, no XLOAD
 						ELSE IF (Target='PCW') OR (Target='CPC') OR (Target='C64')  THEN Opcode := LOAD_OPCODE // If target PCW/C64/CPC, no XLOAD
 						ELSE MaluvaUsed := true;
 					END ELSE
@@ -550,7 +554,7 @@ BEGIN
 					BEGIN
 						SemanticExempt := true;
 						CurrentText := Copy(CurrentText, 2, Length(CurrentText)-2);
-						IF (Opcode IN [XMES_OPCODE, XMESSAGE_OPCODE]) AND (GetSymbolValue(SymbolList, 'BIT16')=MAXINT)  AND (NOT ForceNormalMessages) THEN  
+						IF (Opcode IN [XMES_OPCODE, XMESSAGE_OPCODE]) AND (GetSymbolValue(SymbolList, 'BIT16')=MAXLONGINT)  AND (NOT ForceNormalMessages) THEN  
 						BEGIN
 							IF (length(CurrentText)>511) THEN SyntaxError('Extended messages can be only up to 511 characters long. Your message is ' + IntToStr(length(CurrentText))+ ' long.');
 							// Convert XMESSAGE into XMES with a string with #n at the end
@@ -568,7 +572,7 @@ BEGIN
 						  IF Opcode = XPLAY_OPCODE THEN 
 						  BEGIN
 						  	CurrentIntVal := insertMessageFromProcessIntoSpecificList(OtherTX, CurrentText);
-							MaXMESs := MAXINT;
+							MaXMESs := MAXLONGINT;
 						  END
 						  ELSE
 						  BEGIN
@@ -589,19 +593,19 @@ BEGIN
 					IF (CurrentTokenID <> T_NUMBER) AND (CurrentTokenID <> T_IDENTIFIER) AND (CurrentTokenID<> T_UNDERSCORE) AND (CurrentTokenID<>T_STRING) THEN SyntaxError('Invalid condact parameter');
 
 					// Lets'de termine the value of the parameter
-					Value := MAXINT;
+					Value := MAXLONGINT;
 					// IF a string then eveluate expression
 					if CurrentTokenID = T_STRING THEN  Value  := GetExpressionValue();
 					// If  an underscore, value is clear
 					IF CurrentTokenID = T_UNDERSCORE THEN Value:= NO_WORD;
 					// Otherwise if the condact accepts words as parameters, check vocabulary first
-					IF (Value = MAXINT) AND  (Opcode in [SYNONYM_OPCODE, PREP_OPCODE, NOUN2_OPCODE, ADJECT1_OPCODE, ADVERB_OPCODE, ADJECT2_OPCODE]) THEN Value:= GetWordParamValue(CurrentText, Opcode, i);
+					IF (Value = MAXLONGINT) AND  (Opcode in [SYNONYM_OPCODE, PREP_OPCODE, NOUN2_OPCODE, ADJECT1_OPCODE, ADVERB_OPCODE, ADJECT2_OPCODE]) THEN Value:= GetWordParamValue(CurrentText, Opcode, i);
 					// Otherwise, check the symbol table
-					IF Value = MAXINT THEN Value := GetIdentifierValue();
+					IF Value = MAXLONGINT THEN Value := GetIdentifierValue();
 					// if still the value is not found, check the Vocavulary again, but more openly
-					IF Value = MAXINT THEN Value:= GetWordParamValue(CurrentText, 255);
-					// If still Maxint, then it should be a bad parameter
-					IF Value = MAXINT THEN SyntaxError('Invalid parameter #' + IntToStr(i+1) + ': "'+CurrentText+'"');
+					IF Value = MAXLONGINT THEN Value:= GetWordParamValue(CurrentText, 255);
+					// If still MAXLONGINT, then it should be a bad parameter
+					IF Value = MAXLONGINT THEN SyntaxError('Invalid parameter #' + IntToStr(i+1) + ': "'+CurrentText+'"');
 					IF (Opcode=SKIP_OPCODE) AND (Value<0) THEN Value := 256 + Value;
 					IF (Opcode in [XMES_OPCODE, XMESSAGE_OPCODE]) THEN 
 					BEGIN
@@ -644,7 +648,7 @@ BEGIN
 		BEGIN
 			Scan();
 			AuxLong := ExtractValue();
-			IF (AuxLong=MAXINT) THEN SyntaxError('#DB Unknown value "'+CurrentText+'"');
+			IF (AuxLong=MAXLONGINT) THEN SyntaxError('#DB Unknown value "'+CurrentText+'"');
 			IF (AuxLong<0) OR (AuxLong>255) THEN SyntaxError('DB value should be between 0 and 255');
 			IF Verbose THEN WriteLn('#DB ' + CurrentText + '('+IntToStr(AuxLong)+') processed');
 			AddProcessCondact(SomeEntryCondacts,CurrentIntVal , 0, CurrentCondactParams, true); // adds a fake condact, with the DB value as OPCODE and zero parameters
@@ -654,7 +658,7 @@ BEGIN
 		BEGIN
 			Scan();
 			AuxLong := ExtractValue();
-			IF (AuxLong=MAXINT) THEN SyntaxError('#DW Unknown value "'+CurrentText+'"');
+			IF (AuxLong=MAXLONGINT) THEN SyntaxError('#DW Unknown value "'+CurrentText+'"');
 			IF (AuxLong<0) OR (AuxLong>65535) THEN SyntaxError('DW value should be between 0 and 65535');
 			IF Verbose THEN WriteLn('#DW ' + CurrentText + '('+IntToStr(AuxLong)+') processed');
 			AddProcessCondact(SomeEntryCondacts,CurrentIntVal AND $FF , 0, CurrentCondactParams, true); 
@@ -794,7 +798,7 @@ BEGIN
 		Scan();
 		IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Process number expected but "'+CurrentText+'" found');
 		ProcNum := GetIdentifierValue();
-		IF (Procnum = MAXINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
+		IF (Procnum = MAXLONGINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
 		IF ProcNum<>CurrentProcess THEN SyntaxError('Definition for process #' + IntToStr(CurrentProcess) + ' expected but process #' + IntToStr(ProcNum) + ' found');
 		ProcessCount := ProcessCount + 1;
 		ParseProcessEntries(CurrentProcess);
