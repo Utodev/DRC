@@ -236,9 +236,9 @@ BEGIN
 	sysno: IF ParamValue >= STXCount THEN Result := 'System message ' + IntToStr(ParamValue) + ' does not exist';
 	mesno: IF ParamValue >= MTXCount THEN Result := 'Message ' + IntToStr(ParamValue) + ' does not exist';
 	procno: Result := ''; // For the time being we don't check procno as there could be forward references
-	value: Result := '';
+	value: IF (ParamValue<0) OR (ParamValue>255) THEN Result := 'Invalid value, must be in the 0-255 range';
 	locno_: IF (ParamValue >= LTXCount) AND (ParamValue< 252) THEN Result := 'Location  ' + IntToStr(ParamValue) + ' does not exist';
-	percent: IF ParamValue > 100 THEN Result := '';
+	percent: IF (ParamValue >= 100) OR (ParamValue=0) THEN Result := 'Invalid percent value, must be in the 1-99 range';
 	vocabularyVerb : Result := SemanticVocabularyCheck(VOC_VERB, ParamAsString);
 	vocabularyNoun : Result := SemanticVocabularyCheck(VOC_NOUN, ParamAsString);
 	vocabularyPrep : Result := SemanticVocabularyCheck(VOC_PREPOSITION, ParamAsString);
