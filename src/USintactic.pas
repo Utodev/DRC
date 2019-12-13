@@ -85,12 +85,17 @@ BEGIN
 	Result :=  ExpressionValue;
 END;	
 
-FUNCTION ExtractValue():Longint;
+FUNCTION ExtractValue(Symbol: AnsiString= ''):Longint;
 BEGIN
 	IF (CurrentTokenID=T_STRING) THEN Result := GetExpressionValue() ELSE 
 	IF (CurrentTokenID=T_NUMBER) OR (CurrentTokenID= T_IDENTIFIER) THEN Result := GetIdentifierValue() ELSE Result := MAXLONGINT;
 	IF (Result = MAXLONGINT) AND (CurrentTokenID=T_STRING) THEN SyntaxError('"'+CurrentText+'" is not a valid expression');
-	IF (Result = MAXLONGINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
+	IF (Result = MAXLONGINT) THEN 
+	BEGIN
+		IF Symbol<>'' THEN SyntaxError('Value for symbol "'+Symbol+'" is not valid: "' +CurrentText + '"')
+					  ELSE SyntaxError('"' +CurrentText + '" is not defined. Check DB/DW value.');
+	END;
+
 END;
 
 PROCEDURE ParseDefine();
@@ -101,7 +106,7 @@ BEGIN
 	if (CurrentTokenID<>T_IDENTIFIER) THEN SyntaxError('Identifier expected after #define' );
 	Symbol := CurrentText;
 	Scan();
-  Value := ExtractValue();
+  	Value := ExtractValue(Symbol);
 	if NOT AddSymbol(SymbolList, Symbol, Value) THEN SyntaxError('"' + Symbol + '" already defined');
 END;
 

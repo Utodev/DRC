@@ -20,10 +20,13 @@ define('XLOAD_OPCODE',132);
 define('XPART_OPCODE',133);
 define('XPLAY_OPCODE',134);
 define('XBEEP_OPCODE',135);
+define('XSPLITSCR_OPCODE',136);
+
 
 define('PAUSE_OPCODE',  35);
 define('EXTERN_OPCODE', 61);
 define('BEEP_OPCODE',   64);
+define('AT_OPCODE', 0);
 
 define('XPLAY_OCTAVE', 0);
 define('XPLAY_VOLUME', 1);
@@ -683,11 +686,12 @@ function getCondactsHash($adventure, $condacts, $from)
 
 function checkMaluva($adventure)
 {
+    $count = 0;
     foreach ($adventure->externs as $extern)
     {
-        if (strrpos($extern->FilePath, ('MLV_')) !== false) return true;
+        if (strrpos($extern->FilePath, ('MLV_')) !== false) $count++;
     }
-    return false;
+    return $count;
 }
 
 function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $isLittleEndian, $target)
@@ -812,6 +816,30 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     }
                     array_splice($entry->condacts, $condactID, 1, $xplay);
                     if (sizeof($xplay)) $condactID --; // As the current condact has been replaced with a sequentia of BEEPs, we move the pointer one step back to make sure the changes made for BEEP in ZX Spectrum applies
+                }
+                else if ($condact->Opcode == XSPLITSCR_OPCODE)
+                {
+                    $condact->Opcode = EXTERN_OPCODE;
+                    $condact->NumParams=2;
+                    if ($condact->Indirection1) Error('XSPLITSCR condact does not allow indirection');
+                    $useFade = $condact->Param3;
+                    if (($useFade<0) || ($useFade>1)) Error('XSPLITSCR condact third parameter must be 0 or 1');
+                    $upperMode = $condact->Param1;
+                    if (($upperMode<0) || ($upperMode>2)) Error('XSPLITSCR condact upper mode 0, 1 or 2');
+                    $lowerMode = $condact->Param2;
+                    if (($lowerMode<0) || ($lowerMode>2)) Error('XSPLITSCR condact upper mode 0, 1 or 2');
+                    $condact->Param1 = $useFade * 128 + ($upperMode << 2) + $lowerMode;
+                    $condact->Param2 = 6; // Maluva function 6. Notice in case this condact is generated for a machine not supporting split screen it will just do nothing
+                    $condact->Condact = 'EXTERN'; // XSPLITSCR A B C ==> EXTERN [A-B-C] 6 
+                    if ((CheckMaluva($adventure)<2) && ($target!='MSX2')) Error('XSPLITSCR condact requires Maluva Standard Extension and CPC Interrupt Extension');               
+                    if (($target!='MSX2') && ($target!='CPC')) // If target does not support XSPLITSCR, replaces condact with "AT @38" (always true)
+                    {
+                        $condact->Opcode = AT_OPCODE;
+                        $condact->Condact = 'AT';
+                        $condact->Indirection1 = 1;
+                        $condact->Param1 = 38;
+                        $condact->NumPrams=1;
+                    }
                 }
             }
         }
