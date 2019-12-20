@@ -828,6 +828,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     if (($upperMode<0) || ($upperMode>2)) Error('XSPLITSCR condact upper mode 0, 1 or 2');
                     $lowerMode = $condact->Param2;
                     if (($lowerMode<0) || ($lowerMode>2)) Error('XSPLITSCR condact upper mode 0, 1 or 2');
+                    if (($lowerMode==2) || ($lowerMode==2)) echo "Warning: using mode 2 for CPC split mode is possible, but it's in alpha development status\n";
                     $condact->Param1 = $useFade * 128 + ($upperMode << 2) + $lowerMode;
                     $condact->Param2 = 6; // Maluva function 6. Notice in case this condact is generated for a machine not supporting split screen it will just do nothing
                     $condact->Condact = 'EXTERN'; // XSPLITSCR A B C ==> EXTERN [A-B-C] 6 
