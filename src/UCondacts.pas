@@ -220,6 +220,7 @@ BEGIN
 	ELSE
 	BEGIN
 		if (Length(AWord)>5) THEN AWord := Copy(Aword, 1, 5);
+		Aword := AnsiUpperCase(AWord);
 		AVocabularyTree := GetVocabulary(VocabularyTree,AWord,VocType);
 		IF AVocabularyTree = nil THEN Result:='Word not defined in vocabulary or it has an unexpected word type : ' + AWord
 								ELSE Result := '';
