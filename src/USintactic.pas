@@ -117,6 +117,7 @@ BEGIN
   IF (target='ZX') AND (Subtarget='ESXDOS') THEN Result:='MLV_ESX.BIN' ELSE
   IF target='MSX' THEN Result:='MLV_MSX.BIN' ELSE
   IF target='C64' THEN Result:='MLV_C64.BIN' ELSE
+  IF target='CP4' THEN Result:='MLV_CP4.BIN' ELSE
   IF target='CPC' THEN Result:='MLV_CPC.BIN' ELSE
   IF target='PCW' THEN Result:='MLV_PCW.BIN' ELSE
   IF target='MSX2' THEN Result:= 'MSX2' ELSE  Result:='MALUVA';
@@ -527,19 +528,19 @@ BEGIN
 					IF Opcode = XSAVE_OPCODE THEN
 					BEGIN
 						IF GetSymbolValue(SymbolList, 'BIT16')<>MAXLONGINT THEN Opcode := SAVE_OPCODE  // If 16 bit machine, no XSAVE
-						ELSE IF (Target='PCW') OR (Target='CPC') OR (Target='C64')  THEN Opcode := SAVE_OPCODE // If target PCW/C64/CPC, no XSAVE
+						ELSE IF (Target='PCW') OR (Target='CPC') OR (Target='C64') OR (Target='CP4')  THEN Opcode := SAVE_OPCODE // If target PCW/C64/CP4/CPC, no XSAVE
 						ELSE MaluvaUsed := true;
 					END ELSE
 					IF Opcode = XLOAD_OPCODE THEN
 					BEGIN
 						IF GetSymbolValue(SymbolList, 'BIT16')<>MAXLONGINT THEN Opcode := LOAD_OPCODE  // If 16 bit machine, no XLOAD
-						ELSE IF (Target='PCW') OR (Target='CPC') OR (Target='C64')  THEN Opcode := LOAD_OPCODE // If target PCW/C64/CPC, no XLOAD
+						ELSE IF (Target='PCW') OR (Target='CPC') OR (Target='C64') OR (Target='CP4')  THEN Opcode := LOAD_OPCODE // If target PCW/C64/CP4/CPC, no XLOAD
 						ELSE MaluvaUsed := true;
 					END ELSE
 					IF Opcode = XBEEP_OPCODE THEN
 					BEGIN
 						IF (Target<>'CPC') AND (Target<>'MSX')  THEN Opcode := BEEP_OPCODE 
-						ELSE MaluvaUsed := true;  // Only CPC and MSX support XBEEP, the rest just use BEEP (which will do nothing in PCW, AMIGA, ST and PC, but will play in ZX and C64)
+						ELSE MaluvaUsed := true;  // Only CPC and MSX support XBEEP, the rest just use BEEP (which will do nothing in PCW, AMIGA, ST and PC, but will play in ZX, CP4 and C64)
 					END;
 				END; 
 				// Get Parameters

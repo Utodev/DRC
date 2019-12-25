@@ -16,7 +16,7 @@ BEGIN
   WriteLn();
 	WriteLn('file.DSF is a DAAD', ' ', version_hi, '.', version_lo, ' source file.');
   WriteLn();
-	WriteLn('<target> is the target machine, one of this list: ZX, CPC, C64, MSX, MSX2, PCW, PC, AMIGA or ST. The target machine will be added as if there were a ''#define <target> '' in the code, so you can make the code depend on target platform.');
+	WriteLn('<target> is the target machine, one of this list: ZX, CPC, C64, CP4, MSX, MSX2, PCW, PC, AMIGA or ST. The target machine will be added as if there were a ''#define <target> '' in the code, so you can make the code depend on target platform. Just to clarify, CP4 stands for Commodore Plus/4');
   WriteLn();
 	WriteLn('[subtarget] is an parameter only required when the target is ZX, MSX2 or PC. Will define the internal variable COLS, which can later be used in DAAD processes. For MSX2 values can be 5_6, 5_8, 6_6, 6_8, 7_6, 7_8, 8_6 or 8_8. The first number is the video mode (5-8), the second one is the characters width in pixels (6 or 8). For PC values can be VGA, EGA, CGA or TEXT. For ZX the values can be PLUS3, ESXDOS or NEXT.');
   WriteLn('Please notice subtarget for ZX is only relevant if you use Maluva, if you don''t use it or you don''t know what it is, choose any of the targets, i.e. plus3');
@@ -88,6 +88,7 @@ BEGIN
  IF Target = 'PC' THEN Result := getPCColsBySubtarget(SubTarget) ELSE
  IF Target = 'ZX' THEN Result := 42 ELSE
  IF Target = 'C64' THEN Result := 40 ELSE
+ IF Target = 'CP4' THEN Result := 40 ELSE
  IF Target = 'CPC' THEN Result := 40 ELSE
  IF Target = 'MSX' THEN Result := 42 ELSE
  IF Target = 'MSX2' THEN Result := getMSX2ColsBySubtarget(SubTarget) ELSE
@@ -105,7 +106,7 @@ END;
 
  FUNCTION targetUsesDstringsGraphics(Target:AnsiString): Boolean;
  BEGIN
-  Result := (Target='ZX') OR (Target='CPC') OR (Target='C64') OR (Target='MSX');
+  Result := (Target='ZX') OR (Target='CPC') OR (Target='C64') OR (Target='CP4')  OR (Target='MSX');
  END;
 
 // Global vars
@@ -145,7 +146,7 @@ BEGIN
   if (SubTarget<>'') THEN AddSymbol(SymbolList, 'MODE_'+Subtarget, 1);
   machine :=AnsiUpperCase(Target);
   // The target superset BIT8 or BIT16
-  if (machine='ZX') OR (machine='CPC') OR (machine='PCW') OR (machine='MSX') OR (machine='C64') or (MACHINE='MSX2') THEN AddSymbol(SymbolList, 'BIT8', 1);
+  if (machine='ZX') OR (machine='CPC') OR (machine='PCW') OR (machine='MSX') OR (machine='C64') OR (machine='CP4') or (MACHINE='MSX2') THEN AddSymbol(SymbolList, 'BIT8', 1);
   if (machine='PC') OR (machine='AMIGA') OR (machine='ST') THEN   AddSymbol(SymbolList, 'BIT16', 1);
   // add COLS Symbol
   cols := getColsByTarget(Target, SubTarget);
