@@ -960,8 +960,10 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                             $verb = $entry->Verb;
                             $noun = $entry->Noun;
                             $condactName = $entry->condacts[$condactID+1]->Condact;
+                            $terminatorName = $entry->condacts[$condactID]->Condact;
+                            $entryText = $entry->Entry;
                             $dumped = ($adventure->classicMode) ? "has been" : "hasn't been";
-                            echo "Warning: There are condacts after a terminator condact in entry #$humanEntryID at process #$procID: $condactName. Condact $dumped dumped to DDB file.\n";
+                            echo "Warning: Condact '$condactName' found after a terminator '$terminatorName' in entry #$humanEntryID ($entryText) at process #$procID . Condact $dumped dumped to DDB file.\n";
                         }
                     }
                     break; // If a terminator condact found, no more condacts in the entry will be ever executed, so we break the loop (normally there won't be more condacts anyway)
