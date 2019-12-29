@@ -828,8 +828,10 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Param1 = $useFade * 128 + ($upperMode << 2) + $lowerMode;
                     $condact->Param2 = 6; // Maluva function 6. Notice in case this condact is generated for a machine not supporting split screen it will just do nothing
                     $condact->Condact = 'EXTERN'; // XSPLITSCR A B C ==> EXTERN [A-B-C] 6 
-                    if ((CheckMaluva($adventure)<2) && ($target!='MSX2')) Error('XSPLITSCR condact requires Maluva Standard Extension and CPC Interrupt Extension');               
-                    if (($target!='MSX2') && ($target!='CPC')) // If target does not support XSPLITSCR, replaces condact with "AT @38" (always true)
+                    if ((CheckMaluva($adventure)<2) && ($target=='CPC'))  Error('XSPLITSCR condact requires Maluva Standard Extension and CPC Interrupt Extension for running under CPC');               
+                    if ((CheckMaluva($adventure)<1) && ($target=='C64'))  Error('XSPLITSCR condact requires Maluva extension');               
+                    if ((CheckMaluva($adventure)<1) && ($target=='CP4'))  Error('XSPLITSCR condact requires Maluva extension');               
+                    if (($target!='MSX2') && ($target!='CPC')  && ($target!='C64')   && ($target!='CP4')  ) // If target does not support XSPLITSCR, replaces condact with "AT @38" (always true)
                     {
                         $condact->Opcode = AT_OPCODE;
                         $condact->Condact = 'AT';
@@ -1060,7 +1062,7 @@ function getBaseAddressByTarget($target)
   if ($target=='MSX') return 0x0100; else
   if ($target=='CPC') return 0x2880; else
   if ($target=='PCW') return 0x100; else
-  if ($target=='CP4') return 0x3880; else
+  if ($target=='CP4') return 0x7080; else
   if ($target=='C64') return 0x3880; else return 0;
 };
 
@@ -1613,7 +1615,7 @@ writeWord($outputFileHandler, $objectWeightAndAttrOffset, $isLittleEndian);
 // Extra object attributes 
 writeWord($outputFileHandler, $objectExtraAttrOffset, $isLittleEndian);
 // File length 
-$fileSize = $currentAddress;
+$fileSize = $currentAddress - $baseAddress;
 writeWord($outputFileHandler, $fileSize, $isLittleEndian);
 for($i=0;$i<13;$i++)
     writeWord($outputFileHandler, $adventure->extvec[$i],$isLittleEndian);
@@ -1621,7 +1623,7 @@ fclose($outputFileHandler);
 if ($adventure->verbose) summary($adventure);
 if ($adventure->verbose) echo "$outputFileName for $target created.\n";
 if ($currentAddress>0xFFFF) echo "Warning: DDB file goes " . ($currentAddress - 0xFFFF) . " bytes over the 65535 memory address boundary.\n";
-echo "DDB size is " . ($fileSize - $baseAddress) . " bytes.\nDatabase ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
+echo "DDB size is " . ($fileSize) . " bytes.\nDatabase ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
 if ($xMessageSize) echo "XMessages size is $xMessageSize bytes in files of ". $maxFileSizeForXMessages. "K.\n";
 if ($textSavings>0) echo "Text compression saving: $textSavings bytes.\n";
 if ($adventure->prependC64Header)
