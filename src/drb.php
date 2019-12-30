@@ -225,7 +225,7 @@ class daadToChr
 var $conversions = array('ª', '¡', '¿', '«', '»', 'á', 'é', 'í', 'ó', 'ú', 'ñ', 'Ñ', 'ç', 'Ç', 'ü', 'Ü');
 }
 define('VERSION_HI',0);
-define('VERSION_LO',15);
+define('VERSION_LO',16);
 
 
 function summary($adventure)
@@ -817,17 +817,8 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                 {
                     $condact->Opcode = EXTERN_OPCODE;
                     $condact->NumParams=2;
-                    if ($condact->Indirection1) Error('XSPLITSCR condact does not allow indirection');
-                    $useFade = $condact->Param3;
-                    if (($useFade<0) || ($useFade>1)) Error('XSPLITSCR condact third parameter must be 0 or 1');
-                    $upperMode = $condact->Param1;
-                    if (($upperMode<0) || ($upperMode>2)) Error('XSPLITSCR condact upper mode 0, 1 or 2');
-                    $lowerMode = $condact->Param2;
-                    if (($lowerMode<0) || ($lowerMode>2)) Error('XSPLITSCR condact upper mode 0, 1 or 2');
-                    if (($lowerMode==2) || ($lowerMode==2)) echo "Warning: using mode 2 for CPC split mode is possible, but it's in alpha development status\n";
-                    $condact->Param1 = $useFade * 128 + ($upperMode << 2) + $lowerMode;
                     $condact->Param2 = 6; // Maluva function 6. Notice in case this condact is generated for a machine not supporting split screen it will just do nothing
-                    $condact->Condact = 'EXTERN'; // XSPLITSCR A B C ==> EXTERN [A-B-C] 6 
+                    $condact->Condact = 'EXTERN'; // XSPLITSCR X  ==> EXTERN X 6 
                     if ((CheckMaluva($adventure)<2) && ($target=='CPC'))  Error('XSPLITSCR condact requires Maluva Standard Extension and CPC Interrupt Extension for running under CPC');               
                     if ((CheckMaluva($adventure)<1) && ($target=='C64'))  Error('XSPLITSCR condact requires Maluva extension');               
                     if ((CheckMaluva($adventure)<1) && ($target=='CP4'))  Error('XSPLITSCR condact requires Maluva extension');               
@@ -1615,7 +1606,7 @@ writeWord($outputFileHandler, $objectWeightAndAttrOffset, $isLittleEndian);
 // Extra object attributes 
 writeWord($outputFileHandler, $objectExtraAttrOffset, $isLittleEndian);
 // File length 
-$fileSize = $currentAddress - $baseAddress;
+$fileSize = $currentAddress;// - $baseAddress;
 writeWord($outputFileHandler, $fileSize, $isLittleEndian);
 for($i=0;$i<13;$i++)
     writeWord($outputFileHandler, $adventure->extvec[$i],$isLittleEndian);
