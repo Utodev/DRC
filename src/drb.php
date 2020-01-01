@@ -21,6 +21,7 @@ define('XPART_OPCODE',133);
 define('XPLAY_OPCODE',134);
 define('XBEEP_OPCODE',135);
 define('XSPLITSCR_OPCODE',136);
+define('XUNDONE_OPCODE',137);
 
 
 define('PAUSE_OPCODE',  35);
@@ -722,6 +723,14 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Param2 = 0; // Maluva function 0
                     $condact->Condact = 'EXTERN';
                     if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XPICTURE condact requires Maluva Extension');
+                }
+                else if ($condact->Opcode == XUNDONE_OPCODE)
+                {
+                    $condact->Opcode = EXTERN_OPCODE;
+                    $condact->NumParams=2;
+                    $condact->Param2 = 7; // Maluva function 7
+                    $condact->Condact = 'EXTERN';
+                    if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XUNDONE condact requires Maluva Extension');
                 }
                 else if ($condact->Opcode == XSAVE_OPCODE)
                 {

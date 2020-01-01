@@ -23,7 +23,7 @@ CONST version_hi = 0;
       MAX_PARAMETER_RANGE = 255;
 
       NUM_CONDACTS  =128;
-      NUM_FAKE_CONDACTS = 9;
+      NUM_FAKE_CONDACTS = 10;
 
       MESSAGE_OPCODE = 38;
       MES_OPCODE =77;
@@ -39,6 +39,7 @@ CONST version_hi = 0;
       XPLAY_OPCODE = 134;
       XBEEP_OPCODE = 135;
       XSPLITSCR_OPCODE = 136;
+      XUNDONE_OPCODE=137;
       BEEP_OPCODE = 64;
 
       DESC_OPCODE = 19;
