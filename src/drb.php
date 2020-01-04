@@ -715,7 +715,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Param1 = $offset & 0xFF; // Offset LSB
                     $condact->Param3 = ($offset & 0xFF00) >> 8; // Offset MSB
                     $condact->Condact = 'EXTERN';
-                } 
+                }
                 else if ($condact->Opcode == XPICTURE_OPCODE)
                 {
                     $condact->Opcode = EXTERN_OPCODE;
@@ -728,7 +728,9 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                 {
                     $condact->Opcode = EXTERN_OPCODE;
                     $condact->NumParams=2;
+                    $condact->Param1 = 0; // Useless but it must be set
                     $condact->Param2 = 7; // Maluva function 7
+                    $condact->Indirection1 = 0; // Also useless, but it must be set
                     $condact->Condact = 'EXTERN';
                     if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XUNDONE condact requires Maluva Extension');
                 }
@@ -1623,7 +1625,7 @@ fclose($outputFileHandler);
 if ($adventure->verbose) summary($adventure);
 if ($adventure->verbose) echo "$outputFileName for $target created.\n";
 if ($currentAddress>0xFFFF) echo "Warning: DDB file goes " . ($currentAddress - 0xFFFF) . " bytes over the 65535 memory address boundary.\n";
-echo "DDB size is " . ($fileSize) . " bytes.\nDatabase ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
+echo "DDB size is " . ($fileSize - $baseAddress) . " bytes.\nDatabase ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
 if ($xMessageSize) echo "XMessages size is $xMessageSize bytes in files of ". $maxFileSizeForXMessages. "K.\n";
 if ($textSavings>0) echo "Text compression saving: $textSavings bytes.\n";
 if ($adventure->prependC64Header)
