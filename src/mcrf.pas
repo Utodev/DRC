@@ -10,7 +10,7 @@ PROGRAM MCRF;
 USES sysutils, strutils;
 
 
-CONST VERSION=02;     (* Increased from original 01 for non CP/M version *)
+CONST VERSION=03;     (* Increased from original 01 for non CP/M version *)
 CONST FILEV=00;
 CONST PATHLEN=64;
 CONST IPSSIZE=128;
@@ -27,6 +27,7 @@ VAR OutputFile, InputFile : FILE;
     FileLength :  Word;
     GraphicsLength : Word;
     RealDDBLength: Word;
+    CharsetOffset : Word;
 
 
 FUNCTION ReadHeaderWord(index: byte): Word;
@@ -94,11 +95,13 @@ end;
 PROCEDURE Syntax();
 BEGIN
   Writeln();
-  WriteLn('SYNTAX: MCRF <target file> <interpreter file> <text DDB file> <graphics file>');
+  WriteLn('SYNTAX: MCRF <target file> <interpreter file> <text DDB file> <graphics file> [font file]');
   Writeln();
   Writeln('Example: MCRF MYGAME.BIN INT.Z80 MYGAME.DDB MYGAME.GRA');
+  Writeln('Example: MCRF MYGAME.BIN INT.Z80 MYGAME.DDB MYGAME.GRA PAW1.CHR');
   Writeln();
   Writeln('Important: The interpreter and graphics files should have an AMSDOS header. The DDB (text database) one may have it or not, MCRF will auto-detect it.');
+  WriteLn('CHR files are raw definition of 8x8 characters, 256 total, so it should be a 256 x 8 bytes file (2048). If an Amsdos header is present, it will be ignored.');
   Halt(1);
 END;
 
@@ -108,7 +111,7 @@ BEGIN
   WriteLn('Original code for CP/M written by T.J.Gilberts using Hisoft C.');
   WriteLn('Rebuilt in pascal by Uto in 2018');
 
-  IF (ParamCount()<>4) THEN Syntax();
+  IF NOT(ParamCount() IN [4,5]) THEN Syntax();
 
   AssignFile(OutputFile, ParamStr(1));
   TRY
@@ -175,7 +178,8 @@ BEGIN
   FileLength := DBADD - INTAT + RealDDBLength;
   CloseFile(InputFile);
 
-
+  CharsetOffset := Filepos(OutputFile);
+  
   AssignFile(InputFile, ParamStr(4));  // The graphics database
   TRY
   Reset(InputFile, 1);
@@ -193,6 +197,26 @@ BEGIN
   END;
   CloseFile(InputFile);
 
+  IF (ParamCount>4) THEN
+  BEGIN
+    AssignFile(InputFile, ParamStr(5));  // The font file
+    TRY
+      Reset(InputFile, 1);
+    EXCEPT
+    on E: Exception DO Error('Font file not found or invalid.');
+    END; 
+    //Seek(OutputFile, FileSize(OutputFile)-128);
+    Seek(OutputFile, CharsetOffset +48);
+    WriteLn('Loading font file.');
+    IF (fileSize(InputFile)<>2048) AND (fileSize(InputFile)<>2048+128)  THEN  Error('Invalid size of font file.');
+    IF fileSize(InputFile)=2048+128 THEN Seek(InputFile, 128);
+    FOR C:=1 TO 2048 DO
+    BEGIN
+      BlockRead(InputFile, Buffer1Byte, 1);
+      BlockWrite(OutputFile, Buffer1Byte, 1);
+    END;  
+    CloseFile(InputFile);
+  END;
 
   GraphicsLength := ReadHeaderWord(24);
   FileLength :=  FileLength + GraphicsLength;
