@@ -85,7 +85,7 @@ CONST EmptyGraphics : array[0..2088] of byte =
 228, 247, 228, 255, 255, 255, 1, 0, 0);
 
 CONST version_hi = 0;
-      version_lo = 3;
+      version_lo = 4;
 
 var Buffer: TBigBuffer;
     TAPFilename, DDBFilename, SDGFilename, INTFilename, SCRFilename, LoaderFilename, CHRFilename : string;
