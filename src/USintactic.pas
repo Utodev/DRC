@@ -112,7 +112,7 @@ END;
 
 FUNCTION getMaluvaFilename(): String;
 BEGIN
-  IF (target='ZX') AND (Subtarget='P3') THEN Result:='MLV_P3.BIN' ELSE
+  IF (target='ZX') AND (Subtarget='PLUS3') THEN Result:='MLV_P3.BIN' ELSE
   IF (target='ZX') AND (Subtarget='NEXT') THEN Result:='MLV_NEXT.BIN' ELSE
   IF (target='ZX') AND (Subtarget='ESXDOS') THEN Result:='MLV_ESX.BIN' ELSE
   IF target='MSX' THEN Result:='MLV_MSX.BIN' ELSE
