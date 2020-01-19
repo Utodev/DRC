@@ -100,16 +100,16 @@ begin
     WriteLn('DAADMAKER ' , version_hi, '.', version_lo);
     Writeln('Creates ZX Spectrum TAP files from DAAD DDB file and database');
     Writeln('Syntax:');
-    WriteLn('daadmaker <TAP file> <INT file> <DDB file> [SDG file] [SRC file] [loader file]');
+    WriteLn('daadmaker <TAP file> <INT file> <DDB file> [SDG file] [SCR file] [loader file]');
     WriteLn();
     WriteLn('<TAP file> : output TAP file');
     WriteLn('<INT file> : ZX Spectrum interpreter file');
     WriteLn('<DDB file> : input DDB file');
     WriteLn('[SDG file] : input SDG file (optional)');
-    WriteLn('[SRC file] : input SRC file (optional)');
+    WriteLn('[SCCR file] : input SCR file (optional)');
     WriteLn('[loader file] : alternative basic loader, already in tap format (optional)');
     WriteLn();
-    WriteLn('Please notice parameters after third one will be identified by file extension, depending on if it''s SDG, SRC or TAP');
+    WriteLn('Please notice parameters after third one will be identified by file extension, depending on if it''s SDG, SCR or TAP');
     halt(1);
 end;
 
