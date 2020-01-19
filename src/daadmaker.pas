@@ -283,7 +283,7 @@ begin
     BEGIN
       IF (FileSize(FileCHR)<>2048) AND (FileSize(FileCHR)<>2048+128) THEN Error('Invalid CHR file. Must be 2048 bytes long.');
       IF (FileSize(FileCHR)=2048+128) THEN Seek(FileCHR, 128);
-      Blockread(FileCHR,Buffer[13], 2048);
+      Blockread(FileCHR,Buffer[FileSize(FileSDG)-2076], 2048);
     END;
     SaveBlockFromBuffer(Gamename, FileTAP, Buffer, filesize(FileSDG), SDGAddress);
 
