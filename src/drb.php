@@ -22,6 +22,8 @@ define('XPLAY_OPCODE',134);
 define('XBEEP_OPCODE',135);
 define('XSPLITSCR_OPCODE',136);
 define('XUNDONE_OPCODE',137);
+define('XLY2DIS_OPCODE',138);
+define('XLY2RST_OPCODE',139);
 
 
 define('PAUSE_OPCODE',  35);
@@ -691,7 +693,7 @@ function checkMaluva($adventure)
     return $count;
 }
 
-function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $isLittleEndian, $target)
+function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $isLittleEndian, $target, $subtarget)
 {     
     //PASS ZERO, CHECK THE PROCESSES AND REPLACE SOME CONDACTS LIKE XMESSAGE WITH PROPER EXTERN CALLS. MAKE SURE MALUVA IS INCLUDED
     //           ALSO FIX SOME BUGS LIKE ZX BEEP CONDACT WRONG ORDER
@@ -733,6 +735,42 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Indirection1 = 0; // Also useless, but it must be set
                     $condact->Condact = 'EXTERN';
                     if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XUNDONE condact requires Maluva Extension');
+                }
+                else if ($condact->Opcode == XLY2DIS_OPCODE)
+                {
+                    $condact->Opcode = EXTERN_OPCODE;
+                    $condact->NumParams=2;
+                    $condact->Param1 = 0; // Useless but it must be set
+                    $condact->Param2 = 8; // Maluva function 8
+                    $condact->Indirection1 = 0; // Also useless, but it must be set
+                    $condact->Condact = 'EXTERN';
+                    if (!CheckMaluva($adventure)) Error('XLY2DIS_OPCODE condact requires Maluva Extension');
+                    if (($target!='ZX') || ($subtarget!='NEXT'))  // If target does not support XLYDIS replace by always true condition "AT @38"
+                    {
+                        $condact->Opcode = AT_OPCODE;
+                        $condact->Condact = 'AT';
+                        $condact->Indirection1 = 1;
+                        $condact->Param1 = 38;
+                        $condact->NumPrams=1;
+                    }
+                }
+                else if ($condact->Opcode == XLY2RST_OPCODE)
+                {
+                    $condact->Opcode = EXTERN_OPCODE;
+                    $condact->NumParams=2;
+                    $condact->Param1 = 0; // Useless but it must be set
+                    $condact->Param2 = 9; // Maluva function 9
+                    $condact->Indirection1 = 0; // Also useless, but it must be set
+                    $condact->Condact = 'EXTERN';
+                    if (!CheckMaluva($adventure)) Error('XLY2RST_OPCODE condact requires Maluva Extension');
+                    if (($target!='ZX') || ($subtarget!='NEXT'))  // If target does not support XLYDIS replace by always true condition "AT @38"
+                    {
+                        $condact->Opcode = AT_OPCODE;
+                        $condact->Condact = 'AT';
+                        $condact->Indirection1 = 1;
+                        $condact->Param1 = 38;
+                        $condact->NumPrams=1;
+                    }
                 }
                 else if ($condact->Opcode == XSAVE_OPCODE)
                 {
@@ -1021,11 +1059,12 @@ function isValidTarget($target)
 
 function isValidSubtarget($target, $subtarget)
 {
-    if (($target!='MSX2') && ($target!='PC')) return false;
+    if (($target!='MSX2') && ($target!='PC') && ($target!='ZX')) return false;
     if ($target=='MSX2') return ($subtarget == '5_6') || ($subtarget == '5_8') ||  ($subtarget == '6_6') ||  ($subtarget == '6_8') ||  ($subtarget == '7_6') ||  ($subtarget == '7_8') ||  ($subtarget == '8_6') ||  ($subtarget == '8_8');
-    // In fact, drb doesn't care about PC subtargets, but just for coherence with drf, we make sure they are correct, despite we will not use them
+    if ($target=='ZX') return ($subtarget == 'PLUS3') || ($subtarget == 'ESXDOS') ||  ($subtarget == 'NEXT');
+// In fact, drb doesn't care about PC subtargets, but just for coherence with drf, we make sure they are correct, despite we will not use them. 
     if ($target=='PC') return ($subtarget == 'VGA') || ($subtarget == 'CGA') ||  ($subtarget == 'EGA') ||  ($subtarget == 'TEXT');
-
+    
 }
 
 function getSubMachineIDByTarget($target, $subtarget)
@@ -1087,7 +1126,7 @@ function Syntax()
     
     echo("SYNTAX: php drb <target> [subtarget] <language> <inputfile> [outputfile] [options]\n\n");
     echo("+ <target>: target machine, should be 'ZX', 'CPC', 'C64', 'CP4', 'MSX', 'MSX2', 'PCW', 'PC', 'ST' or 'AMIGA'. Just to clarify, CP4 stands for Commodore Plus/4\n");
-    echo("+ [subtarget]: some targets need to specify a subtarget. For MSX2: 5_6, 5_8, 6_6, 6_8, 7_7 and 7_8 (being the video mode and the character with in pixels). PC has the following: VGA, EGA, CGA and TEXT.\n");
+    echo("+ [subtarget]: some targets need to specify a subtarget. For MSX2: 5_6, 5_8, 6_6, 6_8, 7_7 and 7_8 (being the video mode and the character with in pixels). PC has the following: VGA, EGA, CGA and TEXT. ZX has the following: PLUS3, NEXT and ESXDOS.\n");
     echo("+ <language>: game language, should be 'EN' or 'ES' (english or spanish).\n");
     echo("+ <inputfile>: a json file generated by DRF.\n");
     echo("+ [outputfile] : (optional) name of output file. If absent, same name of json file would be used, with DDB extension.\n");
@@ -1337,7 +1376,7 @@ $target = strtoupper($argv[1]);
 if (!isValidTarget($target)) Error("Invalid target machine '$target'");
 $nextParam =2;
 $subtarget = '';
-if (($target=='MSX2') || ($target=='PC'))
+if (($target=='MSX2') || ($target=='PC') || ($target=='ZX'))
 {
     $subtarget = strtoupper($argv[$nextParam]);
     $nextParam++;
@@ -1582,7 +1621,7 @@ if (sizeof($adventure->xmessages))
 }
 
 // Dump Processes
-generateProcesses($adventure, $currentAddress, $outputFileHandler, $isLittleEndian, $target);
+generateProcesses($adventure, $currentAddress, $outputFileHandler, $isLittleEndian, $target, $subtarget);
 $processListOffset = $currentAddress - sizeof($adventure->processes) * 2;
 if ($adventure->verbose) echo "Processes         [" . prettyFormat($processListOffset) . "]\n";
 
