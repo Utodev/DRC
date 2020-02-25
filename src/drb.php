@@ -228,7 +228,7 @@ class daadToChr
 var $conversions = array('ª', '¡', '¿', '«', '»', 'á', 'é', 'í', 'ó', 'ú', 'ñ', 'Ñ', 'ç', 'Ç', 'ü', 'Ü');
 }
 define('VERSION_HI',0);
-define('VERSION_LO',16);
+define('VERSION_LO',17);
 
 
 function summary($adventure)
