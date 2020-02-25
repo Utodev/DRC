@@ -832,8 +832,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Condact = 'EXTERN'; // XSPLITSCR X  ==> EXTERN X 6 
                     if ((CheckMaluva($adventure)<2) && ($target=='CPC'))  Error('XSPLITSCR condact requires Maluva Standard Extension and CPC Interrupt Extension for running under CPC');               
                     if ((CheckMaluva($adventure)<1) && ($target=='C64'))  Error('XSPLITSCR condact requires Maluva extension');               
-                    if ((CheckMaluva($adventure)<1) && ($target=='CP4'))  Error('XSPLITSCR condact requires Maluva extension');               
-                    if (($target!='MSX2') && ($target!='CPC')  && ($target!='C64')   && ($target!='CP4')  ) // If target does not support XSPLITSCR, replaces condact with "AT @38" (always true)
+                    if (($target!='MSX2') && ($target!='CPC')  && ($target!='C64')) // If target does not support XSPLITSCR, replaces condact with "AT @38" (always true)
                     {
                         $condact->Opcode = AT_OPCODE;
                         $condact->Condact = 'AT';

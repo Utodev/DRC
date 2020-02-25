@@ -143,7 +143,11 @@ BEGIN
   // Create some useful built-in symbols
   // The target
   AddSymbol(SymbolList, Target, 1);
-  if (SubTarget<>'') THEN AddSymbol(SymbolList, 'MODE_'+Subtarget, 1);
+  if (SubTarget<>'') THEN 
+  BEGIN
+   AddSymbol(SymbolList, 'MODE_'+Subtarget, 1);
+   AddSymbol(SymbolList, Subtarget, 1);
+  END; 
   machine :=AnsiUpperCase(Target);
   // The target superset BIT8 or BIT16
   if (machine='ZX') OR (machine='CPC') OR (machine='PCW') OR (machine='MSX') OR (machine='C64') OR (machine='CP4') or (MACHINE='MSX2') THEN AddSymbol(SymbolList, 'BIT8', 1);
