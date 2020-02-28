@@ -22,8 +22,9 @@ define('XPLAY_OPCODE',134);
 define('XBEEP_OPCODE',135);
 define('XSPLITSCR_OPCODE',136);
 define('XUNDONE_OPCODE',137);
-define('XLY2DIS_OPCODE',138);
-define('XLY2RST_OPCODE',139);
+define('XNEXTCLS_OPCODE',138);
+define('XNEXTRST_OPCODE',139);
+define('XNEXTSPEED_OPCODE',140);
 
 
 define('PAUSE_OPCODE',  35);
@@ -736,7 +737,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Condact = 'EXTERN';
                     if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XUNDONE condact requires Maluva Extension');
                 }
-                else if ($condact->Opcode == XLY2DIS_OPCODE)
+                else if ($condact->Opcode == XNEXTCLS_OPCODE)
                 {
                     $condact->Opcode = EXTERN_OPCODE;
                     $condact->NumParams=2;
@@ -744,8 +745,8 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Param2 = 8; // Maluva function 8
                     $condact->Indirection1 = 0; // Also useless, but it must be set
                     $condact->Condact = 'EXTERN';
-                    if (!CheckMaluva($adventure)) Error('XLY2DIS_OPCODE condact requires Maluva Extension');
-                    if (($target!='ZX') || ($subtarget!='NEXT'))  // If target does not support XLYDIS replace by always true condition "AT @38"
+                    if (!CheckMaluva($adventure)) Error('XNEXTCLS_OPCODE condact requires Maluva Extension');
+                    if (($target!='ZX') || ($subtarget!='NEXT'))  // If target does not support XNEXTCLS_OPCODE replace by always true condition "AT @38"
                     {
                         $condact->Opcode = AT_OPCODE;
                         $condact->Condact = 'AT';
@@ -754,7 +755,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                         $condact->NumPrams=1;
                     }
                 }
-                else if ($condact->Opcode == XLY2RST_OPCODE)
+                else if ($condact->Opcode == XNEXTRST_OPCODE)
                 {
                     $condact->Opcode = EXTERN_OPCODE;
                     $condact->NumParams=2;
@@ -762,8 +763,24 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Param2 = 9; // Maluva function 9
                     $condact->Indirection1 = 0; // Also useless, but it must be set
                     $condact->Condact = 'EXTERN';
-                    if (!CheckMaluva($adventure)) Error('XLY2RST_OPCODE condact requires Maluva Extension');
-                    if (($target!='ZX') || ($subtarget!='NEXT'))  // If target does not support XLYDIS replace by always true condition "AT @38"
+                    if (!CheckMaluva($adventure)) Error('XNEXTRST_OPCODE condact requires Maluva Extension');
+                    if (($target!='ZX') || ($subtarget!='NEXT'))  // If target does not support XNEXTRST_OPCODE replace by always true condition "AT @38"
+                    {
+                        $condact->Opcode = AT_OPCODE;
+                        $condact->Condact = 'AT';
+                        $condact->Indirection1 = 1;
+                        $condact->Param1 = 38;
+                        $condact->NumPrams=1;
+                    }
+                }
+                else if ($condact->Opcode == XNEXTSPEED_OPCODE)
+                {
+                    $condact->Opcode = EXTERN_OPCODE;
+                    $condact->NumParams=2;
+                    $condact->Param2 = 10; // Maluva function 10
+                    $condact->Condact = 'EXTERN';
+                    if (!CheckMaluva($adventure)) Error('XNEXTSPEED_OPCODE condact requires Maluva Extension');
+                    if (($target!='ZX') || ($subtarget!='NEXT'))  // If target does not support XNEXTSPEED_OPCODE replace by always true condition "AT @38"
                     {
                         $condact->Opcode = AT_OPCODE;
                         $condact->Condact = 'AT';
