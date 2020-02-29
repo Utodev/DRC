@@ -18,7 +18,10 @@ BEGIN
   WriteLn();
 	WriteLn('<target> is the target machine, one of this list: ZX, CPC, C64, CP4, MSX, MSX2, PCW, PC, AMIGA or ST. The target machine will be added as if there were a ''#define <target> '' in the code, so you can make the code depend on target platform. Just to clarify, CP4 stands for Commodore Plus/4');
   WriteLn();
-	WriteLn('[subtarget] is an parameter only required when the target is ZX, MSX2 or PC. Will define the internal variable COLS, which can later be used in DAAD processes. For MSX2 values can be 5_6, 5_8, 6_6, 6_8, 7_6, 7_8, 8_6 or 8_8. The first number is the video mode (5-8), the second one is the characters width in pixels (6 or 8). For PC values can be VGA, EGA, CGA or TEXT. For ZX the values can be PLUS3, ESXDOS or NEXT.');
+	WriteLn('[subtarget] is an parameter only required when the target is ZX, MSX2 or PC. Will define the internal variable COLS, which can later be used in DAAD processes.');
+  Writeln('For MSX2 values are a compound value of video mode (from mode 5 to 12, except 9 and 11) and the with of the charset im pixels, which can be 6 or 8. Example: 5_8, 10_8, 12_6, 7_6, etc.');
+  WriteLn('For PC values can be VGA, EGA, CGA or TEXT.');
+  WriteLn('For ZX the values can be PLUS3, ESXDOS or NEXT.');
   WriteLn('Please notice subtarget for ZX is only relevant if you use Maluva, if you don''t use it or you don''t know what it is, choose any of the targets, i.e. plus3');
   WriteLn();
 	WriteLn('[output.json] is optional file name for output json file, if missing, '+AppName+' will just use same name of input file, but with .json extension.');
@@ -53,7 +56,11 @@ BEGIN
  IF Subtarget = '7_6' THEN Result := 85 ELSE
  IF Subtarget = '7_8' THEN Result := 64 ELSE
  IF Subtarget = '8_6' THEN Result := 42 ELSE
- IF Subtarget = '8_8' THEN Result := 32 
+ IF Subtarget = '8_8' THEN Result := 32 ELSE
+ IF Subtarget = '10_6' THEN Result := 42 ELSE
+ IF Subtarget = '10_8' THEN Result := 32 ELSE
+ IF Subtarget = '12_6' THEN Result := 42 ELSE
+ IF Subtarget = '12_8' THEN Result := 32
  ELSE Result :=42;  // Conservative
 END;
 
@@ -185,7 +192,7 @@ END;
 
 FUNCTION isValidSubTarget(Target, Subtarget: AnsiString): Boolean;
 BEGIN
- if Target='MSX2' THEN  Result :=  (Subtarget = '5_6') OR (Subtarget = '5_8') OR  (Subtarget = '6_6') OR  (Subtarget = '6_8') OR  (Subtarget = '7_6') OR  (Subtarget = '7_8') OR  (Subtarget = '8_6') OR  (Subtarget = '8_8');
+ if Target='MSX2' THEN  Result :=  (Subtarget = '5_6') OR (Subtarget = '5_8') OR  (Subtarget = '6_6') OR  (Subtarget = '6_8') OR  (Subtarget = '7_6') OR  (Subtarget = '7_8') OR  (Subtarget = '8_6') OR (Subtarget = '8_8')  OR (Subtarget = '10_6') OR  (Subtarget = '10_8') OR (Subtarget = '12_6') OR (Subtarget = '12_8');;
  if Target='PC'   THEN Result := (Subtarget = 'VGA') OR (Subtarget = 'EGA') OR  (Subtarget = 'CGA') OR  (Subtarget = 'TEXT');
  if Target='ZX' THEN Result :=  (Subtarget = 'PLUS3') OR (Subtarget = 'ESXDOS') OR  (Subtarget = 'NEXT');
 END;
