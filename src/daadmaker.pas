@@ -85,7 +85,7 @@ CONST EmptyGraphics : array[0..2088] of byte =
 228, 247, 228, 255, 255, 255, 1, 0, 0);
 
 CONST version_hi = 0;
-      version_lo = 4;
+      version_lo = 5;
 
 var Buffer: TBigBuffer;
     TAPFilename, DDBFilename, SDGFilename, INTFilename, SCRFilename, LoaderFilename, CHRFilename : string;
@@ -126,7 +126,7 @@ begin
 end;
 
 
-procedure SaveBlockFromBuffer(Blockname: ShortString; var Foutput: file; var buffer: TBigBuffer; size: word; Address: word);
+procedure SaveBlockFromBuffer(Blockname: ShortString; var Foutput: file; var buffer: TBigBuffer; Offset: Word; size: word; Address: word);
 var header: TTapHeader;
     blockLength : word;
     i : word;
@@ -162,17 +162,25 @@ end;
 procedure SaveBlockFromFile(Blockname: ShortString; var Foutput: file;var Finput: file; Address: word);
 VAR P3Str: ShortString;
     i: integer;
-    failed: boolean;
+    hasPlus3Header: boolean;
+    Start, Length: Word;
 begin
  Blockread(Finput, Buffer,  filesize(Finput));
- // Check if file has +3 DOS header
+ 
+  // Check and skip PLUS3 header if present
  P3Str := 'PLUS3DOS';
- failed := false;
+ Start := 0;
+ Length := filesize(Finput);
+ hasPlus3Header := true;
  for i:= 1 to 8 DO 
-  IF char(Buffer[i-1]) <> P3STR[i] THEN failed := true;
- if not failed then Error('One of your input files seem to contain PLUS3 header. Please use headerless files.');
- // Save the block nevertheless
- SaveBlockFromBuffer(Blockname,Foutput, Buffer, filesize(Finput), Address);
+  if char(Buffer[i-1]) <> P3STR[i] then hasPlus3Header := false;
+ if hasPlus3Header then
+ begin
+    Start := 128;
+    Length := Length - 128;
+ end;
+ // Save block
+ SaveBlockFromBuffer(Blockname,Foutput, Buffer, Start, Length, Address);
 end;
 
 procedure SaveLoader(var Foutput: file; GameName : String; withScreen: boolean );
@@ -285,7 +293,7 @@ begin
       IF (FileSize(FileCHR)=2048+128) THEN Seek(FileCHR, 128);
       Blockread(FileCHR,Buffer[FileSize(FileSDG)-2076], 2048);
     END;
-    SaveBlockFromBuffer(Gamename, FileTAP, Buffer, filesize(FileSDG), SDGAddress);
+    SaveBlockFromBuffer(Gamename, FileTAP, Buffer, 0, filesize(FileSDG), SDGAddress);
 
 
     Close(FileTap);
