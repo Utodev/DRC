@@ -5,7 +5,7 @@ PROGRAM DRC;
 {$I-}
 
 
-uses strutils, sysutils, ULexTokens, ULexLib, UTokenList, USintactic, UConstants, USymbolList, UCodeGeneration, UCondacts;
+uses strutils, sysutils, ULexTokens, ULexLib, UTokenList, USintactic, UConstants, USymbolList, UCodeGeneration, UCondacts, UInclude;
 
 
 PROCEDURE SYNTAX();
@@ -46,6 +46,12 @@ BEGIN
 	WriteLn(Msg, '.');
 	Halt(2);
 END;	
+
+PROCEDURE PreparseError(Msg: String; CurrentLine: longint);
+BEGIN
+	WriteLn(Currentline,':0: ', Msg,'.');
+	Halt(2);
+END;
 
 FUNCTION getMSX2ColsBySubtarget(SubTarget:AnsiString):Byte;
 BEGIN
@@ -127,11 +133,69 @@ VAR Target, SubTarget: AnsiString;
 
 {$i lexer.pas} 
 
+// Replaces includes and makes some fixes, also starts the reference between tempfile lines and include files and lines
+PROCEDURE Preparse(InputFileName, TempFileName:AnsiString);
+VAR InputFile, IncludeFile, TempFile : Text;
+    Line: AnsiString;
+    IncludeFileName : AnsiString;
+    TempLine, PreserveCurrentLine, CurrentLine : Longint;
+    IncludeData :  TIncludeData;
+    
+BEGIN
+ AssignFile(InputFile, InputFileName);
+ Reset(InputFile);
+ AssignFile(TempFile, TempFileName);
+ Rewrite(TempFile);
+ CurrentLine := 0;
+ TempLine := 0;
+ while not eof(InputFile) do 
+ begin
+    ReadLn(InputFile, Line);
+    CurrentLine := CurrentLine + 1;
+    if (Copy(Line, 1, 8)='#include') then
+    begin
+        IncludeFileName := Copy(Line,10,MaxInt);
+        if (pos(';', IncludeFileName)>0) THEN IncludeFileName := Copy(IncludeFileName, 1, Pos(';',IncludeFileName)-1);
+        IncludeFileName := Trim(IncludeFileName);
+        if (not FileExists(IncludeFileName)) then PreparseError('Include file "'+IncludeFileName+'" not found', CurrentLine );
+        if Verbose THEN Writeln('Including ', IncludeFileName, '...');
+        AssignFile(IncludeFile, IncludeFileName);
+        Reset(IncludeFile);
+        PreserveCurrentLine := CurrentLine;
+        CurrentLine := 0;
+        WHILE NOT EOF(IncludeFile) do
+        begin
+          ReadLn(IncludeFile, Line);
+          CurrentLine := CurrentLine + 1;
+          if (Copy(Line, 1, 8)='#include') then PreparseError('Nested includes are not allowed', CurrentLine);
+          WriteLn(TempFile, Line);
+          TempLine := TempLine + 1;
+          IncludeData.originalFileName := IncludeFileName;
+          IncludeData.OriginalLine := CurrentLine;
+          AddLine(TempLine, IncludeData);
+        end;
+        Close(IncludeFile);
+        CurrentLine := PreserveCurrentLine;
+    end
+    else
+    begin
+      WriteLn(TempFile, Line);
+      TempLine := TempLine + 1;
+      IncludeData.originalFileName := InputFileName;
+      IncludeData.OriginalLine := CurrentLine;
+      AddLine(TempLine, IncludeData);
+    end;
+ end;
+ Close(InputFile);
+ Close(TempFile);
+END;
+
 
 PROCEDURE CompileForTarget(Target: AnsiString; Subtarget: AnsiString; OutputFileName: String; AdditionalSymbols: String);
 var machine : AnsiString;
     cols: byte;
     i :byte;
+    TempFileName: AnsiString;
 BEGIN
   IF Verbose THEN
   BEGIN
@@ -140,7 +204,9 @@ BEGIN
    WriteLn;
   END; 
   Writeln('Reading ' + InputFileName);
-  AssignFile(yyinput, InputFileName);
+  TempFileName := ChangeFileExt(InputFileName, '.___');
+  Preparse(InputFileName, TempFileName);
+  AssignFile(yyinput, TempFileName);
   Reset(yyinput);
   TokenList := nil;
   // This is a fake token we add, although it will be never loaded. Everytime Scan() is called, it goes to "next" so first time this fake one will be skipped.
@@ -188,6 +254,7 @@ BEGIN
   Write('Generating ',OutputFileName,' [Classic mode O');
   if (ClassicMode) THEN WriteLn('N]') ELSE WriteLn('FF]');
 	GenerateOutput(OutputFileName, Target);
+  DeleteFile(TempFileName);
 END;  
 
 FUNCTION isValidSubTarget(Target, Subtarget: AnsiString): Boolean;
@@ -197,6 +264,8 @@ BEGIN
  if Target='ZX' THEN Result :=  (Subtarget = 'PLUS3') OR (Subtarget = 'ESXDOS') OR  (Subtarget = 'NEXT');
 END;
 
+
+// MAIN
 BEGIN
   AppName := ChangeFileExt(ExtractFileName(ParamStr(0)),'');
   Write('DAAD Reborn Compiler Frontend', ' ', version_hi, '.', version_lo, ' (C) Uto 2018');
@@ -262,7 +331,7 @@ BEGIN
   IF NoSemantic AND SemanticWarnings THEN ParamError('You can''t avoid semantic checking and at the same time expect semantic warnings.');
 
   //LoadPlugins(); 
-  IF NOT CheckEND(InputFileName) THEN ParamError('Input file has no /END section');
+  IF NOT CheckEND(InputFileName) THEN ParamError('Input file has no /END section. Please make sure /END it''s in main file, not in #include files, if any.');
   CompileForTarget(Target, SubTarget, OutputFileName, AdditionalSymbols);
 END.
 

@@ -15,7 +15,7 @@ var ClassicMode : Boolean;
 
 IMPLEMENTATION
 
-USES sysutils, UConstants, ULexTokens, USymbolList, UVocabularyTree, UMessageList, UCondacts, UConnections, UObjects, UProcess, UProcessCondactList, UCTLExtern,fpexprpars, strings, strutils;
+USES sysutils, UConstants, ULexTokens, USymbolList, UVocabularyTree, UMessageList, UCondacts, UConnections, UObjects, UProcess, UProcessCondactList, UCTLExtern,fpexprpars, strings, strutils, UInclude;
 
 VAR CurrentText: AnsiString;
 	CurrentIntVal : Longint;
@@ -27,14 +27,18 @@ VAR CurrentText: AnsiString;
 	OnElse :Boolean;
 	
 PROCEDURE SyntaxError(msg: String);
+VAR IncludeData : TIncludeData;
 BEGIN
-  Writeln(CurrLineno,':', CurrColno, ': ', msg,'.');
+  IncludeData := GetIncludeData(CurrLineno);
+  Writeln(IncludeData.OriginalLine,':', CurrColno,':',IncludeData.originalFileName, ': ', msg,'.');
   Halt(1);
 END;
 
 PROCEDURE Warning(msg: String);
+VAR IncludeData : TIncludeData;
 BEGIN
-  Writeln('Warning: ' , CurrLineno,':', CurrColno, ': ', msg,'.');
+  IncludeData := GetIncludeData(CurrLineno);
+  Writeln('Warning: ',IncludeData.OriginalLine,':', CurrColno,':',IncludeData.originalFileName, ': ', msg,'.');
 END;
 
 
