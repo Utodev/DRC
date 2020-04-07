@@ -293,6 +293,7 @@ function getCompressableTables($compression, &$adventure)
     switch ($compression)
     {
      case 'basic': $compressableTables = array($adventure->locations); break;
+//     case 'advanced':  $compressableTables = array($adventure->locations, $adventure->messages, $adventure->sysmess); break;
      case 'advanced':  $compressableTables = array($adventure->locations, $adventure->messages, $adventure->sysmess, $adventure->xmessages); break;
     }
     return $compressableTables;
@@ -679,6 +680,16 @@ function getCondactsHash($adventure, $condacts, $from)
             {
                 $param2 = $condact->Param2;
                 $hash .= ($param2);
+                if ($condact->NumParams>2) 
+                {
+                    $param3 = $condact->Param3;
+                    $hash .= ($param3);
+                    if ($condact->NumParams>3) 
+                    {
+                        $param4 = $condact->Param4;
+                        $hash .= ($param4);
+                    }
+                }
             }
         }
     }
@@ -986,7 +997,6 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                 if (($opcode == FAKE_DEBUG_CONDACT_CODE) && ($adventure->verbose)) echo "Debug condact found, inserted.\n";
                 writeByte($outputFileHandler, $opcode);
                 $currentAddress++;
-                
                 for($i=0;$i<$condact->NumParams;$i++) 
                 {
                     switch ($i)
