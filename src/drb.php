@@ -293,7 +293,6 @@ function getCompressableTables($compression, &$adventure)
     switch ($compression)
     {
      case 'basic': $compressableTables = array($adventure->locations); break;
-//     case 'advanced':  $compressableTables = array($adventure->locations, $adventure->messages, $adventure->sysmess); break;
      case 'advanced':  $compressableTables = array($adventure->locations, $adventure->messages, $adventure->sysmess, $adventure->xmessages); break;
     }
     return $compressableTables;
