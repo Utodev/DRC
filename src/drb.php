@@ -670,7 +670,7 @@ function getCondactsHash($adventure, $condacts, $from)
         if (($opcode==FAKE_DEBUG_CONDACT_CODE) && (!$adventure->debugMode)) continue;
         if (($opcode==FAKE_USERPTR_CONDACT_CODE)) continue;
         if (($condact->NumParams>0) && ($condact->Indirection1)) $opcode = $opcode | 0x80; // Set indirection bit
-        $hash .= "$opcode ";
+        $hash .= "$condact->Opcode ";
         if ($condact->NumParams>0)
         {
             $param1 = $condact->Param1;
