@@ -24,7 +24,7 @@ define('XSPLITSCR_OPCODE',136);
 define('XUNDONE_OPCODE',137);
 define('XNEXTCLS_OPCODE',138);
 define('XNEXTRST_OPCODE',139);
-define('XNEXTSPEED_OPCODE',140);
+define('XSPEED_OPCODE',140);
 
 
 define('SFX_OPCODE',    18);
@@ -756,7 +756,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Param2 = 8; // Maluva function 8
                     $condact->Indirection1 = 0; // Also useless, but it must be set
                     $condact->Condact = 'EXTERN';
-                    if (!CheckMaluva($adventure)) Error('XNEXTCLS_OPCODE condact requires Maluva Extension');
+                    if (!CheckMaluva($adventure)) Error('XNEXTCLS condact requires Maluva Extension');
                     if (($target!='ZX') || ($subtarget!='NEXT'))  // If target does not support XNEXTCLS_OPCODE replace by always true condition "AT @38"
                     {
                         $condact->Opcode = AT_OPCODE;
@@ -774,7 +774,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Param2 = 9; // Maluva function 9
                     $condact->Indirection1 = 0; // Also useless, but it must be set
                     $condact->Condact = 'EXTERN';
-                    if (!CheckMaluva($adventure)) Error('XNEXTRST_OPCODE condact requires Maluva Extension');
+                    if (!CheckMaluva($adventure)) Error('XNEXTRST  condact requires Maluva Extension');
                     if (($target!='ZX') || ($subtarget!='NEXT'))  // If target does not support XNEXTRST_OPCODE replace by always true condition "AT @38"
                     {
                         $condact->Opcode = AT_OPCODE;
@@ -784,14 +784,15 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                         $condact->NumPrams=1;
                     }
                 }
-                else if ($condact->Opcode == XNEXTSPEED_OPCODE)
+                else if ($condact->Opcode == XSPEED_OPCODE)
                 {
                     $condact->Opcode = EXTERN_OPCODE;
                     $condact->NumParams=2;
                     $condact->Param2 = 10; // Maluva function 10
                     $condact->Condact = 'EXTERN';
-                    if (!CheckMaluva($adventure)) Error('XNEXTSPEED_OPCODE condact requires Maluva Extension');
-                    if (($target!='ZX') || ($subtarget!='NEXT'))  // If target does not support XNEXTSPEED_OPCODE replace by always true condition "AT @38"
+                    if (!CheckMaluva($adventure)) Error('XSPEED condact requires Maluva Extension');
+                    $targetSubtarget = "${target}${subtarget}";
+                    if (($targetSubtarget!='ZXNEXT') && ($targetSubtarget!='ZXUNO'))  // If target does not support XSPEED_OPCODE replace by always true condition "AT @38"
                     {
                         $condact->Opcode = AT_OPCODE;
                         $condact->Condact = 'AT';
@@ -896,9 +897,12 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->NumParams=2;
                     $condact->Param2 = 6; // Maluva function 6. Notice in case this condact is generated for a machine not supporting split screen it will just do nothing
                     $condact->Condact = 'EXTERN'; // XSPLITSCR X  ==> EXTERN X 6 
-                    if ((CheckMaluva($adventure)<2) && ($target=='CPC'))  Error('XSPLITSCR condact requires Maluva Standard Extension and CPC Interrupt Extension for running under CPC');               
-                    if ((CheckMaluva($adventure)<1) && ($target=='C64'))  Error('XSPLITSCR condact requires Maluva extension');               
-                    if (($target!='MSX2') && ($target!='CPC')  && ($target!='C64')) // If target does not support XSPLITSCR, replaces condact with "AT @38" (always true)
+                    $targetSubtarget ="${target}${subtarget}";
+                    if ((CheckMaluva($adventure)<2) && ($target=='CPC')) Error('XSPLITSCR condact requires Maluva Standard Extension and CPC Interrupt Extension for running under CPC');               
+                    if ((CheckMaluva($adventure)<2) && ($targetSubtarget=='ZXUNO')) Error('XSPLITSCR condact requires Maluva Standard Extension and ZX-UNO Interrupt Extension for running under ZX-Uno');               
+                    if ((CheckMaluva($adventure)<1) && ($target=='C64')) Error('XSPLITSCR condact requires Maluva extension');               
+
+                    if  ( ($target!='MSX2') && ($target!='CPC')  && ($target!='C64') && ($targetSubtarget!='ZXUNO'))  // If target does not support XSPLITSCR, replaces condact with "AT @38" (always true)
                     {
                         $condact->Opcode = AT_OPCODE;
                         $condact->Condact = 'AT';
@@ -1088,7 +1092,7 @@ function isValidSubtarget($target, $subtarget)
 {
     if (($target!='MSX2') && ($target!='PC') && ($target!='ZX')) return false;
     if ($target=='MSX2') return ($subtarget == '5_6') || ($subtarget == '5_8') || ($subtarget == '6_6') || ($subtarget == '6_8') || ($subtarget == '7_6') || ($subtarget == '7_8') || ($subtarget == '8_6') || ($subtarget == '8_8') || ($subtarget == '10_6') || ($subtarget == '10_8') || ($subtarget == '12_6') || ($subtarget == '12_8');
-    if ($target=='ZX') return ($subtarget == 'PLUS3') || ($subtarget == 'ESXDOS') ||  ($subtarget == 'NEXT');
+    if ($target=='ZX') return ($subtarget == 'PLUS3') || ($subtarget == 'ESXDOS') ||  ($subtarget == 'NEXT') ||  ($subtarget == 'UNO');
 // In fact, drb doesn't care about PC subtargets, but just for coherence with drf, we make sure they are correct, despite we will not use them. 
     if ($target=='PC') return ($subtarget == 'VGA') || ($subtarget == 'CGA') ||  ($subtarget == 'EGA') ||  ($subtarget == 'TEXT');
     
@@ -1153,7 +1157,7 @@ function Syntax()
     
     echo("SYNTAX: php drb <target> [subtarget] <language> <inputfile> [outputfile] [options]\n\n");
     echo("+ <target>: target machine, should be 'ZX', 'CPC', 'C64', 'CP4', 'MSX', 'MSX2', 'PCW', 'PC', 'ST' or 'AMIGA'. Just to clarify, CP4 stands for Commodore Plus/4\n");
-    echo("+ [subtarget]: some targets need to specify a subtarget.\n\tFor MSX2 target: 5_6, 5_8, 6_6, 6_8, 7_6, 7_8, 8_6, 8_8, 10_6, 10_8, 12_6 ad 12_8 (being video mode and character width in pixels).\n\tFor PC target: VGA, EGA, CGA and TEXT.\n\tFor ZX target: PLUS3, NEXT and ESXDOS.\n");
+    echo("+ [subtarget]: some targets need to specify a subtarget.\n\tFor MSX2 target: 5_6, 5_8, 6_6, 6_8, 7_6, 7_8, 8_6, 8_8, 10_6, 10_8, 12_6 ad 12_8 (being video mode and character width in pixels).\n\tFor PC target: VGA, EGA, CGA and TEXT.\n\tFor ZX target: PLUS3, NEXT; UNO and ESXDOS.\n");
     echo("+ <language>: game language, should be 'EN' or 'ES' (english or spanish).\n");
     echo("+ <inputfile>: a json file generated by DRF.\n");
     echo("+ [outputfile] : (optional) name of output file. If absent, same name of json file would be used, with DDB extension.\n");
