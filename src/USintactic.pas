@@ -616,7 +616,7 @@ BEGIN
 					// if still the value is not found, check the Vocavulary again, but more openly
 					IF Value = MAXLONGINT THEN Value:= GetWordParamValue(CurrentText, 255);
 					// If still MAXLONGINT, then it should be a bad parameter
-					IF Value = MAXLONGINT THEN SyntaxError('Invalid parameter #' + IntToStr(i+1) + ': "'+CurrentText+'"');
+					IF Value = MAXLONGINT THEN SyntaxError('Invalid parameter #' + IntToStr(i+1) + ': "'+CurrentText+'" for condact '+ Condacts[Opcode].Condact);
 					IF (Opcode=SKIP_OPCODE) AND (Value<0) THEN Value := 256 + Value;
 					IF (Opcode in [XMES_OPCODE, XMESSAGE_OPCODE]) THEN 
 					BEGIN
