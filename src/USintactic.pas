@@ -620,9 +620,9 @@ BEGIN
 					IF (Opcode=SKIP_OPCODE) AND (Value<0) THEN Value := 256 + Value;
 					IF (Opcode in [XMES_OPCODE, XMESSAGE_OPCODE]) THEN 
 					BEGIN
-						IF (Value<0) THEN SyntaxError('Invalid parameter value "'+CurrentText+'"');
+						IF (Value<0) THEN SyntaxError('Invalid parameter value "'+CurrentText+'" for condact '+ Condacts[Opcode].Condact);
 					END 
-					ELSE IF (Value<0)  OR (Value>MAX_PARAMETER_RANGE) THEN SyntaxError('Invalid parameter value "'+CurrentText+'"');
+					ELSE IF (Value<0)  OR (Value>MAX_PARAMETER_RANGE) THEN SyntaxError('Invalid parameter value "'+CurrentText+'" for condact '+ Condacts[Opcode].Condact);
 					
 					CurrentCondactParams[i].Value := Value;
 					// Semantic Check
