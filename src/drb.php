@@ -32,6 +32,7 @@ define('PAUSE_OPCODE',  35);
 define('EXTERN_OPCODE', 61);
 define('BEEP_OPCODE',   64);
 define('AT_OPCODE', 0);
+define('PROCESS_OPCODE',75);
 
 define('XPLAY_OCTAVE', 0);
 define('XPLAY_VOLUME', 1);
@@ -718,7 +719,13 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
             for($condactID=0;$condactID<sizeof($entry->condacts); $condactID++)
             {
                 $condact = $entry->condacts[$condactID];
-                if  ($condact->Opcode == XMES_OPCODE)  // Convert XMESS in a Maluva CALL, XMESSAGE does not actually get to drb, as drf already converts all XMESSAGE into XMESS with a \n added to the string
+                if ($condact->Opcode == PROCESS_OPCODE)
+                {
+                    // Check if process called does exist, in case it's not indirect call
+                    if (!$condact->Indirection1)
+                     if ($condact->Param1 >= sizeof($adventure->processes)) Error('Invalid call to process #'.$condact->Param1.". Specified process does not exist");
+                }
+                else if  ($condact->Opcode == XMES_OPCODE)  // Convert XMESS in a Maluva CALL, XMESSAGE does not actually get to drb, as drf already converts all XMESSAGE into XMESS with a \n added to the string
                 {
                     $condact->Opcode = EXTERN_OPCODE;
                     $messno = $condact->Param1;
