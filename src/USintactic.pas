@@ -4,7 +4,7 @@ UNIT USintactic;
 
 INTERFACE
 
-USES UTokenList, UlabelList;
+USES UTokenList, ULabelList;
 
 PROCEDURE Sintactic(ATarget, ASubtarget: AnsiString);
 PROCEDURE FixSkips();
