@@ -319,9 +319,7 @@ S 1
 > _       _     EQ      fTurns   255     ; Max for one byte
                 PLUS    fTurnsHi 1
                 CLEAR   fTurns
-#echo "asdad"
                 SKIP    $noCarry
-#echo "asdad2"
 
 > _       _     PLUS    fTurns   1
 $noCarry
