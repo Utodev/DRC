@@ -22,8 +22,10 @@ CONST version_hi = 0;
 
       MAX_PARAMETER_RANGE = 255;
 
+      MAX_LABELS = 1024;
+
       NUM_CONDACTS  =128;
-      NUM_FAKE_CONDACTS = 13;
+      NUM_FAKE_CONDACTS = 14;
 
       MESSAGE_OPCODE = 38;
       MES_OPCODE =77;
@@ -47,6 +49,7 @@ CONST version_hi = 0;
 
       DESC_OPCODE = 19;
       SKIP_OPCODE = 116;
+      PENDINGSKIP_OPCODE = 141;
 
       SYNONYM_OPCODE = 36;
       PREP_OPCODE = 68;

@@ -4,9 +4,10 @@ UNIT USintactic;
 
 INTERFACE
 
-USES UTokenList;
+USES UTokenList, UlabelList;
 
 PROCEDURE Sintactic(ATarget, ASubtarget: AnsiString);
+PROCEDURE FixSkips();
 
 var ClassicMode : Boolean;
 	DebugMode : Boolean;
@@ -41,6 +42,44 @@ BEGIN
   Writeln('Warning: ',IncludeData.OriginalLine,':', CurrColno,':',IncludeData.originalFileName, ': ', msg,'.');
 END;
 
+
+PROCEDURE FixSkips();
+var procno, entryno : Word;
+	TempEntriesList : TPProcessEntryList;
+    TempCondactList : TPProcessCondactList;
+    
+BEGIN
+	FOR procno := 0 TO ProcessCount - 1 DO
+	BEGIN
+		TempEntriesList := Processes[procno].entries;
+		entryno := 0;
+		WHILE TempEntriesList<>nil DO
+		BEGIN
+			TempCondactList := TempEntriesList^.Condacts;
+            WHILE TempCondactList<> nil  DO  //  Each condact
+            BEGIN
+				IF (TempCondactList^.Opcode = PENDINGSKIP_OPCODE) THEN
+				BEGIN
+					// Check if forward refence was finally defined
+					IF LabelList[TempCondactList^.Params[0].Value].isForward THEN SyntaxError('Label ' + LabelList[TempCondactList^.Params[0].Value].SkipLabel + ' was referenced but then not defined');
+					// If defined, let's check it's same process
+					IF LabelList[TempCondactList^.Params[0].Value].Process<>procno THEN SyntaxError('Label '+LabelList[TempCondactList^.Params[0].Value].SkipLabel+' was referenced in one process but defined in a different process');
+					// If same process, let´s calculate the jump and see if >128
+					IF LabelList[TempCondactList^.Params[0].Value].Entry - EntryNo > 128 THEN SyntaxError('SKIP using label '+LabelList[TempCondactList^.Params[0].Value].SkipLabel+' trys to jump forward too much, maximum 128 entries jumped allowed');
+					// Ok, now it's all OK, lets replace the PENDINGSKIP for a proper SKIP
+					IF verbose THEN WriteLn('Forward reference of label "' + LabelList[TempCondactList^.Params[0].Value].SkipLabel + '" found at process #' + IntToStr(LabelList[TempCondactList^.Params[0].Value].Process) + ', entry #' + IntToStr(LabelList[TempCondactList^.Params[0].Value].Entry) + '.');
+					TempCondactList^.Opcode := SKIP_OPCODE;
+					TempCondactList^.Params[0].Value := LabelList[TempCondactList^.Params[0].Value].Entry - EntryNo - 1;
+					break;
+				END;
+				TempCondactList := TempCondactList^.Next;
+			END;
+			Inc(Entryno);
+			TempEntriesList := TempEntriesList^.Next;
+		END;
+
+	END;
+END;
 
 PROCEDURE Scan(); forward;
 
@@ -495,7 +534,7 @@ BEGIN
   IF AuxVocabularyPTR = nil THEN Result := MAXLONGINT ELSE  Result := AuxVocabularyPTR^.Value;
 END;
 
-PROCEDURE ParseProcessCondacts(var SomeEntryCondacts :  TPProcessCondactList);
+PROCEDURE ParseProcessCondacts(var SomeEntryCondacts :  TPProcessCondactList; CurrentProcess:Longint; CurrentEntry : Longint);
 VAR Opcode : Longint;
 	CurrentCondactParams : TCondactParams;
 	Value : Longint;
@@ -508,14 +547,17 @@ VAR Opcode : Longint;
 	MaXMESs : Longint;
 	SemanticError : AnsiString;
 	SemanticExempt : Boolean;
+	LabelData: TLabelData;
+	LabelID : Word;
+
 BEGIN
 	REPEAT
-		IF (SomeEntryCondacts<>nil) THEN Scan(); // Get Condact, skip first time when the condact list is empy cause it's already read
+		IF (SomeEntryCondacts<>nil) THEN Scan(); // Get Condact, skip first time when the condact list is empty cause it's already read
 		IF (CurrentTokenID <> T_IDENTIFIER)  AND (CurrentTokenID<>T_UNDERSCORE)  AND (CurrentTokenID<>T_SECTION_PRO) AND (CurrentTokenID<>T_SECTION_END)   AND (CurrentTokenID<>T_INCBIN) 
 		 AND (CurrentTokenID<>T_DB) AND (CurrentTokenID<>T_DW) AND (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_HEX) AND (CurrentTokenID<>T_USERPTR)	 
-		 AND (CurrentTokenID<>T_PROCESS_ENTRY_SIGN)	 THEN SyntaxError('Condact, new process entry or new process expected but "'+CurrentText+'" found');
+		 AND (CurrentTokenID<>T_LABEL) AND (CurrentTokenID<>T_PROCESS_ENTRY_SIGN) THEN SyntaxError('Condact, new process entry or new process expected but "'+CurrentText + '" found');
 
-		IF (CurrentTokenID<>T_INCBIN) AND (CurrentTokenID<>T_DB) AND (CurrentTokenID<>T_DW) AND (CurrentTokenID<>T_HEX) AND (CurrentTokenID<>T_USERPTR) THEN
+		IF (CurrentTokenID<>T_INCBIN) AND (CurrentTokenID<>T_DB) AND (CurrentTokenID<>T_DW) AND (CurrentTokenID<>T_HEX) AND (CurrentTokenID<>T_USERPTR) AND (CurrentTokenID<>T_LABEL) THEN
 		BEGIN
 		  IF (CurrentTokenID = T_PROCESS_ENTRY_SIGN) OR (CurrentTokenID = T_SECTION_END) OR (CurrentTokenID = T_SECTION_PRO) THEN Opcode := -2 ELSE Opcode := GetCondact(CurrentText);
 		    
@@ -601,11 +643,40 @@ BEGIN
 						Value := CurrentIntVal;
 						CurrentText := IntToStr(Value);
 					END;
+
+					IF (CurrentTokenID = T_LABEL) ANd  (Opcode = SKIP_OPCODE) THEN
+					BEGIN
+					 IF (GetLabelData(CurrentText, LabelData) <> -1) THEN // Label exists, replace numeric value
+					 BEGIN
+						IF (CurrentProcess <> LabelData.Process) THEN SyntaxError('Label "'+CurrentText+'" is not in this process');
+						// At this point we know the label, if exists, is beacuse it was defined before, so jump is always backwars. We only check if jump < -128
+						IF (LabelData.Entry - CurrentEntry -  1 < -128) THEN SyntaxError('Label "'+CurrentText+'" is too far from SKIP call, maximum 128 entries far allowed');
+						// At this point it's a valid label, we just replace the token so it works as if the real numeric value was there
+						CurrentIntVal := LabelData.Entry - CurrentEntry -1;
+						CurrentText := IntToStr(LabelData.Entry - CurrentEntry -1);
+						CurrentTokenID := T_NUMBER;
+					 END
+					 ELSE
+					 BEGIN  // The label was not yet available, it's a forward reference
+					    // Add empty label
+					 	LabelID := AddLabel(CurrentText, -1, -1, true); 
+      					IF Verbose THEN WriteLn('Forward declaration of label '+CurrentText+' created.');
+						// Replace current condact with a PENDING_SKIP
+						Opcode := PENDINGSKIP_OPCODE;
+						CurrentCondactParams[0].Indirection := false;
+						CurrentCondactParams[0].Value := LabelID;
+						CurrentTokenID := T_NUMBER;
+						CurrentText:=IntToStr(LabelID);
+						CurrentIntVal := LabelID;
+					 END;
+
+					END;
+
 					IF (CurrentTokenID <> T_NUMBER) AND (CurrentTokenID <> T_IDENTIFIER) AND (CurrentTokenID<> T_UNDERSCORE) AND (CurrentTokenID<>T_STRING) THEN SyntaxError('Invalid condact parameter');
 
-					// Lets'de termine the value of the parameter
+					// Lets' dtermine the value of the parameter
 					Value := MAXLONGINT;
-					// IF a string then eveluate expression
+					// IF a string then evaluate expression
 					if CurrentTokenID = T_STRING THEN  Value  := GetExpressionValue();
 					// If  an underscore, value is clear
 					IF CurrentTokenID = T_UNDERSCORE THEN Value:= NO_WORD;
@@ -643,6 +714,13 @@ BEGIN
 			BEGIN
 			 IF (Opcode=-1) THEN SyntaxError('Unknown condact: "'+CurrentText+'"'); // If opcode = -1, it was an invalid condact, otherwise we have found entry end because of another entry, another process or \END
 			END 
+		END ELSE
+		IF CurrentTokenID=T_LABEL THEN // LABEL
+		BEGIN
+		 IF (AddLabel(CurrentText, CurrentProcess, CurrentEntry+1, false)=-1) THEN SyntaxError('Label already defined ('+CurrentText+') or too many labels');
+		 IF Verbose THEN WriteLn('Label '+CurrentText+' created at process #'+IntToStr(CurrentProcess)+', entry #', IntToStr(CurrentEntry+1),'.');
+		 Scan();
+		 Opcode := -1;
 		END ELSE
 		IF CurrentTokenID=T_USERPTR THEN  // USERPTR
 		BEGIN
@@ -769,30 +847,47 @@ Its the same as:
    MESSSAGE "You don't have the key."
    DONE
 *)
+
+
+
+
 PROCEDURE ParseProcessEntries(CurrentProcess: Longint);
 VAR 	Verb, Noun : Longint;
 	EntryCondacts :  TPProcessCondactList;
 	VerbNouns : array of longint;
 	i : integer;
+	CurrentEntry : Word;
 BEGIN
-	Scan(); // Get > sign or next process
+	CurrentEntry := 0;
+	Scan(); // Get > sign, label,  or next process
 	REPEAT
-	 IF (CurrentTokenID<>T_PROCESS_ENTRY_SIGN) AND  (CurrentTokenID<>T_SECTION_PRO) AND  (CurrentTokenID<>T_SECTION_END) THEN SyntaxError('Entry sign expected ">" but "'+CurrentText+'" found');
+	 IF (CurrentTokenID<>T_PROCESS_ENTRY_SIGN) AND  (CurrentTokenID<>T_SECTION_PRO) AND  (CurrentTokenID<>T_SECTION_END) AND (CurrentTokenID<>T_LABEL) THEN SyntaxError('Label or entry sign ">" expected  but "'+CurrentText+'" found');
 
      IF (CurrentTokenID <> T_SECTION_PRO) AND  (CurrentTokenID<>T_SECTION_END) THEN
      BEGIN
-	      setLength(VerbNouns, 0);
-	      REPEAT  // Repeat per each synonym entry (check comment above this procedure to see what synonym entries are)
-		  	ParseVerbNoun(Verb, Noun);
-			setLength(VerbNouns, Length(VerbNouns)+2);
-			VerbNouns[High(VerbNouns)-1] := Verb;
-			VerbNouns[High(VerbNouns)] := Noun;
-		  	Scan();
-		  UNTIL CurrentTokenID<>T_PROCESS_ENTRY_SIGN;
-		  EntryCondacts := nil;
-		  ParseProcessCondacts(EntryCondacts);
-		  // Dump condacts once per each synonym entry
-		  for i:=0 to ((Length(VerbNouns) DIV 2) -1) DO AddProcessEntry(Processes[CurrentProcess].Entries, VerbNouns[i*2], VerbNouns[i*2+1], EntryCondacts);
+	 	  IF (CurrentTokenID=T_LABEL) THEN // A label
+		  BEGIN
+		    // try to create a new label reference
+		  	IF (AddLabel(CurrentText, CurrentProcess, CurrentEntry, false)=-1) THEN SyntaxError('Label already defined ('+CurrentText+') or too many labels');
+			IF Verbose THEN WriteLn('Label '+CurrentText+' created at process #'+IntToStr(CurrentProcess)+', entry #', IntToStr(CurrentEntry),'.');
+			Scan();
+		  END
+		  ELSE
+		  BEGIN // A entry
+			setLength(VerbNouns, 0);
+			REPEAT  // Repeat per each synonym entry (check comment above this procedure to see what synonym entries are)
+				ParseVerbNoun(Verb, Noun);
+				setLength(VerbNouns, Length(VerbNouns)+2);
+				VerbNouns[High(VerbNouns)-1] := Verb;
+				VerbNouns[High(VerbNouns)] := Noun;
+				Scan();
+			UNTIL CurrentTokenID<>T_PROCESS_ENTRY_SIGN;
+			EntryCondacts := nil;
+			ParseProcessCondacts(EntryCondacts, CurrentProcess, CurrentEntry);
+			// Dump condacts once per each synonym entry
+			for i:=0 to ((Length(VerbNouns) DIV 2) -1) DO AddProcessEntry(Processes[CurrentProcess].Entries, VerbNouns[i*2], VerbNouns[i*2+1], EntryCondacts);
+			CurrentEntry := CurrentEntry + (Length(VerbNouns) DIV 2);
+		END;
      END;
   UNTIL (CurrentTokenID = T_SECTION_PRO) OR (CurrentTokenID = T_SECTION_END);
 END;
@@ -813,7 +908,7 @@ BEGIN
 		IF ProcNum<>CurrentProcess THEN SyntaxError('Definition for process #' + IntToStr(CurrentProcess) + ' expected but process #' + IntToStr(ProcNum) + ' found');
 		ProcessCount := ProcessCount + 1;
 		ParseProcessEntries(CurrentProcess);
-    Inc(CurrentProcess);
+    	Inc(CurrentProcess);
 	UNTIL CurrentTokenID = T_SECTION_END;
 END; 		
 

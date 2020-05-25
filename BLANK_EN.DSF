@@ -319,10 +319,12 @@ S 1
 > _       _     EQ      fTurns   255     ; Max for one byte
                 PLUS    fTurnsHi 1
                 CLEAR   fTurns
-                SKIP    1
+#echo "asdad"
+                SKIP    $noCarry
+#echo "asdad2"
 
 > _       _     PLUS    fTurns   1
-
+$noCarry
 > _       _     PROCESS 5               ; Do any commands
                 ISDONE                  ; Done something
                 REDO
@@ -426,12 +428,13 @@ S 1
                 CLS
                 SET   255             
 
+$resetLoop
 > _       _     MINUS  255 1          ; Clear all flags
                 NOTEQ   255  fGFlags  ; except fGFlags!!!
                 CLEAR   @255
 
 > _       _     NOTZERO 255             
-                SKIP    -2              
+                SKIP    $resetLoop
 
 > _       _     RESET                   ; Set objects to start location & Flag 1
                 LET     fStrength 10

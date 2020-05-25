@@ -11,6 +11,7 @@ TYPE TPProcessEntryList = ^TProcessEntryList;
 
 	TProcessEntryList = RECORD
 		Verb, Noun : Longint;
+		SkipLabel: AnsiString;
 		Condacts : TPProcessCondactList;
 		Next : TPProcessEntryList;
 	END;	

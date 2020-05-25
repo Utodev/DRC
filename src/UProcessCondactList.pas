@@ -18,7 +18,7 @@ TYPE TParam =  RECORD
 	TPProcessCondactList = ^TProcessCondactList;
 
 	TProcessCondactList = RECORD
-			Opcode: Longint;
+		Opcode: Longint;
 		IsDB : boolean; // Fake condact coming from a #DB pseudo-opcode
 		NumParams : Byte;
 		Params : TCondactParams;

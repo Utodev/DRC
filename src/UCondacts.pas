@@ -163,7 +163,8 @@ CONST Condacts : ARRAY[0..NUM_CONDACTS+NUM_FAKE_CONDACTS - 1] OF TCondact = (
 (Numparams:0;Condact:'XUNDONE';Type1: none; Type2: none; Type3: none), //137
 (Numparams:0;Condact:'XNEXTCLS';Type1: none; Type2: none; Type3: none), //138
 (Numparams:0;Condact:'XNEXTRST';Type1: none; Type2: none; Type3: none), //139
-(Numparams:1;Condact:'XSPEED';Type1: value; Type2: none; Type3: none) //140
+(Numparams:1;Condact:'XSPEED';Type1: value; Type2: none; Type3: none), //140
+(Numparams:1;Condact:'PENDINGSKIP';Type1: value;Type2:none; Type3: none) //141  This one is used internally by the compiler only
 );
 
 (* Returns the condact index in the codacts table, or -1 if not found*)
