@@ -42,6 +42,73 @@ BEGIN
   FixDoubleQuotes := Str;
 END;  
 
+FUNCTION ConvertChars(Str: AnsiString):AnsiString;
+var i: integer;
+    strOut : AnsiString;
+BEGIN
+// First replace international chars. Please notice AnsiReplaceStr(Str, 'á', '\u0015') doesn't work. Probably a bug of the compiler library.
+// That is the reason why all replacements are done the way you see below, which is a little complicate. Codes in the CASE statement are the
+// ISO 8559-1 LATIN1 code for each of the characters. The replacement values are the ASCII codes DAAD uses for the Spanish characters (first
+// part) and the #gX#t combination we use for the new international characters.
+strOut := '';
+for i := 1 to Length(Str) DO 
+BEGIN
+  CASE (Ord(Str[i])) OF
+  // Old spanish chars
+   170: strOut := strOut + '\u0010'; //ª - 16
+   161: strOut := strOut + '\u0011'; //¡ - 17
+   191: strOut := strOut + '\u0012'; //¿ - 18
+   171: strOut := strOut + '\u0013'; //<< - 19
+   187: strOut := strOut + '\u0014'; //<< - 20
+   225: strOut := strOut + '\u0015'; //á - 21
+   233: strOut := strOut + '\u0016'; //é - 22
+   237: strOut := strOut + '\u0017'; //í - 23
+   243: strOut := strOut + '\u0018'; //ó - 24
+   250: strOut := strOut + '\u0019'; //ú - 26
+   241: strOut := strOut + '\u001A'; //ñ - 27
+   209: strOut := strOut + '\u001B'; //Ñ - 28
+   231: strOut := strOut + '\u001C'; //ç - 28
+   199: strOut := strOut + '\u001D'; //Ç - 29
+   252: strOut := strOut + '\u001E'; //ü - 30
+   220: strOut := strOut + '\u001F'; //Ü - 31
+   // New international chars
+   224: strOut := strOut + '#g\u0010#t'; //à - 16
+   227: strOut := strOut + '#g\u0011#t'; //ã - 17
+   228: strOut := strOut + '#g\u0012#t'; //ä - 18
+   226: strOut := strOut + '#g\u0013#t'; //â - 19
+   232: strOut := strOut + '#g\u0014#t'; //è - 20
+   235: strOut := strOut + '#g\u0015#t'; //ë - 21
+   234: strOut := strOut + '#g\u0016#t'; //ê - 22
+   236: strOut := strOut + '#g\u0017#t'; //ì - 23
+   239: strOut := strOut + '#g\u0018#t'; //ï - 24
+   238: strOut := strOut + '#g\u0019#t'; //î - 26
+   242: strOut := strOut + '#g\u001A#t'; //ò - 27
+   245: strOut := strOut + '#g\u001B#t'; //õ - 28
+   246: strOut := strOut + '#g\u001C#t'; //ö - 28
+   244: strOut := strOut + '#g\u001D#t'; //ô - 29
+   249: strOut := strOut + '#g\u001E#t'; //ù - 30
+   251: strOut := strOut + '#g\u001F#t'; //û - 31
+   223: strOut := strOut + '#g\u0023#t'; //ß - 35
+   ELSE StrOut := strOut +  Str[i];
+  END;
+END;  
+// Now replace escape sequences
+
+  StrOut := AnsiReplaceStr(StrOut, '#g', '\u000e');
+  StrOut := AnsiReplaceStr(StrOut, '#t', '\u000f');
+  StrOut := AnsiReplaceStr(StrOut, '#b', '\u000b');
+  StrOut := AnsiReplaceStr(StrOut, '#b', '\u000b');
+  StrOut := AnsiReplaceStr(StrOut, '#s', ' ');
+  StrOut := AnsiReplaceStr(StrOut, '#f', '\u007f');
+  StrOut := AnsiReplaceStr(StrOut, '#k', '\u000c');
+  StrOut := AnsiReplaceStr(StrOut, '#n', '\u000d');
+  StrOut := AnsiReplaceStr(StrOut, '#r', '\u000d');
+  StrOut := AnsiReplaceStr(StrOut, '\n', '\u000d');
+  // Add #A to #P to replacements array
+  for i := ord('A') to ord('P') DO StrOut := AnsiReplaceStr(StrOut, '#' + chr(i), '\u00' + IntToHex(i +$10 - ord('A'),2));
+
+  ConvertChars := StrOut;
+END;
 
 PROCEDURE GenerateJSON(OutputFileName: string);
 VAR JSON : Text;
@@ -173,7 +240,7 @@ BEGIN
             WriteLn(JSON,tabs(),'{');
             INC(Indent);       
             WriteLn(JSON,tabs(),'"Value":', TempMessageList^.MessageID,',');
-            WriteLn(JSON,tabs(),'"Text":"', FixDoubleQuotes(TempMessageList^.Text),'"');
+            WriteLn(JSON,tabs(),'"Text":"', ConvertChars(FixDoubleQuotes(TempMessageList^.Text)),'"');
             DEC(Indent);
             Write(JSON, tabs(), '}');
             if (TempMessageList^.Next <> nil) THEN WriteLn(JSON,',') ELSE WriteLn(JSON);
