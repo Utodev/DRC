@@ -104,6 +104,7 @@ END;
   StrOut := AnsiReplaceStr(StrOut, '#n', '\u000d');
   StrOut := AnsiReplaceStr(StrOut, '#r', '\u000d');
   StrOut := AnsiReplaceStr(StrOut, '\n', '\u000d');
+  StrOut := AnsiReplaceStr(StrOut, '\r', '\u000d');
   // Add #A to #P to replacements array
   for i := ord('A') to ord('P') DO StrOut := AnsiReplaceStr(StrOut, '#' + chr(i), '\u00' + IntToHex(i +$10 - ord('A'),2));
 
