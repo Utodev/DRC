@@ -46,8 +46,8 @@ FUNCTION ConvertChars(Str: AnsiString):AnsiString;
 var i: integer;
     strOut : AnsiString;
 BEGIN
-// First replace international chars. Please notice AnsiReplaceStr(Str, 'á', '\u0015') doesn't work. Probably a bug of the compiler library.
-// That is the reason why all replacements are done the way you see below, which is a little complicate. Codes in the CASE statement are the
+// First replace international chars. Please notice AnsiReplaceStr(Str, 'á', '\u0015') doesn't work. Probably a bug of the fpc compiler library.
+// That is the reason why all replacements are done the way you see below, which is a little complicated. Codes in the CASE statement are the
 // ISO 8559-1 LATIN1 code for each of the characters. The replacement values are the ASCII codes DAAD uses for the Spanish characters (first
 // part) and the #gX#t combination we use for the new international characters.
 strOut := '';
@@ -71,7 +71,13 @@ BEGIN
    199: strOut := strOut + '\u001D'; //Ç - 29
    252: strOut := strOut + '\u001E'; //ü - 30
    220: strOut := strOut + '\u001F'; //Ü - 31
-   // New international chars
+  // New international chars - Upercase Vowels with acuté tilde
+   193: strOut := strOut + '#g\u007B#t'; //Á - 251
+   201: strOut := strOut + '#g\u007C#t'; //É - 252
+   205: strOut := strOut + '#g\u007D#t'; //Í - 253
+   211: strOut := strOut + '#g\u007E#t'; //Ó - 254
+   218: strOut := strOut + '#g\u007F#t'; //Ú - 255
+   // New international chars - Lowercase accented vowels
    224: strOut := strOut + '#g\u0010#t'; //à - 16
    227: strOut := strOut + '#g\u0011#t'; //ã - 17
    228: strOut := strOut + '#g\u0012#t'; //ä - 18
@@ -88,12 +94,49 @@ BEGIN
    244: strOut := strOut + '#g\u001D#t'; //ô - 29
    249: strOut := strOut + '#g\u001E#t'; //ù - 30
    251: strOut := strOut + '#g\u001F#t'; //û - 31
-   223: strOut := strOut + '#g\u0023#t'; //ß - 35
+  // New international chars - Uppercase accented vowels
+   192: strOut := strOut + '#g\u0020#t'; //À - 32
+   195: strOut := strOut + '#g\u0021#t'; //Ã - 33
+   196: strOut := strOut + '#g\u0022#t'; //Ä - 34
+   194: strOut := strOut + '#g\u0023#t'; //Â - 35
+   200: strOut := strOut + '#g\u0024#t'; //È - 36
+   203: strOut := strOut + '#g\u0025#t'; //Ë - 37
+   202: strOut := strOut + '#g\u0026#t'; //Ê - 38
+   204: strOut := strOut + '#g\u0027#t'; //Ì - 30
+   207: strOut := strOut + '#g\u0028#t'; //Ï - 40
+   206: strOut := strOut + '#g\u0029#t'; //Î - 41
+   210: strOut := strOut + '#g\u002A#t'; //Ò - 42
+   213: strOut := strOut + '#g\u002B#t'; //Õ - 43
+   214: strOut := strOut + '#g\u002C#t'; //Ö - 44
+   212: strOut := strOut + '#g\u002D#t'; //Ô - 45
+   217: strOut := strOut + '#g\u002E#t'; //Ù - 46
+   219: strOut := strOut + '#g\u002F#t'; //Û - 47
+
+
+// New international chars - other chars
+   223: strOut := strOut +      '\u007F'; //ß - Low Charset 127
+
+   253: strOut := strOut + '#g\u003A#t'; //ý - 58
+   221: strOut := strOut + '#g\u003B#t'; //Ý - 59
+   254: strOut := strOut + '#g\u003C#t'; //þ - 60
+   222: strOut := strOut + '#g\u003D#t'; //Þ - 61
+   229: strOut := strOut + '#g\u003E#t'; //å - 62
+   197: strOut := strOut + '#g\u003F#t'; //Å - 63
+
+   240: strOut := strOut + '#g\u005B#t'; //ð - 93
+   208: strOut := strOut + '#g\u005C#t'; //Ð - 94
+   248: strOut := strOut + '#g\u005D#t'; //ø - 95
+   216: strOut := strOut + '#g\u005E#t'; //Ø - 96
+   
+
    ELSE StrOut := strOut +  Str[i];
   END;
 END;  
-// Now replace escape sequences
 
+// Give specific support for #e as the euro sign €
+  StrOut := AnsiReplaceStr(StrOut, '#e', '#g\u0060#t'); //€ - 98
+
+// Now replace escape sequences
   StrOut := AnsiReplaceStr(StrOut, '#g', '\u000e');
   StrOut := AnsiReplaceStr(StrOut, '#t', '\u000f');
   StrOut := AnsiReplaceStr(StrOut, '#b', '\u000b');
