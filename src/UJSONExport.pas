@@ -140,7 +140,6 @@ END;
   StrOut := AnsiReplaceStr(StrOut, '#g', '\u000e');
   StrOut := AnsiReplaceStr(StrOut, '#t', '\u000f');
   StrOut := AnsiReplaceStr(StrOut, '#b', '\u000b');
-  StrOut := AnsiReplaceStr(StrOut, '#b', '\u000b');
   StrOut := AnsiReplaceStr(StrOut, '#s', ' ');
   StrOut := AnsiReplaceStr(StrOut, '#f', '\u007f');
   StrOut := AnsiReplaceStr(StrOut, '#k', '\u000c');
