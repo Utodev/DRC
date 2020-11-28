@@ -5,7 +5,7 @@ PROGRAM DRC;
 {$I-}
 
 
-uses strutils, sysutils, ULexTokens, ULexLib, UTokenList, USintactic, UConstants, USymbolList, UCodeGeneration, UCondacts, UInclude;
+uses strutils, sysutils, ULexTokens, ULexLib, UTokenList, USintactic, UConstants, USymbolList, UCodeGeneration, UCondacts, UInclude, Dateutils;
 
 
 PROCEDURE SYNTAX();
@@ -239,6 +239,8 @@ BEGIN
   AddSymbol(SymbolList, 'WORN', LOC_WORN);
   AddSymbol(SymbolList, 'HERE', LOC_HERE);
   AddSymbol(SymbolList, 'HERE', LOC_HERE);
+  // The current date
+  AddSymbol(SymbolList, 'UNIXEPOCH', DateTimeToUnix(Now));
   // Add additionalSymbols if present
   i := 1;
   REPEAT
