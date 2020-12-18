@@ -7,12 +7,14 @@ INTERFACE
 USES UTokenList, ULabelList;
 
 PROCEDURE Sintactic(ATarget, ASubtarget: AnsiString);
+//PROCEDURE FixElses();
 PROCEDURE FixSkips();
 
 var ClassicMode : Boolean;
 	DebugMode : Boolean;
 	Target, Subtarget: AnsiString;
 	MaluvaUsed : Boolean;
+	GlobalNestedIfdefCount: Word;
 
 IMPLEMENTATION
 
@@ -26,6 +28,9 @@ VAR CurrentText: AnsiString;
 	CurrTokenPTR: TPTokenList;
 	OnIfdefMode : boolean;
 	OnElse :Boolean;
+
+	GenerationActive : Boolean;
+
 	
 PROCEDURE SyntaxError(msg: String);
 VAR IncludeData : TIncludeData;
@@ -42,6 +47,32 @@ BEGIN
   Writeln('Warning: ',IncludeData.OriginalLine,':', CurrColno,':',IncludeData.originalFileName, ': ', msg,'.');
 END;
 
+(*
+// Converts all #ifdef/#else/#endif in #ifdef/#endif/#ifdef/#if
+PROCEDURE FixElses();
+VAR StringStack : array[Byte] of String;
+VAR StackPtr: Byte;
+BEGIN
+	CurrTokenPTR := TokenList;
+	StackPTR := 0;
+	WHILE CurrTokenPTR <> nil DO
+	BEGIN
+		IF (CurrTokenPTR^.TokenID=T_IFDEF) OR (CurrTokenPTR^.TokenID = T_IFNDEF) THEN 
+		BEGIN
+			CurrentText := CurrTokenPTR^.Text;
+			CurrentIntVal := CurrTokenPTR^.IntVal;
+			CurrLineno := CurrTokenPTR^.lineno;
+			CurrColno := CurrTokenPTR^.colno;
+
+
+
+		if (CurrTokenPTR^.)
+		CurrTokenPTR:= CurrTokenPTR^.Next;
+
+
+	END;
+END;
+*)
 
 PROCEDURE FixSkips();
 var procno, entryno : Word;
@@ -192,8 +223,33 @@ PROCEDURE ParseEcho();
 BEGIN
  Scan();
  IF (CurrentTokenID<>T_STRING) THEN SyntaxError('Invalid string for #echo');
- WriteLn(CurrentText);
+ WriteLn(Copy(CurrentText, 2, Length(CurrentText) - 2));
 END;
+
+PROCEDURE SkipBlock(VAR CurrTokenPTR: TPTokenList);
+VAR	NestedIfdefCount : Word;
+	PreviousTokenPtr : TPTokenList;
+BEGIN
+	NestedIfdefCount := 1;
+	WHILE (CurrTokenPTR<>nil) AND (NestedIfdefCount>0) DO 
+	BEGIN
+		PreviousTokenPtr := CurrTokenPTR;
+		CurrTokenPTR := CurrTokenPTR^.Next;
+		IF CurrTokenPTR<>nil THEN
+		BEGIN
+			CurrentTokenID := CurrTokenPTR^.TokenID;
+			IF (CurrentTokenID=T_IFDEF) OR (CurrentTokenID=T_IFNDEF) THEN NestedIfdefCount := NestedIfdefCount + 1
+			ELSE IF (CurrentTokenID=T_ENDIF) THEN NestedIfdefCount := NestedIfdefCount - 1
+			ELSE IF (CurrentTokenID=T_ELSE) AND (NestedIfdefCount=1) THEN NestedIfdefCount := 0; // ELSE can only get you out of skip block if is the ELSE of the IFDEF that started it, otherwise else is ignored
+		END;	
+	END;
+	IF (CurrTokenPTR=nil) THEN SyntaxError('Unexpected end of file. #ifdef/#ifndef couldn''t find #endif');
+	// If we exit because of a #else we will just return pointing to the next token after else because after an else is basically the same than after an #ifdef/#ifndef
+	//IF CurrentTokenID = T_ELSE THEN GlobalNestedIfdefCount := GlobalNestedIfdefCount + 1 
+	//ELSE
+	 IF CurrentTokenID = T_ENDIF  THEN CurrTokenPTR := PreviousTokenPtr;  // But it it's a #endif we rewind one step so it points to the #ifdef and the un-identation of nested #ifdef works naturally 
+END;
+
 
 PROCEDURE Scan();
 VAR Evaluation: Boolean;
@@ -216,65 +272,38 @@ BEGIN
 	  //FI		 CurrentText := CurrTokenPTR^.Text; WriteLn('Fast # ' , CurrentTokenID, ' ', CurrentText);
 		CASE CurrentTokenID of  // Firs parse the directive
 		T_DEFINE: ParseDefine();
-		T_IFDEF, T_IFNDEF: BEGIN
-													IF OnIfdefMode or OnElse THEN SyntaxError('Nested #ifdef/#ifndef');
-						 					 		if CurrTokenPTR^.Next = nil THEN SyntaxError('Unexpected end of file just after #ifdef/#ifndef');
-	 												CurrTokenPTR := CurrTokenPTR^.Next;
-													if CurrTokenPTR^.TokenID <> T_STRING THEN SyntaxError('Invalid #ifdef/#ifndef label, please include the label in betwween quotes');
-	 												MyDefine := CurrTokenPTR^.Text;
-	 												MyDefine := Copy(MyDefine, 2, Length(MyDefine) - 2);
-	 												Evaluation:= GetSymbolValue(SymbolList, MyDefine)<>MAXLONGINT;
-	 												IF CurrentTokenID = T_IFNDEF THEN Evaluation:= not Evaluation;
-													IF NOT Evaluation THEN // ifdef/ifndef failed
-													BEGIN
-														WHILE (CurrTokenPTR<>nil) AND (CurrTokenPTR^.TokenID<>T_ENDIF)  AND (CurrTokenPTR^.TokenID<>T_ELSE) DO 
-		 												BEGIN
-		 													CurrTokenPTR := CurrTokenPTR^.Next;
-															IF CurrTokenPTR<>nil THEN
-															BEGIN
-																CurrentTokenID := CurrTokenPTR^.TokenID;
-																IF (CurrentTokenID=T_IFDEF) OR (CurrentTokenID=T_IFNDEF) THEN SyntaxError('Nested #ifdef/#ifndef not allowed');
-															END;	
-														END;
-														IF (CurrTokenPTR=nil) THEN SyntaxError('Unexpected end of file. #ifdef/#ifndef couldn''t find #endif while in failed condition "'+MyDefine+'"');
-														IF (CurrentTokenID = T_ELSE) THEN
-														BEGIN
-															OnIfdefMode := true;
-															OnElse := true;
-														END;
-													END
-													ELSE 
-													BEGIN // IF EVALUATION OK
-														OnIfdefMode := true;
-													END;	 
-											 END;	
-		T_ENDIF: BEGIN
-							 IF NOT OnIfdefMode THEN SyntaxError('#endif without #ifdef/#ifndef');
-							 OnIfdefMode := false;
-               OnElse := false;
-						 END;
-		T_ELSE:  BEGIN // If we get to an ELSE directly, it means the #ifdef/#ifndef evaluation was succesful, so we must be in ifdefmode
-						  IF OnElse THEN SyntaxError('Nested #else');
-		          IF NOT OnIfdefMode THEN SyntaxError('#else without #ifdef/#ifndef');
-							OnElse := true;
-							// That also means the part after the #else should be skipped
-							WHILE (CurrTokenPTR<>nil) AND (CurrTokenPTR^.TokenID<>T_ENDIF) DO 
-							BEGIN
-								CurrTokenPTR := CurrTokenPTR^.Next;
-								IF CurrTokenPTR<>nil THEN
-							  BEGIN
-									CurrentTokenID := CurrTokenPTR^.TokenID;
-									IF (CurrentTokenID=T_IFDEF) OR (CurrentTokenID=T_IFNDEF) OR (CurrentTokenID=T_ELSE) THEN SyntaxError('Nested #ifdef/#ifndef/#else not allowed');
-								END;	
-							END;
-							IF (CurrTokenPTR=nil) THEN SyntaxError('Unexpected end of file. #ifdef/#ifndef couldn''t find #endif while in failed condition "'+MyDefine+'"');
-						 END;
 		T_ECHO: ParseEcho();
-    T_EXTERN: ParseExtern('EXTERN');
+    	T_EXTERN: ParseExtern('EXTERN');
 		T_INT: ParseExtern('INT');
 		T_SFX: ParseExtern('SFX');
 		T_CLASSIC: ClassicMode := true;
 		T_DEBUG: DebugMode := true;
+		T_ENDIF: BEGIN
+					 IF GlobalNestedIfdefCount = 0 THEN SyntaxError('#endif without #ifdef/#ifndef');
+					 GlobalNestedIfdefCount := GlobalNestedIfdefCount - 1;
+				 END;
+		T_ELSE:  BEGIN // You can only get to this T_ELSE if you are executing a #if(n)def that was succesful, so what we have to do here is skipping the "else" part
+				  IF GlobalNestedIfdefCount = 0 THEN SyntaxError('#else without #ifdef/#ifndef');
+		           SkipBlock(CurrTokenPTR);
+				  END; 
+		T_IFDEF, T_IFNDEF: 
+		        BEGIN
+					if CurrTokenPTR^.Next = nil THEN SyntaxError('Unexpected end of file just after #ifdef/#ifndef'); // No symbol after #ifdef
+
+					// Get Symbol
+					CurrTokenPTR := CurrTokenPTR^.Next;
+					if CurrTokenPTR^.TokenID <> T_STRING THEN SyntaxError('Invalid #ifdef/#ifndef label, please include the label or expression in betwween quotes'); // Not a string
+					// Evaluate symbol
+					MyDefine := CurrTokenPTR^.Text;
+					MyDefine := Copy(MyDefine, 2, Length(MyDefine) - 2);
+					Evaluation:= GetSymbolValue(SymbolList, MyDefine) <> MAXLONGINT;
+					// Negate result if it's #ifndef
+					IF CurrentTokenID = T_IFNDEF THEN Evaluation:= not Evaluation;
+					
+					GlobalNestedIfdefCount := GlobalNestedIfdefCount +1;
+					if (not Evaluation) THEN SkipBlock(CurrTokenPTR);  // If symbol does not exist we skip the block, which means skipping until next #endif or #else
+					 
+				END; // T_IFDEF, T_IFNDEF:
 		END; // CASE
     Scan(); // Then scan again
  END;
@@ -926,6 +955,7 @@ BEGIN
 	OtherTXCount := 0;
 	Target := ATarget;
 	Subtarget := ASubtarget;
+	GlobalNestedIfdefCount := 0;
 	ParseCTL();
 	ParseVOC();
 	ParseSTX();
@@ -935,6 +965,7 @@ BEGIN
 	ParseCON();
 	ParseOBJ();
 	ParsePRO();
+	if (GlobalNestedIfdefCount<>0) THEN SyntaxError( IntToStr(GlobalNestedIfdefCount)+' #endif(s) missing.');
 END;
 
 END.

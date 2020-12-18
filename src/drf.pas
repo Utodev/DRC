@@ -239,8 +239,11 @@ BEGIN
   AddSymbol(SymbolList, 'WORN', LOC_WORN);
   AddSymbol(SymbolList, 'HERE', LOC_HERE);
   AddSymbol(SymbolList, 'HERE', LOC_HERE);
-  // The current date
-  AddSymbol(SymbolList, 'UNIXEPOCH', DateTimeToUnix(Now));
+  // The current date symbols
+  AddSymbol(SymbolList, 'YEARHIGH', YearOf(Now) DIV 100);
+  AddSymbol(SymbolList, 'YEARLOW', YearOf(Now) MOD 100);
+  AddSymbol(SymbolList, 'MONTH', MonthOf(Now) MOD 100);
+  AddSymbol(SymbolList, 'DAY', DayOf(Now) MOD 100);
   // Add additionalSymbols if present
   i := 1;
   REPEAT
