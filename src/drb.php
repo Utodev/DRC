@@ -2,7 +2,9 @@
 // (C) Uto & Jose Manuel Ferrer 2019 - This code is released under the GPL v3 license
 // To build the backend of DAAD reborn compiler I have had aid from Jose Manuel Ferrer Ortiz's DAAD database code,
 // which he glently provided me. In some cases the code has been even copied and pasted, so that's why he is also
-// in the copyright notice above. Thanks Jose Manuel for this invaluable aid.
+// in the copyright notice above. Thanks Jose Manuel for this invaluable aid. Also, thanks to Natalia Pujol, for 
+// her invaluable help with the BEEP/XPLAY code, and for many ideas and proposals that whether they got to 
+// production or not, helped make DRC what it is
 
 global $adventure;
 global $xMessageOffsets;
@@ -1552,7 +1554,7 @@ writeByte($outputFileHandler, $b);
 // Machine and language
 $b = getMachineIDByTarget($target);
 $b = $b << 4; // Move machine ID to high nibble
-if (($language=='ES') || ($language!='PT')) $b = $b | 1; // Set spanish language  (DE and EN keep English)
+if (($language=='ES') || ($language=='PT')) $b = $b | 1; // Set spanish language  (DE and EN keep English)
 writeByte($outputFileHandler, $b);
 
 // This byte stored the null character, usually underscore, as set in /CTL section. That's why all classic  DDBs have same value: 95. For new targets (MSX2) we use that byte for subtarget information.
