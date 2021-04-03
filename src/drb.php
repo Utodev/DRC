@@ -1313,7 +1313,7 @@ function prependC64HeaderToDDB($outputFileName, $target)
 function mmlToBeep($note, &$values, $target)
 {
     // These targets don't support BEEP condact
-    if (($target=='ST') || ($target=='AMIGA') ||($target=='PC') || ($target=='PCW')) return NULL;
+    if (($target=='ST') || ($target=='AMIGA') || ($target=='PCW')) return NULL;
 
     $condact = NULL;
     $noteIdx = array('C'=>0, 'C#'=>1, 'D'=>2, 'D#'=>3, 'E'=>4,  'F'=>5, 'F#'=>6, 'G'=>7, 'G#'=>8, 'A'=>9, 'A#'=>10, 'B'=>11,
@@ -1324,6 +1324,9 @@ function mmlToBeep($note, &$values, $target)
         case 'ZX': $baseLength = 195; break;
         case 'C64':
         case 'CP4': $baseLength = 205; break;
+        case 'PC':  
+	case 'MSX': 
+	case 'MSX2': $baseLength = 200; break;
         default: $baseLength = 200; // Full note (1 sec)
     }
     
