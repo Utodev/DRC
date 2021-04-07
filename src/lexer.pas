@@ -106,7 +106,7 @@ begin
   42:
                 BEGIN  END;
   43:
-                BEGIN yyerror('Unexpected character'); Halt(1); END;
+                BEGIN LexerError(yylineno, yycolno, yytext); Halt(1); END;
   end;
 end(*yyaction*);
 

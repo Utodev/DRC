@@ -54,5 +54,5 @@ _				BEGIN  AddToken(TokenList, T_UNDERSCORE, yytext, MaxLongInt, yylineno, yyco
 [_,a-zA-Z0-9·ÈÌÛ˙¸¡…Õ”⁄‹Ò—Á«]+ BEGIN  AddToken(TokenList, T_IDENTIFIER, yytext, MaxLongInt, yylineno, yycolno); END;
 \@				BEGIN  AddToken(TokenList, T_INDIRECT, yytext, MaxLongInt, yylineno, yycolno); END;
 [ \t\n]         BEGIN  END;
-.               BEGIN yyerror('Unexpected character'); Halt(1); END;
+.               BEGIN LexerError(yylineno, yycolno, yytext); Halt(1); END;
 %%

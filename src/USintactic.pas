@@ -10,6 +10,9 @@ PROCEDURE Sintactic(ATarget, ASubtarget: AnsiString);
 //PROCEDURE FixElses();
 PROCEDURE FixSkips();
 
+// If the lexer finds invalid token will call this one
+PROCEDURE LexerError(yylineno, yycolno: integer; yytext: AnsiString);
+
 var ClassicMode : Boolean;
 	DebugMode : Boolean;
 	Target, Subtarget: AnsiString;
@@ -31,6 +34,8 @@ VAR CurrentText: AnsiString;
 
 	GenerationActive : Boolean;
 
+
+
 	
 PROCEDURE SyntaxError(msg: String);
 VAR IncludeData : TIncludeData;
@@ -46,6 +51,14 @@ BEGIN
   IncludeData := GetIncludeData(CurrLineno);
   Writeln('Warning: ',IncludeData.OriginalLine,':', CurrColno,':',IncludeData.originalFileName, ': ', msg,'.');
 END;
+
+PROCEDURE LexerError(yylineno, yycolno: integer; yytext: AnsiString);
+BEGIN
+ CurrLineno := yylineno;
+ CurrColno := yycolno;
+ SyntaxError('Unexpected character or string: "'+ yytext+'"');
+END;
+
 
 (*
 // Converts all #ifdef/#else/#endif in #ifdef/#endif/#ifdef/#if
