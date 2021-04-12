@@ -403,7 +403,7 @@ function checkStrings($adventure)
 
 
 // Returns File Size
-function getXMessageFileSizeByTarget($target, $adventure) 
+function getXMessageFileSizeByTarget($target, $subtarget, $adventure) 
 {
     switch ($target) 
     {
@@ -413,19 +413,20 @@ function getXMessageFileSizeByTarget($target, $adventure)
         case 'MSX2': return 16; 
         case 'CPC' : return 2;
         case 'C64' : return 2;
-        case 'CP4' : return 2;        
+        case 'CP4' : return 2;      
+        case 'PC': if ($subtarget == 'VGA256') return 64;
         default: return 0;
     }
 }
 
 
-function generateXMessages($adventure, $target, $outputFileName)
+function generateXMessages($adventure, $target, $subtarget, $outputFileName)
 {
     $currentOffset = 0;
     $currentFile = 0;
-    $maxFileSize = getXMessageFileSizeByTarget($target, $adventure);
+    $maxFileSize = getXMessageFileSizeByTarget($target, $subtarget, $adventure);
     $GLOBALS['maxFileSizeForXMessages'] = $maxFileSize;
-    if (!$maxFileSize) Error("XMessages are not supported by target $target");
+    if (!$maxFileSize) Error("XMessages are not supported by target [ $target $subtarget ]");
     $maxFileSize *= 1024; // Convert K to byte
     if (($maxFileSize==2048) && ($currentFile<10)) $currentFile = "0$currentFile";
     $outputFileName = "$currentFile.XMB";
@@ -759,7 +760,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->NumParams=2;
                     $condact->Param2 = 0; // Maluva function 0
                     $condact->Condact = 'EXTERN';
-                    if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XPICTURE condact requires Maluva Extension');
+                    if ((!CheckMaluva($adventure)) && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256'))) Error("XPICTURE condact requires Maluva Extension $target $subtarget");
                 }
                 else if ($condact->Opcode == XUNDONE_OPCODE)
                 {
@@ -769,7 +770,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Param2 = 7; // Maluva function 7
                     $condact->Indirection1 = 0; // Also useless, but it must be set
                     $condact->Condact = 'EXTERN';
-                    if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XUNDONE condact requires Maluva Extension');
+                    if ((!CheckMaluva($adventure)) && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XUNDONE condact requires Maluva Extension');
                 }
                 else if ($condact->Opcode == XNEXTCLS_OPCODE)
                 {
@@ -830,7 +831,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->NumParams=2;
                     $condact->Param2 = 1; // Maluva function 1 
                     $condact->Condact = 'EXTERN';
-                    if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XSAVE condact requires Maluva Extension');
+                    if ((!CheckMaluva($adventure)) && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XSAVE condact requires Maluva Extension');
                 }
                 else if ($condact->Opcode == XLOAD_OPCODE)
                 {
@@ -838,7 +839,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->NumParams=2;
                     $condact->Param2 = 2; // Maluva function 2
                     $condact->Condact = 'EXTERN';
-                    if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XLOAD condact requires Maluva Extension');
+                    if ((!CheckMaluva($adventure)) && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XLOAD condact requires Maluva Extension');
                 }
                 else if ($condact->Opcode == XPART_OPCODE)
                 {
@@ -846,7 +847,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->NumParams=2;
                     $condact->Param2 = 4; // Maluva function 4
                     $condact->Condact = 'EXTERN';
-                    if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XPART condact requires Maluva Extension');
+                    if ((!CheckMaluva($adventure)) && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XPART condact requires Maluva Extension');
                 }
                 else if ($condact->Opcode == XBEEP_OPCODE)
                 {
@@ -863,7 +864,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                         $condact->Param3 = $condact->Param2; 
                         $condact->Param2 = 5; // Maluva function 5
                         $condact->Condact = 'EXTERN'; // XBEEP A B  ==> EXTERN A 5 B  (3 parameters)
-                        if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XBEEP condact requires Maluva Extension');
+                        if ((!CheckMaluva($adventure)) && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XBEEP condact requires Maluva Extension');
                     }
                 }
                 else if ($condact->Opcode == BEEP_OPCODE)
@@ -891,7 +892,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                         $condact->Param3 = $condact->Param2; 
                         $condact->Param2 = 5; // Maluva function 5
                         $condact->Condact = 'EXTERN'; // XBEEP A B  ==> EXTERN A 5 B  (3 parameters)
-                        if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XBEEP condact requires Maluva Extension');
+                        if ((!CheckMaluva($adventure)) && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XBEEP condact requires Maluva Extension');
                     }
                 }
                 else if ($condact->Opcode == XPLAY_OPCODE)
@@ -907,12 +908,15 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                             $note = substr($mml, 0, strlen($mml)-strlen($next));
                         else 
                             $note = $mml;
-                        $beep = mmlToBeep($note, $values, $target);
+                        $beep = mmlToBeep($note, $values, $target, $subtarget);
                         if ($beep!==NULL) $xplay[] = $beep;
                         $mml = $next;
                     }
-                    array_splice($entry->condacts, $condactID, 1, $xplay);
-                    if (sizeof($xplay)) $condactID --; // As the current condact has been replaced with a sequentia of BEEPs, we move the pointer one step back to make sure the changes made for BEEP in ZX Spectrum applies
+                    if (sizeof($xplay)) 
+                    {
+                        array_splice($entry->condacts, $condactID, 1, $xplay);
+                        $condactID --; // As the current condact has been replaced with a sequentia of BEEPs, we move the pointer one step back to make sure the changes made for BEEP in ZX Spectrum applies
+                    }
                 }
                 else if ($condact->Opcode == XSPLITSCR_OPCODE)
                 {
@@ -1117,7 +1121,7 @@ function isValidSubtarget($target, $subtarget)
     if ($target=='MSX2') return ($subtarget == '5_6') || ($subtarget == '5_8') || ($subtarget == '6_6') || ($subtarget == '6_8') || ($subtarget == '7_6') || ($subtarget == '7_8') || ($subtarget == '8_6') || ($subtarget == '8_8') || ($subtarget == '10_6') || ($subtarget == '10_8') || ($subtarget == '12_6') || ($subtarget == '12_8');
     if ($target=='ZX') return ($subtarget == 'PLUS3') || ($subtarget == 'ESXDOS') ||  ($subtarget == 'NEXT') ||  ($subtarget == 'UNO');
 // In fact, drb doesn't care about PC subtargets, but just for coherence with drf, we make sure they are correct, despite we will not use them. 
-    if ($target=='PC') return ($subtarget == 'VGA') || ($subtarget == 'CGA') ||  ($subtarget == 'EGA') ||  ($subtarget == 'TEXT');
+    if ($target=='PC') return ($subtarget == 'VGA256') || ($subtarget == 'VGA') || ($subtarget == 'CGA') ||  ($subtarget == 'EGA') ||  ($subtarget == 'TEXT');
     
 }
 
@@ -1180,7 +1184,7 @@ function Syntax()
     
     echo("SYNTAX: php drb <target> [subtarget] <language> <inputfile> [outputfile] [options]\n\n");
     echo("+ <target>: target machine, should be 'ZX', 'CPC', 'C64', 'CP4', 'MSX', 'MSX2', 'PCW', 'PC', 'ST' or 'AMIGA'. Just to clarify, CP4 stands for Commodore Plus/4\n");
-    echo("+ [subtarget]: some targets need to specify a subtarget.\n\tFor MSX2 target: 5_6, 5_8, 6_6, 6_8, 7_6, 7_8, 8_6, 8_8, 10_6, 10_8, 12_6 ad 12_8 (being video mode and character width in pixels).\n\tFor PC target: VGA, EGA, CGA and TEXT.\n\tFor ZX target: PLUS3, NEXT; UNO and ESXDOS.\n");
+    echo("+ [subtarget]: some targets need to specify a subtarget.\n\tFor MSX2 target: 5_6, 5_8, 6_6, 6_8, 7_6, 7_8, 8_6, 8_8, 10_6, 10_8, 12_6 ad 12_8 (being video mode and character width in pixels).\n\tFor PC target: VGA256, VGA, EGA, CGA and TEXT.\n\tFor ZX target: PLUS3, NEXT; UNO and ESXDOS.\n");
     echo("+ <language>: game language, should be 'EN', 'ES', 'DE' or 'PT' (English, Spanish, German or Portuguese).\n");
     echo("+ <inputfile>: a json file generated by DRF.\n");
     echo("+ [outputfile] : (optional) name of output file. If absent, same name of json file would be used, with DDB extension.\n");
@@ -1310,10 +1314,10 @@ function prependC64HeaderToDDB($outputFileName, $target)
 
 //********************************************** XPLAY *************************************************************** */
 
-function mmlToBeep($note, &$values, $target)
+function mmlToBeep($note, &$values, $target, $subtarget)
 {
     // These targets don't support BEEP condact
-    if (($target=='ST') || ($target=='AMIGA') || ($target=='PCW')) return NULL;
+    if (($target=='ST') || ($target=='AMIGA') || ($target=='PCW') || (($target=='PC') && ($subtarget!='VGA256'))) return NULL;
 
     $condact = NULL;
     $noteIdx = array('C'=>0, 'C#'=>1, 'D'=>2, 'D#'=>3, 'E'=>4,  'F'=>5, 'F#'=>6, 'G'=>7, 'G#'=>8, 'A'=>9, 'A#'=>10, 'B'=>11,
@@ -1685,8 +1689,8 @@ addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Dump XMessagess if avaliable
 if (sizeof($adventure->xmessages))
 {
-    if ((!CheckMaluva($adventure)) && ($target!='MSX2')) Error('XMESSAGE condact requires Maluva Extension');
-    generateXmessages($adventure, $target, $outputFileName);
+    if ((!CheckMaluva($adventure)) && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XMESSAGE condact requires Maluva Extension');
+    generateXmessages($adventure, $target, $subtarget, $outputFileName);
 }
 
 // Dump Processes
