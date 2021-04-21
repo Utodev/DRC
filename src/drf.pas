@@ -73,6 +73,7 @@ END;
 FUNCTION getPCColsBySubtarget(SubTarget:AnsiString):Byte;
 BEGIN
  IF Subtarget = 'TEXT' THEN Result := 80
+ ELSE IF Subtarget = 'VGA256' THEN Result := 40
  ELSE Result :=53;  // Conservative
 END;
 
