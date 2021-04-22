@@ -105,7 +105,7 @@ CONST Condacts : ARRAY[0..NUM_CONDACTS+NUM_FAKE_CONDACTS - 1] OF TCondact = (
 (NumParams:1;Condact:'MODE'  ;Type1: value; Type2: none; Type3: none), //  81
 (NumParams:2;Condact:'WINAT' ;Type1: value; Type2: value; Type3: none), //  82
 (NumParams:2;Condact:'TIME'  ;Type1: value; Type2: value; Type3: none), //  83
-(NumParams:1;Condact:'PICTURE';Type1: locno; Type2: none; Type3: none), //  84
+(NumParams:1;Condact:'PICTURE';Type1: value; Type2: none; Type3: none), //  84
 (NumParams:1;Condact:'DOALL' ;Type1: locno_; Type2: none; Type3: none), //  85
 (NumParams:1;Condact:'MOUSE' ;Type1: value; Type2: none; Type3: none), //  86
 (NumParams:2;Condact:'GFX'   ;Type1: value; Type2: value; Type3: none), //  87
