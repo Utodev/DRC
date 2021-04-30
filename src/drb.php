@@ -1136,22 +1136,25 @@ function getSubMachineIDByTarget($target, $subtarget)
         if ($charWidth == 8) $submachineID+=128; // Set bit 7
         return $submachineID;
     }
+    
     return 95; //Default value for legacy interpreters
 }
 
 
-function getMachineIDByTarget($target)
+function getMachineIDByTarget($target, $subtarget)
 {
-  if ($target=='PC')    return 0x00; else
-  if ($target=='ZX')    return 0x01; else
-  if ($target=='C64')   return 0x02; else
-  if ($target=='CPC')   return 0x03; else
-  if ($target=='MSX')   return 0x04; else
-  if ($target=='ST')    return 0x05; else
-  if ($target=='AMIGA') return 0x06; else
-  if ($target=='PCW')   return 0x07; else
-  if ($target=='CP4')   return 0x0E; else   // New target for Commodore Plus/4 interpreter
-  if ($target=='MSX2')  return 0x0F;        // New target for @ishwin MSX2 interpreter
+  if (($target=='PC') && ($subtarget=='VGA256')) return 0x0D;  // New target for PCDAAD VGA 256 interpreterº
+  if ($target=='PC')    return 0x00; 
+  if ($target=='ZX')    return 0x01; 
+  if ($target=='C64')   return 0x02; 
+  if ($target=='CPC')   return 0x03; 
+  if ($target=='MSX')   return 0x04; 
+  if ($target=='ST')    return 0x05; 
+  if ($target=='AMIGA') return 0x06; 
+  if ($target=='PCW')   return 0x07; 
+  if ($target=='CP4')   return 0x0E;    // New target for Commodore Plus/4 interpreter
+  if ($target=='MSX2')  return 0x0F;   // New target for @ishwin MSX2 interpreter
+  return 0x00; // Default in case of error
 };  
 
 function getBaseAddressByTarget($target)
@@ -1559,7 +1562,7 @@ $b = 2;
 writeByte($outputFileHandler, $b);
 
 // Machine and language
-$b = getMachineIDByTarget($target);
+$b = getMachineIDByTarget($target, $subtarget);
 $b = $b << 4; // Move machine ID to high nibble
 if (($language=='ES') || ($language=='PT')) $b = $b | 1; // Set spanish language  (DE and EN keep English)
 writeByte($outputFileHandler, $b);
