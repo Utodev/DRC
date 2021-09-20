@@ -31,6 +31,7 @@ BEGIN
   WriteLn('          -no-semantic: DRF won''t make a semantic analysis so condacts like MESSAGE x where message #x does not exist will be ignored.');
   WriteLn('          -semantic-warnings: DRF will just show semantic errors as warnings, but won''t stop compilation');
   WriteLn('          -force-normal-messages: all xmessages will be treated as normal messages');
+  WriteLn('          -force-x-messages: all user messages will be created as xmessages. Does not affect those written in the MTX table.');
   WriteLn();
 	WriteLn('[additional symbols] is an optional comma separated list of other symbols that would be created, so for instance if that parameter is "p3", then #ifdef "p3" will be true, and if that parameter is "p3,p4" then also #ifdef "p4" would be true.');
 	Halt(1);
@@ -331,12 +332,19 @@ BEGIN
                                       ForceNormalMessages := true;
                                       if Verbose THEN WriteLn('Warning: Forced Normal Messages'); 
                                     END
+                                    ELSE
+                                    IF AuxString = '-force-x-messages' THEN
+                                    BEGIN 
+                                      ForceXMessages := true;
+                                      if Verbose THEN WriteLn('Warning: Forced XMessages'); 
+                                    END
                                     ELSE ParamError('Invalid option: ' + AuxString);
                                    END;
    Inc(NextParam);
   END;
 
   IF NoSemantic AND SemanticWarnings THEN ParamError('You can''t avoid semantic checking and at the same time expect semantic warnings.');
+  IF ForceNormalMessages and ForceXMessages THEN ParamError('You can''t force XMesages and normal messages at the same time.');
 
   //LoadPlugins(); 
   IF NOT CheckEND(InputFileName) THEN ParamError('Input file has no /END section. Please make sure /END it''s in main file, not in #include files, if any.');

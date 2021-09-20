@@ -644,6 +644,14 @@ BEGIN
 					BEGIN
 						SemanticExempt := true;
 						CurrentText := Copy(CurrentText, 2, Length(CurrentText)-2);
+						
+						// Implements the ForceXMessages parameter
+						IF (Opcode IN [MES_OPCODE, MESSAGE_OPCODE]) AND (ForceXMessages) THEN
+						BEGIN
+							if Opcode = MES_OPCODE THEN Opcode := XMES_OPCODE
+												   ELSE Opcode := XMESSAGE_OPCODE;
+						END;
+
 						IF (Opcode IN [XMES_OPCODE, XMESSAGE_OPCODE]) AND ( (GetSymbolValue(SymbolList, 'BIT16')=MAXLONGINT) OR (SubTarget='VGA256'))  AND (NOT ForceNormalMessages) THEN  
 						BEGIN
 							IF (length(CurrentText)>511) THEN SyntaxError('Extended messages can be only up to 511 characters long. Your message is ' + IntToStr(length(CurrentText))+ ' long.');
