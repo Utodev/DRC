@@ -336,6 +336,7 @@ BEGIN
                     IF (TempCondactList^.isDB) THEN WriteLn(JSON,tabs(),'"Condact":"#DB/#INCBIN",') 
                     ELSE IF (TempCondactList^.Opcode = FAKE_USERPTR_CONDACT_CODE) THEN WriteLn(JSON,tabs(),'"Condact":"#USERPTR",') 
                     ELSE IF (TempCondactList^.Opcode = FAKE_DEBUG_CONDACT_CODE) THEN WriteLn(JSON,tabs(),'"Condact":"DEBUG",') 
+                    ELSE IF ((TempCondactList^.Opcode AND 256) = 256) THEN WriteLn(JSON,tabs(),'"Condact":"J', Condacts[TempCondactList^.Opcode AND 255].Condact,'",')
                     ELSE WriteLn(JSON,tabs(),'"Condact":"', Condacts[TempCondactList^.Opcode].Condact,'",');
 
                     IF TempCondactList^.NumParams>0 THEN 

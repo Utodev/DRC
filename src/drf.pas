@@ -259,7 +259,7 @@ BEGIN
   WriteLn('Checking Syntax...');
   Sintactic(target, subtarget);
   WriteLn('Updating forward references...');
-  FixSkips(); // Fix SKIP condacts with forward labels
+  FixForwardLabels(); // Fix SKIP condacts with forward labels and local labels too
   Write('Generating ',OutputFileName,' [Classic mode O');
   if (ClassicMode) THEN WriteLn('N]') ELSE WriteLn('FF]');
 	GenerateOutput(OutputFileName, Target);

@@ -14,6 +14,7 @@ TYPE TLabelData = record
 	    			Process: Word;
                     Entry: Longint;
                     IsForward : Boolean;
+                    Condact: Integer; // Condact number in the entry, if a SKIP label then -1, otherwise the number of Condact just after, so label befor first condact = 0
 			       end;
 
 VAR LabelList : array[0..MAX_LABELS-1] of TLabelData;
@@ -21,7 +22,7 @@ VAR NextFreeLabelSlot : Longint;
 
 (* Adds a new Label and returns index if succcesful, otherwise (basically cause label already exists) returns false *)
 (* IsForward lets the system know the label is being added from a SKIP, so the Process/Entry values are false *)
-FUNCTION AddLabel(ALabel: AnsiString; AProcess: Longint; AEntry : Longint; IsForward: Boolean):longint;
+FUNCTION AddLabel(ALabel: AnsiString; AProcess: Longint; AEntry : Longint; IsForward: Boolean; ACondact: Integer):longint;
 
 (* Returns TLabelData value for the requested label, if it exists returns the Array index as function value , otherwise returns -1 and TLabelData returned is not valid *)
 FUNCTION GetLabelData(ALabel: AnsiString; var ALabelData:TLabelData): Longint;
@@ -30,7 +31,7 @@ IMPLEMENTATION
 
 uses sysutils;
 
-FUNCTION AddLabel(ALabel: AnsiString; AProcess: Longint; AEntry : Longint; IsForward: Boolean):longint;
+FUNCTION AddLabel(ALabel: AnsiString; AProcess: Longint; AEntry : Longint; IsForward: Boolean; ACondact: Integer):longint;
 VAR i: Longint;
  BEGIN
     Result := -1;
@@ -43,6 +44,7 @@ VAR i: Longint;
                 LabelList[i].Process := AProcess;
                 LabelList[i].Entry := AEntry;
                 LabelList[i].IsForward := false;
+                LabelList[i].condact := ACondact;
                 Result := i; Exit;
             END;
 
@@ -69,6 +71,7 @@ VAR i: Longint;
     LabelList[NextFreeLabelSlot].Process := AProcess;
     LabelList[NextFreeLabelSlot].Entry := AEntry;
     LabelList[NextFreeLabelSlot].IsForward := IsForward;
+    LabelList[NextFreeLabelSlot].Condact := ACondact;
     Result := NextFreeLabelSlot;
     Inc(NextFreeLabelSlot);
 END;	
@@ -83,6 +86,8 @@ BEGIN
         ALabelData.Process := LabelList[i].Process;
         ALabelData.Entry := LabelList[i].Entry;
         ALabelData.SkipLabel := ALabel;
+        ALabelData.Condact := LabelList[i].Condact;
+        ALabelData.isForward := LabelList[i].IsForward;
         Result := i;
      END;
 END;

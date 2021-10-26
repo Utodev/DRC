@@ -51,6 +51,7 @@ _				BEGIN  AddToken(TokenList, T_UNDERSCORE, yytext, MaxLongInt, yylineno, yyco
 ;.*\n 			BEGIN  END;
 -?[0-9]+        BEGIN  AddToken(TokenList, T_NUMBER, yytext, StrToInt(yytext), yylineno, yycolno); END;
 \$[_,a-zA-Z0-9αινσϊόΑΙΝΣΪάρΡηΗ]+ BEGIN  AddToken(TokenList, T_LABEL, yytext, MaxLongInt, yylineno, yycolno); END;
+\%[_,a-zA-Z0-9αινσϊόΑΙΝΣΪάρΡηΗ]+ BEGIN  AddToken(TokenList, T_LOCAL_LABEL, yytext, MaxLongInt, yylineno, yycolno); END;
 [_,a-zA-Z0-9αινσϊόΑΙΝΣΪάρΡηΗ]+ BEGIN  AddToken(TokenList, T_IDENTIFIER, yytext, MaxLongInt, yylineno, yycolno); END;
 \@				BEGIN  AddToken(TokenList, T_INDIRECT, yytext, MaxLongInt, yylineno, yycolno); END;
 [ \t\n]         BEGIN  END;
