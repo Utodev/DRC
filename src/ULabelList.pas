@@ -2,8 +2,6 @@ UNIT ULabelList;
 
 {$MODE OBJFPC}
 
-
-
 INTERFACE
 
 USES UConstants;

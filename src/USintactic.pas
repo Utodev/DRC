@@ -7,7 +7,6 @@ INTERFACE
 USES UTokenList, ULabelList;
 
 PROCEDURE Sintactic(ATarget, ASubtarget: AnsiString);
-//PROCEDURE FixElses();
 PROCEDURE FixForwardLabels();
 
 // If the lexer finds invalid token will call this one
@@ -53,34 +52,6 @@ BEGIN
  CurrColno := yycolno;
  SyntaxError('Unexpected character or string: "'+ yytext+'"');
 END;
-
-
-(*
-// Converts all #ifdef/#else/#endif in #ifdef/#endif/#ifdef/#if
-PROCEDURE FixElses();
-VAR StringStack : array[Byte] of String;
-VAR StackPtr: Byte;
-BEGIN
-	CurrTokenPTR := TokenList;
-	StackPTR := 0;
-	WHILE CurrTokenPTR <> nil DO
-	BEGIN
-		IF (CurrTokenPTR^.TokenID=T_IFDEF) OR (CurrTokenPTR^.TokenID = T_IFNDEF) THEN 
-		BEGIN
-			CurrentText := CurrTokenPTR^.Text;
-			CurrentIntVal := CurrTokenPTR^.IntVal;
-			CurrLineno := CurrTokenPTR^.lineno;
-			CurrColno := CurrTokenPTR^.colno;
-
-
-
-		if (CurrTokenPTR^.)
-		CurrTokenPTR:= CurrTokenPTR^.Next;
-
-
-	END;
-END;
-*)
 
 PROCEDURE FixForwardLabels();
 var procno, entryno : Word;
@@ -587,7 +558,7 @@ BEGIN
   IF AuxVocabularyPTR = nil THEN Result := MAXLONGINT ELSE  Result := AuxVocabularyPTR^.Value;
 END;
 
-PROCEDURE ParseProcessCondacts(var SomeEntryCondacts :  TPProcessCondactList; CurrentProcess:Longint; CurrentEntry : Longint);
+FUNCTION ParseProcessCondacts(var SomeEntryCondacts :  TPProcessCondactList; CurrentProcess:Longint; CurrentEntry : Longint):boolean;
 VAR Opcode : Longint;
 	CurrentCondactParams : TCondactParams;
 	Value : Longint;
@@ -603,9 +574,11 @@ VAR Opcode : Longint;
 	LabelData: TLabelData;
 	LabelID : Word;
 	CurrentCondact  :Integer;
+	HasJumps : boolean;
 
 BEGIN
     CurrentCondact := 0;
+	HasJumps := false;
 	REPEAT
 		IF (SomeEntryCondacts<>nil) THEN Scan(); // Get Condact, skip first time when the condact list is empty cause it's already read
 		IF (CurrentTokenID <> T_IDENTIFIER)  AND (CurrentTokenID<>T_UNDERSCORE)  AND (CurrentTokenID<>T_SECTION_PRO) AND (CurrentTokenID<>T_SECTION_END) AND (CurrentTokenID<>T_INCBIN) 
@@ -710,12 +683,12 @@ BEGIN
 
 					IF (CurrentTokenID = T_LOCAL_LABEL) AND  ((Opcode AND 256) =256) THEN // Jump Maluva condacts
 					BEGIN
+  	   				  HasJumps := true;
 					  IF (GetLabelData(CurrentText, LabelData) <> -1) THEN // Local Label exists
 					  BEGIN
 					  	IF (CurrentProcess <> LabelData.Process) THEN SyntaxError('Label "'+CurrentText+'" is not in this entry');
 						IF (LabelData.Entry <> CurrentEntry+1) THEN SyntaxError('Label "'+CurrentText+'" is not in this entry ' + IntToStr(LabelData.Entry) +'  '+ IntToStr(CurrentEntry));
 						CurrentIntVal := LabelData.Condact;
-						WriteLn('C:', CurrentIntVal);
 						CurrentText := IntToStr(CurrentIntVal);
 						CurrentTokenID := T_NUMBER;
 					  END
@@ -886,6 +859,7 @@ BEGIN
 		END;
 		CurrentCondact := CurrentCondact + 1;
 	UNTIL Opcode < 0;	
+	Result := HasJumps;
 END;	
 
 PROCEDURE ParseVerbNoun(var Verb: Longint; var  Noun: Longint);
@@ -956,6 +930,7 @@ VAR 	Verb, Noun : Longint;
 	VerbNouns : array of longint;
 	i : integer;
 	CurrentEntry : Word;
+	HasJumps : boolean;
 BEGIN
 	CurrentEntry := 0;
 	Scan(); // Get > sign, label,  or next process
@@ -982,9 +957,9 @@ BEGIN
 				Scan();
 			UNTIL CurrentTokenID<>T_PROCESS_ENTRY_SIGN;
 			EntryCondacts := nil;
-			ParseProcessCondacts(EntryCondacts, CurrentProcess, CurrentEntry);
+			HasJumps := ParseProcessCondacts(EntryCondacts, CurrentProcess, CurrentEntry);
 			// Dump condacts once per each synonym entry
-			for i:=0 to ((Length(VerbNouns) DIV 2) -1) DO AddProcessEntry(Processes[CurrentProcess].Entries, VerbNouns[i*2], VerbNouns[i*2+1], EntryCondacts);
+			for i:=0 to ((Length(VerbNouns) DIV 2) -1) DO AddProcessEntry(Processes[CurrentProcess].Entries, VerbNouns[i*2], VerbNouns[i*2+1], EntryCondacts, HasJumps);
 			CurrentEntry := CurrentEntry + (Length(VerbNouns) DIV 2);
 		END;
      END;

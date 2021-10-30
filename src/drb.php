@@ -43,16 +43,45 @@ define('XPLAY_TEMPO',  3);
 
 //================================================================= filewrite ========================================================
 
-// Writes a byte value to file
-function writeByte($handle, $byte)
+$buffer = array();
+$bufferPTR = 0;
+
+// Writes a byte value to buffer
+function writeByte($byte)
 {
-    fputs($handle, chr($byte), 1);
+    global $buffer, $bufferPTR;
+    $buffer[$bufferPTR] = $byte;   
+    $bufferPTR++;
+}
+
+// Moves pointer to end of buffer
+function seekend()
+{
+    global $buffer, $bufferPTR;
+    $bufferPTR = sizeof($buffer);
+}
+
+// Moves pointer to specified offset in the buffer
+function seek($offset)
+{
+    global $bufferPTR;
+    $bufferPTR = $offset;
 }
 
 
-// Writes a word value to file, will store as little endian or big endian depending on parameter
-function writeWord($handle, $word, $littleEndian)
+// Saves the buffer to a file
+function flushBuffer($handle)
 {
+    global $buffer;
+    foreach ($buffer as $byte)
+        fputs($handle, chr($byte), 1);
+}
+
+
+// Writes a word value to buffer, will store as little endian or big endian depending on parameter
+function writeWord($word, $littleEndian)
+{
+    $word = intval($word);
     $a = ($word & 0xff00) >> 8;
     $b = ($word & 0xff);
     if ($littleEndian)
@@ -61,30 +90,28 @@ function writeWord($handle, $word, $littleEndian)
         $b = $a;
         $a = $tmp;
     }
-    writeByte($handle, $b);
-    writeByte($handle, $a);
+    writeByte($b);
+    writeByte($a);
 }
 
-// shortcut for writeByte($handle, 0)
-function writeZero($handle) 
+// shortcut for writeByte(0)
+function writeZero() 
 {
     $b =0;
-    writeByte($handle, $b);
+    writeByte($b);
 }
 
-// shortcut for writeByte($handle, 0xFF)
-function writeFF($handle) 
+// shortcut for writeByte(0xFF)
+function writeFF() 
 {
     $b =0xFF;
-    writeByte($handle, $b);
+    writeByte($b);
 }
 
-
-
 // Writes $size bytes to file with value 0
-function writeBlock($handle, $size)
+function writeBlock($size)
 {
-    for ($i=0;$i<$size;$i++) writeZero($handle);
+    for ($i=0;$i<$size;$i++) writeZero();
 }
 
 //================================================================= externs ========================================================
@@ -123,6 +150,7 @@ $compressionJSON_ES  = '{"compression": "advanced", "tokens": ["00","2071756520"
 $compressionJSON_PT  = '{"compression": "advanced", "tokens": ["00", "737461766120", "207061726120", "0e110f6f20", "20756d6120", "646f20", "646120", "20646520", "696120", "206e6f20", "206120", "206f20", "2071756520", "206d7569746f20", "617320", "206c75676172", "696e686120", "616f20", "616e746520", "657374", "617220", "726120756d20", "206520", "6e6120", "2e20416f20", "20636f", "707265636973", "706172", "6f7320", "6f2e20", "656e686f20", "2e2e2e0d", "20202020202020", "73736f20", "736520", "656d20", "657373", "66617a657220", "706f72746120", "6f2e0d", "6d656e74", "72746f20", "726120", "6964616465", "676172", "6361727265", "696f20", "656e64657220", "646520", "726573", "2e2e2e20", "6c6f63616c20", "61766120", "6e7465", "6f2c20", "726f20", "612e0d", "6e747261", "756d6120", "636f6e", "657220", "616c6775", "756d20", "2e204f20", "696e68", "2073656d707265", "20706f72", "6d616973", "6d6520", "736f627265", "657261", "617265", "73756120", "696361", "2074656d706f20", "20616c", "646573", "656920", "732e20", "6f726d61", "6f6d6f20", "45737461", "5f2e0d", "747261", "6f732e", "0b2d203a207175", "66657272", "6465706f6973", "6f2065", "70616c", "616e64", "71756520", "756172", "6e68656369", "636f6d", "6f727265", "70617373", "74696e", "652c20", "2e2041", "697373", "0b2d20", "6120", "6f20", "6f75", "656c", "6572", "6520", "616c", "6f630e160f20", "6974", "6f72", "616e", "6172", "656e", "696e", "6f73", "6369", "616d20", "2e0d", "2e20", "6973", "2c20", "6573", "6f6e", "6361", "6972", "6176", "7175"]}';
 $compressionJSON_EN  = '{"compression": "advanced", "tokens": ["00","2074686520","20796f7520","2061726520","696e6720","20746f20","20616e64","20697320","596f7520","616e6420","54686520","6e277420","206f6620","20796f75","696e67","656420","206120","206f70","697468","6f7574","656e74","20746f","20696e","616c6c","207468","206974","746572","617665","206265","766572","686572","616e64","656172","596f75","206f6e","656e20","6f7365","6e6f","6963","6170","2062","6768","2020","6164","6973","2063","6972","6179","7572","756e","6f6f","2064","6c6f","726f","6163","7365","7269","6c69","7469","6f6d","626c","636b","4920","6564","6565","2066","6861","7065","6520","7420","696e","7320","7468","2c20","6572","6420","6f6e","746f","616e","6172","656e","6f75","6f72","7374","2e20","6f77","6c65","6174","616c","7265","7920","6368","616d","656c","2077","6173","6573","6974","2073","6c6c","646f","6f70","7368","6d65","6865","626f","6869","6361","706c","696c","636c","2061","6f66","2068","7474","6d6f","6b65","7665","736f","652e","642e","742e","7669","6c79","6964","7363","2070","656d","7220"] }';
 $compressionJSON_DE  = '{"compression": "advanced", "tokens": ["00","2065696e6520","2064657220","2064696520","2064617320","2069737420","20766f6e20","2065696e20","20756e64","756e6420","44657220","44696520","44617320","20756e67","6c65696e","65727420","20647520","207a7520","2065696e","20766572","737420","6d6974","766f6e","68656e","617573","656e74","207a75","616c6c","206465","656e20","616265","697374","206265","766572","206475","447520","686572","756e64","696e67","736368","4475","6368","6965","6e6f","6963","6162","2062","6569","2020","6c6c","2063","6972","6572","7572","756e","2064","6c6f","726f","6172","7365","7269","6c69","7469","6f6d","7373","636b","4920","6564","6568","2066","6861","7065","6520","7420","696e","7320","6465","2c20","6572","6420","7a75","616e","6172","656e","6175","6f64","7374","2e20","686f","6c65","6174","616c","7265","7920","6368","616d","656c","2077","6173","6573","6974","2073","6c6c","6d61","6f70","6d65","6865","626f","6869","6b61","7565","6f65","6165","2061","2068","7474","6d6f","6b65","766f","736f","652e","642e","742e","7669","6d6d","7363","2070","656d"]}';
+$compressionJSON_FR  = '{"compression": "advanced", "tokens": ["7f", "4a65206e6520", "706f72746520", "20646520", "4a6520", "782070617320", "666169726520", "746520", "2064616e7320", "205f2e0d", "4a27616920", "6e6520", "20706f757220", "6d61696e7465", "657220", "656e6c6576", "706575", "65722e0d", "61207269656e", "63656c612e", "0d51756520", "20706c65696e", "707579657a20", "20706173", "64166a0e100f", "652e0d", "6e616e74203f", "6c6520", "746f75636865", "73757220", "721665737361", "2e0d", "656e737569", "6c657a20", "6f7520", "65722e", "6d0e140f", "6e2761692072", "0d457420", "2074726f7020", "6c6965752e20", "496c206e2779", "6f6e74696e75", "657374", "7265", "6973717565", "6d6f69203a0d", "726f75", "6173736574", "6f737369", "69656e", "7320", "6669636869", "6572", "205f2e", "7572", "6f6d", "63656c61", "766f69", "73756973", "706f7274", "6e616e74", "0e160f74", "6169", "4c6520", "4020", "656374", "657a20", "452044", "7365", "617520", "0e140f", "6f6e", "202d20", "6575", "6f75", "6d70", "6574", "6170", "7061", "6e27", "616c", "6f69", "7573", "2e20", "7072", "2e2e", "6f72", "2064", "2063", "6369", "3a20", "6d65", "2056", "642e", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f", "7f"]}';
 
 // A .TOK alternative file can be placed together with input JSON file (just use same name, .TOK extension. It's content should a JSON object just like the ones above)
 
@@ -215,7 +243,7 @@ function generateTokens(&$adventure, &$currentAddress, $outputFileHandler, $hasT
             {
                 $shift = ($i == $tokenLength-1) ? 128 : 0;
                 $c = substr($tokenStr, $i, 1);
-                writeByte($outputFileHandler, ord($c) + $shift);
+                writeByte(ord($c) + $shift);
                 $currentAddress++;
             }
         }
@@ -439,7 +467,7 @@ function generateXMessages($adventure, $target, $subtarget, $outputFileName)
         {
             if ($target=="MSX2") 
             {
-                writeBlock($fileHandler, $maxFileSize - $currentOffset);
+                writeBlock( $maxFileSize - $currentOffset);
                 $currentFile++;
                 $currentOffset = 0;
             }
@@ -458,10 +486,10 @@ function generateXMessages($adventure, $target, $subtarget, $outputFileName)
         // a length which could be maximum 1 bytes longer than real, what is not really important cause the end of message mark will avoid that extra char being printed
         for ($j=0;$j<$messageLength;$j++)
         {   
-            writeByte($fileHandler, ord($message->Text[$j]) ^ OFUSCATE_VALUE);
+            writeByte(ord($message->Text[$j]) ^ OFUSCATE_VALUE);
             $currentOffset++;
         }
-        writeByte($fileHandler,ord("\n") ^ OFUSCATE_VALUE ); //mark of end of string
+        writeByte(ord("\n") ^ OFUSCATE_VALUE ); //mark of end of string
         $currentOffset++;
     }
     fclose($fileHandler);
@@ -479,10 +507,10 @@ function generateMessages($messageList, &$currentAddress, $outputFileHandler,  $
         $message = $messageList[$messageID];
         for ($i=0;$i<strlen($message->Text);$i++)
         {   
-            writeByte($outputFileHandler, ord($message->Text[$i]) ^ OFUSCATE_VALUE);
+            writeByte(ord($message->Text[$i]) ^ OFUSCATE_VALUE);
             $currentAddress++;
         }
-        writeByte($outputFileHandler,ord("\n") ^ OFUSCATE_VALUE ); //mark of end of string
+        writeByte(ord("\n") ^ OFUSCATE_VALUE ); //mark of end of string
         $currentAddress++;
         
     }
@@ -490,7 +518,7 @@ function generateMessages($messageList, &$currentAddress, $outputFileHandler,  $
     addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
     for ($messageID=0;$messageID<sizeof($messageList);$messageID++)
     {
-        writeWord($outputFileHandler, $messageOffsets[$messageID] , $isLittleEndian);
+        writeByte($messageOffsets[$messageID] , $isLittleEndian);
         $currentAddress += 2;
     }
 
@@ -546,8 +574,8 @@ function generateConnections($adventure, $target, &$currentAddress, $outputFileH
         $connections = $connectionsTable[$locID];
         foreach ($connections as $connection)
         {
-            writeByte($outputFileHandler, $connection[0]);
-            writeByte($outputFileHandler, $connection[1]);
+            writeByte($connection[0]);
+            writeByte($connection[1]);
             $currentAddress +=2;
         }
         writeFF($outputFileHandler); //mark of end of connections
@@ -558,7 +586,7 @@ function generateConnections($adventure, $target, &$currentAddress, $outputFileH
     addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
     for ($locID=0;$locID<sizeof($adventure->locations);$locID++)
     {
-        writeWord($outputFileHandler, $connectionsOffset[$locID], $isLittleEndian);
+        writeByte($connectionsOffset[$locID], $isLittleEndian);
         $currentAddress+=2;
     }
     
@@ -623,10 +651,10 @@ function generateVocabulary($adventure, &$currentAddress, $outputFileHandler)
             $character =$vocWord[$i];
             if ((ord($character)>=32) && (ord($character)<128)) $character = strtoupper($character);
             $character = ord($character) ^ OFUSCATE_VALUE;
-            writeByte($outputFileHandler, $character);
+            writeByte( $character);
         }
-        writeByte($outputFileHandler, $word->Value);
-        writeByte($outputFileHandler, $word->VocType);
+        writeByte($word->Value);
+        writeByte($word->VocType);
         $currentAddress+=7;
     }
     writeZero($outputFileHandler); // store 0 to mark end of vocabulary
@@ -637,8 +665,8 @@ function generateObjectNames($adventure, &$currentAddress, $outputFileHandler)
 {
     foreach($adventure->object_data as $object)
     {
-        writeByte($outputFileHandler, $object->Noun);
-        writeByte($outputFileHandler, $object->Adjective);
+        writeByte($object->Noun);
+        writeByte($object->Adjective);
         $currentAddress+=2;
     }
 }
@@ -647,7 +675,7 @@ function generateObjectInitially($adventure, &$currentAddress, $outputFileHandle
 {
     foreach($adventure->object_data as $object)
     {
-     writeByte($outputFileHandler, $object->InitialyAt);
+     writeByte($object->InitialyAt);
      $currentAddress++;
     }
     writeFF($outputFileHandler);
@@ -661,7 +689,7 @@ function generateObjectWeightAndAttr($adventure, &$currentAddress, $outputFileHa
         $b = $object->Weight & 0x3F;
         if ($object->Container) $b = $b | 0x40;
         if ($object->Wearable) $b = $b | 0x80;
-        writeByte($outputFileHandler, $b);
+        writeByte($b);
         $currentAddress++;
     }
 }
@@ -670,7 +698,7 @@ function generateObjectExtraAttr($adventure, &$currentAddress, $outputFileHandle
 {
     foreach($adventure->object_data as $object)
     {
-     writeWord($outputFileHandler, $object->Flags, $isLittleEndian);
+     writeByte($object->Flags, $isLittleEndian);
      $currentAddress+=2;
     }
 
@@ -725,6 +753,7 @@ function checkMaluva($adventure)
 
 function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $isLittleEndian, $target, $subtarget)
 {     
+    global $bufferPTR;
     //PASS ZERO, CHECK THE PROCESSES AND REPLACE SOME CONDACTS LIKE XMESSAGE WITH PROPER EXTERN CALLS. MAKE SURE MALUVA IS INCLUDED
     //           ALSO FIX SOME BUGS LIKE ZX BEEP CONDACT WRONG ORDER
     for ($procID=0;$procID<sizeof($adventure->processes);$procID++)
@@ -741,6 +770,41 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     // Check if process called does exist, in case it's not indirect call
                     if (!$condact->Indirection1)
                      if ($condact->Param1 >= sizeof($adventure->processes)) Error('Invalid call to process #'.$condact->Param1.". Specified process does not exist");
+                }
+                else if (($condact->Opcode & 256) == 256) // Jump Maluva Condacts
+                {
+                    // rearrange the parameters so it's  1-<fixed opcode> 2-<8> 3-<pre-offset> 4-<0> 5-<p1> 6-[p2]
+                    // For the time being, we are not filling the offset with real offset in DDB, we keep the "number of condact in the entry" value
+                    // of param3 (pre-offset) and we keep a gap for later keep the offset in an LSB/MSB pair in p3/p4
+                     if ($condact->NumParams == 2) 
+                    {
+                        $p1 = $condact->Opcode & 0xFF;
+                        $p3 = $condact->Param2; // The pre-offset in p3
+                        $p4 = 0;                // Gap for future real offset
+                        $p5 = $condact->Param1; // The condact parameter
+
+                        $condact->NumParams = 5;
+                        $condact->Param1 = $p1;
+                        $condact->Param3 = $p3;
+                        $condact->Param4 = $p4;
+                        $condact->Param5 = $p5;
+                    }
+                    else
+                    {
+                        $p1 = $condact->Opcode & 0xFF;
+                        $p3 = $condact->Param3; // The pre-offset in pe
+                        $p4 = 0;                // Gap for future real offset
+                        $p5 = $condact->Param1; // The first condact parameter
+                        $p6 = $condact->Param2; // The second condact parameter
+                        $condact->NumParams = 6;
+                        $condact->Param1 = $p1;
+                        $condact->Param3 = $p3;
+                        $condact->Param4 = $p4;
+                        $condact->Param5 = $p5;
+                        $condact->Param6 = $p6;
+                    }
+                    $condact->Param2 = 8; // Maluva function for jumps
+                    $condact->Opcode = EXTERN_OPCODE;
                 }
                 else if  ($condact->Opcode == XMES_OPCODE)  // Convert XMESS in a Maluva CALL, XMESSAGE does not actually get to drb, as drf already converts all XMESSAGE into XMESS with a \n added to the string
                 {
@@ -945,7 +1009,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
 
     $terminatorOpcodes = array(22, 23,103, 116,117,108);  //DONE/OK/NOTDONE/SKIP/RESTART/REDO
     $condactsOffsets = array();
-    // PASS ONE, GENERATE HASHES UNLESS CLASSICMODE IS ON
+    // PASS ONE, GENERATE HASHES UNLESS CLASSICMODE IS ON OR ENTRY HAS JUMPS
     $condactsHash = array();  
     if (!$adventure->classicMode)
     {
@@ -957,7 +1021,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                 $entry = $process->entries[$entryID];
                 for($condactID=0;$condactID<sizeof($entry->condacts); $condactID++)
                 {
-                    $hash = getCondactsHash($adventure,$entry->condacts, $condactID);
+                    if ($entry->HasJumps) $hash =''; else $hash = getCondactsHash($adventure,$entry->condacts, $condactID);
                     if (($hash!='') && (!array_key_exists("$hash", $condactsHash)))
                     {
                         $hashInfo = new StdClass();
@@ -972,6 +1036,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
             }
         }
     }
+
     // Dump  all condacts and store which address each entry condacts
     for ($procID=0;$procID<sizeof($adventure->processes);$procID++)
     {
@@ -982,7 +1047,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
             $entry = $process->entries[$entryID];
             if (!$adventure->classicMode)
             {
-                $hash = getCondactsHash($adventure,$entry->condacts, 0);
+                if ($entry->HasJumps) $hash = ''; else $hash = getCondactsHash($adventure,$entry->condacts, 0);
                 if ($hash!='')
                 {
                     if ($condactsHash["$hash"]->offset != -1)
@@ -1002,11 +1067,29 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
             $condactsOffsets["${procID}_${entryID}"] = $currentAddress;
             $entry = $process->entries[$entryID];
             $terminatorFound = false;
+            $eachCondactOffsets = array(); // This will keep the offeset of each condact like [0]->0x8383, [1]->0x8385, etc.
+            $forwardCondactOffsets = array(); // For forward references, this will keep gaps to fill: [0x8452]->1. When the entry is finished we seek back in the
+                                            // file and fill the gaps so gap  0x8452 is filled wit 0x8385 in the above sample
             for($condactID=0;$condactID<sizeof($entry->condacts);$condactID++)
             {
+                $eachCondactOffsets[$condactID] = $currentAddress;
+                
                 $condact = $entry->condacts[$condactID];
 
                 $opcode = $condact->Opcode;
+                if (($opcode == EXTERN_OPCODE) && ($condact->Param2 == 8)) // Jumps
+                {
+                    $condactNum = $condact->Param3;
+                    if ($condactNum<=$condactID)  // Its a back jump
+                    {
+                        $condact->Param3 = $eachCondactOffsets[$condactNum] & 0xFF;
+                        $condact->Param4 = ($eachCondactOffsets[$condactNum] >> 8) & 0xFF;
+                    }
+                    else // It's forward jump
+                    {
+                        $forwardCondactOffsets[$bufferPTR + 3] = $condactNum; // Note down that in $bufferPTR+3 we have to replace the value with th offset of condact $condactNUM
+                    }
+                }
                 if (($opcode==FAKE_DEBUG_CONDACT_CODE) && (!$adventure->debugMode)) continue; // Not saving fake DEBUG condact if debug mode is not on.
                 if ($opcode==FAKE_USERPTR_CONDACT_CODE) 
                 {
@@ -1019,36 +1102,43 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                 if ((!$adventure->classicMode))
                     if (($currentAddress%2 == 0) || (!isPaddingPlatform($target))) // We can only partially re-use an entry if its word aligned or the platform does not require word alignment
                     {
-                        $hash = getCondactsHash($adventure,$entry->condacts, $condactID);
-                        if ($condactsHash["$hash"]->offset == -1) $condactsHash["$hash"]->offset = $currentAddress;
+                        if ($entry->HasJumps) $hash = ''; else $hash = getCondactsHash($adventure,$entry->condacts, $condactID);
+                        if ($hash!='')
+                            if ($condactsHash["$hash"]->offset == -1) $condactsHash["$hash"]->offset = $currentAddress;
                     }
 
                 if (($condact->NumParams>0) && ($condact->Indirection1)) $opcode = $opcode | 0x80; // Set indirection bit
                 if (($opcode == FAKE_DEBUG_CONDACT_CODE) && ($adventure->verbose)) echo "Debug condact found, inserted.\n";
-                writeByte($outputFileHandler, $opcode);
+                writeByte($opcode);
                 $currentAddress++;
                 for($i=0;$i<$condact->NumParams;$i++) 
                 {
                     switch ($i)
                     {
                         case 0: $param = $condact->Param1;
-                                writeByte($outputFileHandler, $param); 
+                                writeByte($param); 
                                 break;
 
                         case 1: $param = $condact->Param2;
-                                writeByte($outputFileHandler, $param); 
+                                writeByte($param); 
                                 break;
 
                         case 2: $param = $condact->Param3;
-                                writeByte($outputFileHandler, $param); 
+                                writeByte($param); 
                                 break;
-                         case 3: $param = $condact->Param4;
-                                writeByte($outputFileHandler, $param); 
+                        case 3: $param = $condact->Param4;
+                                writeByte($param); 
+                                break;
+                        case 4: $param = $condact->Param5;
+                                writeByte($param); 
+                                break;
+                        case 5: $param = $condact->Param6;
+                                writeByte($param); 
                                 break;
                     }
                 }
                 $currentAddress+= $condact->NumParams;
-                if (!$adventure->classicMode) if (in_array($opcode, $terminatorOpcodes)) 
+                if ((!$adventure->classicMode) && (!$entry->HasJumps) && (in_array($opcode, $terminatorOpcodes))) 
                 {
                     $terminatorFound = true;
                     if ($adventure->verbose)
@@ -1073,6 +1163,16 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                 writeFF($outputFileHandler); // mark of end of entry
                 $currentAddress++;
             }
+            // Fix the forward jump references
+            $preserverAddr = $currentAddress;
+            foreach ($forwardCondactOffsets as $address=>$condactNumber)
+            {
+                seek($address);
+                $patch = intval($eachCondactOffsets[$condactNumber]);
+                writeWord($patch, $isLittleEndian);
+            }
+            // move again to the end
+            seekend();
         }
     }
 
@@ -1086,9 +1186,9 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
         for ($entryID=0;$entryID<sizeof($process->entries);$entryID++)
         {
             $entry = $process->entries[$entryID];
-            writeByte($outputFileHandler, $entry->Verb);
-            writeByte($outputFileHandler, $entry->Noun);
-            writeWord($outputFileHandler, $condactsOffsets["${procID}_${entryID}"] , $isLittleEndian); 
+            writeByte($entry->Verb);
+            writeByte($entry->Noun);
+            writeByte($condactsOffsets["${procID}_${entryID}"] , $isLittleEndian); 
             $currentAddress += 4;
         }
         WriteZero($outputFileHandler); // Marca de fin de proceso, doble 00
@@ -1188,7 +1288,7 @@ function Syntax()
     echo("SYNTAX: php drb <target> [subtarget] <language> <inputfile> [outputfile] [options]\n\n");
     echo("+ <target>: target machine, should be 'ZX', 'CPC', 'C64', 'CP4', 'MSX', 'MSX2', 'PCW', 'PC', 'ST' or 'AMIGA'. Just to clarify, CP4 stands for Commodore Plus/4\n");
     echo("+ [subtarget]: some targets need to specify a subtarget.\n\tFor MSX2 target: 5_6, 5_8, 6_6, 6_8, 7_6, 7_8, 8_6, 8_8, 10_6, 10_8, 12_6 ad 12_8 (being video mode and character width in pixels).\n\tFor PC target: VGA256, VGA, EGA, CGA and TEXT.\n\tFor ZX target: PLUS3, NEXT; UNO and ESXDOS.\n");
-    echo("+ <language>: game language, should be 'EN', 'ES', 'DE' or 'PT' (English, Spanish, German or Portuguese).\n");
+    echo("+ <language>: game language, should be 'EN', 'ES', 'DE', 'FR' or 'PT' (English, Spanish, German, French or Portuguese).\n");
     echo("+ <inputfile>: a json file generated by DRF.\n");
     echo("+ [outputfile] : (optional) name of output file. If absent, same name of json file would be used, with DDB extension.\n");
     echo("+ [options]: one or more of the following:\n");
@@ -1457,7 +1557,7 @@ if (($target=='MSX2') || ($target=='PC') || ($target=='ZX'))
     if (!isValidSubtarget($target, $subtarget)) Error("Invalid subtarget '$subtarget'");
 }
 $language = strtoupper($argv[$nextParam]); $nextParam++;
-if (($language!='ES') && ($language!='EN') && ($language!='DE') && ($language!='PT')) Error('Invalid target language');
+if (($language!='ES') && ($language!='EN') && ($language!='DE') && ($language!='PT') && ($language!='FR')) Error('Invalid target language');
 $inputFileName = $argv[$nextParam]; $nextParam++;
 if (!file_exists($inputFileName)) Error('File not found');
 $json = file_get_contents($inputFileName);
@@ -1559,39 +1659,39 @@ if ($adventure->verbose)
 
 // DAAD version
 $b = 2; 
-writeByte($outputFileHandler, $b);
+writeByte($b);
 
 // Machine and language
 $b = getMachineIDByTarget($target, $subtarget);
 $b = $b << 4; // Move machine ID to high nibble
 if (($language=='ES') || ($language=='PT')) $b = $b | 1; // Set spanish language  (DE and EN keep English)
-writeByte($outputFileHandler, $b);
+writeByte($b);
 
 // This byte stored the null character, usually underscore, as set in /CTL section. That's why all classic  DDBs have same value: 95. For new targets (MSX2) we use that byte for subtarget information.
 $b = getSubMachineIDByTarget($target, $subtarget);
-writeByte($outputFileHandler, $b);
+writeByte($b);
 
 // Number of object descriptions
 $numberOfObjects = sizeof($adventure->object_data);
-writeByte($outputFileHandler, $numberOfObjects);
+writeByte($numberOfObjects);
 // Number of location descriptions
 $numberOfLocations = sizeof($adventure->locations);
-writeByte($outputFileHandler, $numberOfLocations);
+writeByte($numberOfLocations);
 // Number of user messages
 $numberOfMessages = sizeof($adventure->messages);
-writeByte($outputFileHandler, $numberOfMessages);
+writeByte($numberOfMessages);
 // Number of system messages
 $numberOfSysmess = sizeof($adventure->sysmess);
-writeByte($outputFileHandler, $numberOfSysmess);
+writeByte($numberOfSysmess);
 // Number of processes
 $numberOfProcesses = sizeof($adventure->processes);
-writeByte($outputFileHandler, $numberOfProcesses);
+writeByte($numberOfProcesses);
 // Fill the rest of the header with zeros, as we don't know yet the offset values. Will comeupdate them later.
 writeBlock($outputFileHandler, 26); 
 $currentAddress+=34;
 // extern - vectors // fill with default values
 for($i=0;$i<13;$i++)
-    writeWord($outputFileHandler, $adventure->extvec[$i],$isLittleEndian);
+    writeByte($adventure->extvec[$i],$isLittleEndian);
 $currentAddress+=26;
 
 
@@ -1616,6 +1716,7 @@ else
         case 'EN': $compressionJSON = $compressionJSON_EN; break;
         case 'PT': $compressionJSON = $compressionJSON_PT; break;
         case 'DE': $compressionJSON = $compressionJSON_DE; break;
+        case 'FR': $compressionJSON = $compressionJSON_FR; break;
         default : $compressionJSON = $compressionJSON_ES; break;
     }
 }
@@ -1705,36 +1806,37 @@ if ($adventure->verbose) echo "Processes         [" . prettyFormat($processListO
 // *********************************************
 // 3 **** PATCH HEADER WITH OFFSET VALUES ******
 // *********************************************
-fseek($outputFileHandler, 8);
+seek(8);
 // Compressed text position
-writeWord($outputFileHandler, $compressedTextOffset, $isLittleEndian); 
+writeByte($compressedTextOffset, $isLittleEndian); 
 // Process list position
-writeWord($outputFileHandler, $processListOffset, $isLittleEndian);
+writeByte($processListOffset, $isLittleEndian);
 // Objects lookup list position
-writeWord($outputFileHandler, $objectLookupOffset, $isLittleEndian);
+writeByte($objectLookupOffset, $isLittleEndian);
 // Locations lookup list position
-writeWord($outputFileHandler, $locationLookupOffset, $isLittleEndian);
+writeByte($locationLookupOffset, $isLittleEndian);
 // User messages lookup list position
-writeWord($outputFileHandler, $messageLookupOffset, $isLittleEndian);
+writeByte($messageLookupOffset, $isLittleEndian);
 // System messages lookup list position
-writeWord($outputFileHandler, $sysmessLookupOffset, $isLittleEndian);
+writeByte($sysmessLookupOffset, $isLittleEndian);
 // Connections lookup list position
-writeWord($outputFileHandler, $connectionsLookupOffset, $isLittleEndian);
+writeByte($connectionsLookupOffset, $isLittleEndian);
 // Vocabulary
-writeWord($outputFileHandler, $vocabularyOffset, $isLittleEndian);
+writeByte($vocabularyOffset, $isLittleEndian);
 // Objects "initialy at" list position
-writeWord($outputFileHandler, $initiallyAtOffset, $isLittleEndian);
+writeByte($initiallyAtOffset, $isLittleEndian);
 // Object names positions
-writeWord($outputFileHandler, $objectNamesOffset, $isLittleEndian);
+writeByte($objectNamesOffset, $isLittleEndian);
 // Object weight and container/wearable attributes
-writeWord($outputFileHandler, $objectWeightAndAttrOffset, $isLittleEndian);
+writeByte($objectWeightAndAttrOffset, $isLittleEndian);
 // Extra object attributes 
-writeWord($outputFileHandler, $objectExtraAttrOffset, $isLittleEndian);
+writeByte($objectExtraAttrOffset, $isLittleEndian);
 // File length 
 $fileSize = $currentAddress;// - $baseAddress;
-writeWord($outputFileHandler, $fileSize, $isLittleEndian);
+writeByte($fileSize, $isLittleEndian);
 for($i=0;$i<13;$i++)
-    writeWord($outputFileHandler, $adventure->extvec[$i],$isLittleEndian);
+    writeByte($adventure->extvec[$i],$isLittleEndian);
+flushBuffer($outputFileHandler);    
 fclose($outputFileHandler);
 if ($adventure->verbose) summary($adventure);
 if ($adventure->verbose) echo "$outputFileName for $target created.\n";
@@ -1753,5 +1855,7 @@ if ($adventure->prependPlus3Header)
     prependPlus3HeaderToDDB($outputFileName);
     if ($adventure->verbose) echo ("+3DOS header added\n");
 } 
+
+
 
 

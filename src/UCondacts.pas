@@ -224,8 +224,6 @@ BEGIN
  IF Opcode = FAKE_DEBUG_CONDACT_CODE THEN Result :=0 
    ELSE IF ((Opcode AND 256) = 256) THEN Result := Condacts[Opcode AND 255].NumParams + 1 // Jump condacts have one parameter more than their related condact
 									 ELSE Result := Condacts[Opcode].NumParams;
-
-									 WriteLn('O:', Opcode,' NP:',Result);
 END;
 
 FUNCTION GetParamType(Opcode:Longint; ParamNum: Byte): TParamType;

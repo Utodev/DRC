@@ -322,6 +322,7 @@ BEGIN
                   IF NounPtr = nil then NounStr := '?' ELSE NounStr := NounPtr^.VocWord;
                 END;  
                 WriteLn(JSON,tabs(),'"Entry":"', VerbStr,' ',NounStr,'",');               
+                WriteLn(JSON,tabs(),'"HasJumps":', Byte(TempEntriesList^.HasJumps),',');
                 WriteLn(JSON,tabs(),'"Verb":', TempEntriesList^.Verb,',');
                 WriteLn(JSON,tabs(),'"Noun":', TempEntriesList^.Noun,',');
                 TempCondactList := TempEntriesList^.Condacts;
