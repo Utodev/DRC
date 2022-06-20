@@ -4,7 +4,7 @@ UNIT UConstants;
 INTERFACE
 
 CONST version_hi = 0;
-	  version_lo = 27;
+	  version_lo = 28;
 
       LOC_CARRIED = 254;
       LOC_WORN = 253;       
@@ -19,6 +19,7 @@ CONST version_hi = 0;
       MAX_CONDACT_PARAMS  =3;
       MAX_PARAM_ACCEPTING_INDIRECTION = 1;
       MAX_MESSAGES_PER_TABLE = 255;
+      MAX_WEIGHT = 63;
 
       MAX_PARAMETER_RANGE = 255;
 

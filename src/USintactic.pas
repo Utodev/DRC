@@ -485,7 +485,7 @@ BEGIN
 			IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Object weight expected');
 			Weight := GetIdentifierValue();
 			IF (Weight = MAXLONGINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
-			IF (Weight >= MAX_FLAG_VALUE) THEN SyntaxError('Invalid weight :' + CurrentText);
+			IF (Weight > MAX_WEIGHT) THEN SyntaxError('Invalid weight :' + CurrentText);
 
 
 			Scan(); // Get if container
