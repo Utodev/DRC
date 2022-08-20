@@ -162,9 +162,7 @@ BEGIN
   IF (FileSize(InputFile) = (ReadHeaderWord(24) + 128)  )  THEN  RealDDBLength := ReadHeaderWord(24) // has AMSDOS header
   ELSE
   BEGIN // Get from spare
-    Seek(InputFile, SPARE);
-    BlockRead(InputFile, RealDDBLength, 2);
-    RealDDBLength := RealDDBLength - DBADD;
+    RealDDBLength := FileSize(InputFile);
     Seek(InputFile, 0);  // Rewind
   END;
   WriteLn(RealDDBLength, ' bytes.');
