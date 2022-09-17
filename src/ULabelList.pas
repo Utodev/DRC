@@ -33,7 +33,7 @@ FUNCTION AddLabel(ALabel: AnsiString; AProcess: Longint; AEntry : Longint; IsFor
 VAR i: Longint;
  BEGIN
     Result := -1;
-
+    WriteLn('-1 ', NextFreeLabelSlot, ' ', ALabel);
     FOR i:= 0 to NextFreeLabelSlot - 1 DO 
         IF(LabelList[i].SkipLabel = ALabel) THEN
         BEGIN
@@ -60,6 +60,7 @@ VAR i: Longint;
     // Let's first check if there is room for another one
     IF (NextFreeLabelSlot = MAX_LABELS) THEN
     BEGIN
+    Writeln('0');
      Result := i; Exit;  // Too many labels
     END;        
 

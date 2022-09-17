@@ -14,7 +14,6 @@ TYPE TPProcessEntryList = ^TProcessEntryList;
 		SkipLabel: AnsiString;
 		Condacts : TPProcessCondactList;
 		Next : TPProcessEntryList;
-		HasJumps : Boolean;
 	END;	
 
 	TProcess =  RECORD
@@ -27,7 +26,7 @@ VAR Processes : ARRAY [0..MAX_PROCESSES] OF TProcess;
 
 PROCEDURE InitializeProcesses();
 
-PROCEDURE AddProcessEntry(VAR AProcessEntryList:TPProcessEntryList; AVerb, ANoun : Longint; ACondacts : TPProcessCondactList; AHasjumps: boolean);
+PROCEDURE AddProcessEntry(VAR AProcessEntryList:TPProcessEntryList; AVerb, ANoun : Longint; ACondacts : TPProcessCondactList);
 
 IMPLEMENTATION
 
@@ -41,16 +40,15 @@ BEGIN
  END;
 END;
 
-PROCEDURE AddProcessEntry(VAR AProcessEntryList:TPProcessEntryList; AVerb, ANoun : Longint; ACondacts : TPProcessCondactList; AHasjumps: boolean);
+PROCEDURE AddProcessEntry(VAR AProcessEntryList:TPProcessEntryList; AVerb, ANoun : Longint; ACondacts : TPProcessCondactList);
 BEGIN
-	IF AProcessEntryList <> nil THEN AddProcessEntry(AProcessEntryList^.Next, AVerb, ANoun, ACondacts, AHasjumps)
+	IF AProcessEntryList <> nil THEN AddProcessEntry(AProcessEntryList^.Next, AVerb, ANoun, ACondacts)
 	ELSE
 	BEGIN
 		New(AProcessEntryList);
 		AProcessEntryList^.Verb := Averb;
 		AProcessEntryList^.Noun := ANoun;
 		AProcessEntryList^.Condacts := ACondacts;
-		AProcessEntryList^.HasJumps := AHasjumps;
 		AProcessEntryList^.Next := nil;
 	END  
 END;

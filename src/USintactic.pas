@@ -81,21 +81,6 @@ BEGIN
 					TempCondactList^.Opcode := SKIP_OPCODE;
 					TempCondactList^.Params[0].Value := LabelList[TempCondactList^.Params[0].Value].Entry - EntryNo - 1;
 					break;
-				END
-				ELSE
-				IF (TempCondactList^.Opcode AND 512 = 512) THEN // Pending forward local label
-				BEGIN
-					// Check if forward refence was finally defined
-					IF LabelList[TempCondactList^.Params[TempCondactList^.NumParams -1].Value].isForward THEN SyntaxError('Local label ' + LabelList[TempCondactList^.Params[TempCondactList^.NumParams -1].Value].SkipLabel + ' was referenced but then not defined');
-					// If defined, let's check it's same process
-					IF LabelList[TempCondactList^.Params[TempCondactList^.NumParams -1].Value].Process<>procno THEN SyntaxError('Local label '+LabelList[TempCondactList^.Params[TempCondactList^.NumParams -1].Value].SkipLabel+' was referenced in one process but defined in a different process');
-					// If defined, let's check it's same entry
-					IF LabelList[TempCondactList^.Params[TempCondactList^.NumParams -1].Value].Entry<>Entryno+1 THEN SyntaxError('Local label '+LabelList[TempCondactList^.Params[TempCondactList^.NumParams -1].Value].SkipLabel+' was referenced in one entry but defined in a different one');
-					// Ok, now it's all OK, lets go
-					IF verbose THEN WriteLn('Forward reference of label "' + LabelList[TempCondactList^.Params[TempCondactList^.NumParams -1].Value].SkipLabel + '" found at process #' + IntToStr(LabelList[TempCondactList^.Params[TempCondactList^.NumParams -1].Value].Process) + ', entry #' + IntToStr(LabelList[TempCondactList^.Params[TempCondactList^.NumParams -1].Value].Entry) + '.');
-					TempCondactList^.Opcode := TempCondactList^.Opcode AND 511; // remove the pending local label bit
-					TempCondactList^.Params[TempCondactList^.NumParams -1].Value := LabelList[TempCondactList^.Params[TempCondactList^.NumParams -1].Value].Condact;
-					break;
 				END;
 
 				TempCondactList := TempCondactList^.Next;
@@ -558,7 +543,7 @@ BEGIN
   IF AuxVocabularyPTR = nil THEN Result := MAXLONGINT ELSE  Result := AuxVocabularyPTR^.Value;
 END;
 
-FUNCTION ParseProcessCondacts(var SomeEntryCondacts :  TPProcessCondactList; CurrentProcess:Longint; CurrentEntry : Longint):boolean;
+PROCEDURE ParseProcessCondacts(var SomeEntryCondacts :  TPProcessCondactList; CurrentProcess:Longint; CurrentEntry : Longint);
 VAR Opcode : Longint;
 	CurrentCondactParams : TCondactParams;
 	Value : Longint;
@@ -574,19 +559,18 @@ VAR Opcode : Longint;
 	LabelData: TLabelData;
 	LabelID : Word;
 	CurrentCondact  :Integer;
-	HasJumps : boolean;
+	
 
 BEGIN
     CurrentCondact := 0;
-	HasJumps := false;
 	REPEAT
 		IF (SomeEntryCondacts<>nil) THEN Scan(); // Get Condact, skip first time when the condact list is empty cause it's already read
 		IF (CurrentTokenID <> T_IDENTIFIER)  AND (CurrentTokenID<>T_UNDERSCORE)  AND (CurrentTokenID<>T_SECTION_PRO) AND (CurrentTokenID<>T_SECTION_END) AND (CurrentTokenID<>T_INCBIN) 
 		 AND (CurrentTokenID<>T_DB) AND (CurrentTokenID<>T_DW) AND (CurrentTokenID<>T_NUMBER) AND (CurrentTokenID<>T_HEX) AND (CurrentTokenID<>T_USERPTR) AND (CurrentTokenID<>T_LABEL)	 
-		 AND (CurrentTokenID<>T_LOCAL_LABEL) AND (CurrentTokenID<>T_PROCESS_ENTRY_SIGN) THEN
+		 AND (CurrentTokenID<>T_PROCESS_ENTRY_SIGN) THEN
 		   SyntaxError('Condact, label, new process entry or new process expected but "'+CurrentText + '" found');
 
-		IF (CurrentTokenID<>T_INCBIN) AND (CurrentTokenID<>T_LOCAL_LABEL) AND (CurrentTokenID<>T_DB) AND (CurrentTokenID<>T_DW) AND (CurrentTokenID<>T_HEX) AND (CurrentTokenID<>T_USERPTR) AND (CurrentTokenID<>T_LABEL) THEN
+		IF (CurrentTokenID<>T_INCBIN) AND (CurrentTokenID<>T_DB) AND (CurrentTokenID<>T_DW) AND (CurrentTokenID<>T_HEX) AND (CurrentTokenID<>T_USERPTR) AND (CurrentTokenID<>T_LABEL) THEN
 		BEGIN
 		  IF (CurrentTokenID = T_PROCESS_ENTRY_SIGN) OR (CurrentTokenID = T_SECTION_END) OR (CurrentTokenID = T_SECTION_PRO) THEN Opcode := -2 ELSE Opcode := GetCondact(CurrentText);
 		    
@@ -681,29 +665,7 @@ BEGIN
 						CurrentText := IntToStr(Value);
 					END;
 
-					IF (CurrentTokenID = T_LOCAL_LABEL) AND  ((Opcode AND 256) =256) THEN // Jump Maluva condacts
-					BEGIN
-  	   				  HasJumps := true;
-					  IF (GetLabelData(CurrentText, LabelData) <> -1) THEN // Local Label exists
-					  BEGIN
-					  	IF (CurrentProcess <> LabelData.Process) THEN SyntaxError('Label "'+CurrentText+'" is not in this entry');
-						IF (LabelData.Entry <> CurrentEntry+1) THEN SyntaxError('Label "'+CurrentText+'" is not in this entry ' + IntToStr(LabelData.Entry) +'  '+ IntToStr(CurrentEntry));
-						CurrentIntVal := LabelData.Condact;
-						CurrentText := IntToStr(CurrentIntVal);
-						CurrentTokenID := T_NUMBER;
-					  END
-					  ELSE
-					  BEGIN // It's a jump to a forward label
-					 	LabelID := AddLabel(CurrentText, CurrentProcess, CurrentEntry, true, -1); 
-      					IF Verbose THEN WriteLn('Forward declaration of local label '+CurrentText+' created.');
-						Opcode := Opcode OR 512; // Set the Opcode bit for pending forward label
-						CurrentCondactParams[i].Value := LabelID; 
-						CurrentTokenID := T_NUMBER;
-						CurrentText:=IntToStr(CurrentCondactParams[i].Value);
-						CurrentIntVal := CurrentCondactParams[i].Value;
-					  END; 
-					END;
-
+	
 					IF (CurrentTokenID = T_LABEL) ANd  (Opcode = SKIP_OPCODE) THEN
 					BEGIN
 					 IF (GetLabelData(CurrentText, LabelData) <> -1) THEN // Label exists, replace numeric value
@@ -730,14 +692,10 @@ BEGIN
 						CurrentIntVal := LabelID;
 					 END;
 					END;
-
-					IF (CurrentTokenID  = T_LABEL) AND ((Opcode AND 256) = 256) THEN
-					BEGIN
-					END;
-
+					
 					IF (CurrentTokenID <> T_NUMBER) AND (CurrentTokenID <> T_IDENTIFIER) AND (CurrentTokenID<> T_UNDERSCORE) AND (CurrentTokenID<>T_STRING) THEN SyntaxError('Invalid condact parameter');
 
-					// Lets' dtermine the value of the parameter
+					// Let's determine the value of the parameter
 					Value := MAXLONGINT;
 					// IF a string then evaluate expression
 					if CurrentTokenID = T_STRING THEN  Value  := GetExpressionValue();
@@ -778,18 +736,11 @@ BEGIN
 			 IF (Opcode=-1) THEN SyntaxError('Unknown condact: "'+CurrentText+'"'); // If opcode = -1, it was an invalid condact, otherwise we have found entry end because of another entry, another process or \END
 			END 
 		END ELSE
-		IF CurrentTokenID=T_LOCAL_LABEL THEN // LOCAL_LABEL
-		BEGIN
-			IF (AddLabel(CurrentText, CurrentProcess, CurrentEntry+1, false, CurrentCondact)=-1) THEN SyntaxError('Label already defined ('+CurrentText+') or too many labels');
-			IF Verbose THEN WriteLn('Local label '+CurrentText+' created at process #'+IntToStr(CurrentProcess)+', entry #', IntToStr(CurrentEntry+1), ', condact #',IntToStr(CurrentCondact),'.');
-			IF (SomeEntryCondacts=nil) THEN Scan();
-			CurrentCondact := CurrentCondact -1;
-			Opcode := 0;
-		END ELSE
 		IF CurrentTokenID=T_LABEL THEN // LABEL
 		BEGIN
-		 IF (AddLabel(CurrentText, CurrentProcess, CurrentEntry+1, false, -1)=-1) THEN SyntaxError('Label already defined ('+CurrentText+') or too many labels');
+		 IF (AddLabel(CurrentText, CurrentProcess, CurrentEntry+1, false, -1)=-1) THEN  SyntaxError('Label already defined ('+CurrentText+') or too many labels');
 		 IF Verbose THEN WriteLn('Label '+CurrentText+' created at process #'+IntToStr(CurrentProcess)+', entry #', IntToStr(CurrentEntry+1),'.');
+		 Scan();
 		 Opcode := -1;
 		 CurrentCondact := CurrentCondact - 1; // Because we don't want the condact counter to increase because of a label
 		END ELSE
@@ -859,7 +810,6 @@ BEGIN
 		END;
 		CurrentCondact := CurrentCondact + 1;
 	UNTIL Opcode < 0;	
-	Result := HasJumps;
 END;	
 
 PROCEDURE ParseVerbNoun(var Verb: Longint; var  Noun: Longint);
@@ -930,7 +880,6 @@ VAR 	Verb, Noun : Longint;
 	VerbNouns : array of longint;
 	i : integer;
 	CurrentEntry : Word;
-	HasJumps : boolean;
 BEGIN
 	CurrentEntry := 0;
 	Scan(); // Get > sign, label,  or next process
@@ -957,9 +906,9 @@ BEGIN
 				Scan();
 			UNTIL CurrentTokenID<>T_PROCESS_ENTRY_SIGN;
 			EntryCondacts := nil;
-			HasJumps := ParseProcessCondacts(EntryCondacts, CurrentProcess, CurrentEntry);
+			ParseProcessCondacts(EntryCondacts, CurrentProcess, CurrentEntry);
 			// Dump condacts once per each synonym entry
-			for i:=0 to ((Length(VerbNouns) DIV 2) -1) DO AddProcessEntry(Processes[CurrentProcess].Entries, VerbNouns[i*2], VerbNouns[i*2+1], EntryCondacts, HasJumps);
+			for i:=0 to ((Length(VerbNouns) DIV 2) -1) DO AddProcessEntry(Processes[CurrentProcess].Entries, VerbNouns[i*2], VerbNouns[i*2+1], EntryCondacts);
 			CurrentEntry := CurrentEntry + (Length(VerbNouns) DIV 2);
 		END;
      END;
