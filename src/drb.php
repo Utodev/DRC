@@ -946,6 +946,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $baseFlagno = $dataArray[0];
                     for ($i=1;$i<sizeof($dataArray);$i++)
                     {
+                        if ($baseFlagno>255) Error('XDATA condact went over flag 255');
                         $element = trim($dataArray[$i]);
                         $let = dataToLet($baseFlagno, $element);
                         $lets[]= $let;
