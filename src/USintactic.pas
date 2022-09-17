@@ -632,7 +632,7 @@ BEGIN
 					  Scan();
 					END;
 			
-					IF (CurrentTokenID = T_STRING) AND (Opcode in [MESSAGE_OPCODE,MES_OPCODE, SYSMESS_OPCODE, XMES_OPCODE, XMESSAGE_OPCODE, XPLAY_OPCODE]) THEN  
+					IF (CurrentTokenID = T_STRING) AND (Opcode in [MESSAGE_OPCODE,MES_OPCODE, SYSMESS_OPCODE, XMES_OPCODE, XMESSAGE_OPCODE, XPLAY_OPCODE, XDATA_OPCODE]) THEN  
 					BEGIN
 						SemanticExempt := true;
 						CurrentText := Copy(CurrentText, 2, Length(CurrentText)-2);
@@ -659,8 +659,8 @@ BEGIN
 							  XMES_OPCODE : Opcode := MES_OPCODE;
 							  XMESSAGE_OPCODE :Opcode := MESSAGE_OPCODE;
 						  END;
-						  IF Opcode = XPLAY_OPCODE THEN 
-						  BEGIN
+						  IF (Opcode in  [XPLAY_OPCODE, XDATA_OPCODE]) THEN 
+						  BEGIN					  
 						  	CurrentIntVal := insertMessageFromProcessIntoSpecificList(OtherTX, CurrentText);
 							MaXMESs := MAXLONGINT;
 						  END
@@ -674,7 +674,7 @@ BEGIN
 	 				  IF CurrentIntVal>=MaXMESs THEN
 						BEGIN
 						 IF ClassicMode THEN SyntaxError('Too many messages, max messages per message table is ' +  IntToStr(MAX_MESSAGES_PER_TABLE))
-						                ELSE SyntaxError('Too many messages, total messages in  MTX, STX and LTX tables, plus "MESSAGE" strings is ' +  IntToStr(3*MAX_MESSAGES_PER_TABLE));
+						                ELSE SyntaxError('Too many messages, total messages in MTX, STX and LTX tables, plus "MESSAGE" strings is ' +  IntToStr(3*MAX_MESSAGES_PER_TABLE));
 						END;
 	 					CurrentTokenID := T_NUMBER;
 						Value := CurrentIntVal;

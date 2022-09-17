@@ -26,7 +26,7 @@ CONST version_hi = 0;
       MAX_LABELS = 1024;
 
       NUM_CONDACTS  =128;
-      NUM_FAKE_CONDACTS = 14;
+      NUM_FAKE_CONDACTS = 15;
 
       MESSAGE_OPCODE = 38;
       MES_OPCODE =77;
@@ -46,6 +46,7 @@ CONST version_hi = 0;
       XNEXTCLS_OPCODE=138;
       XNEXTRST_OPCODE=139;
       XSPEED_OPCODE=140;
+      XDATA_OPCODE=142;
       BEEP_OPCODE = 64;
 
       DESC_OPCODE = 19;
