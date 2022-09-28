@@ -582,18 +582,21 @@ BEGIN
 					IF Opcode = XPICTURE_OPCODE THEN
 					BEGIN
 						IF GetSymbolValue(SymbolList, 'BIT16')<>MAXLONGINT THEN Opcode := PICTURE_OPCODE  // If 16 bit machine, no XPICTURE
+						ELSE IF GetSymbolValue(SymbolList, 'HTML')<>MAXLONGINT THEN Opcode := PICTURE_OPCODE  // If HTML, no XPICTURE
 						ELSE IF (target='PCW')  THEN Opcode := PICTURE_OPCODE // If target PCW, no XPICTURE
 						ELSE MaluvaUsed := true;
 					END ELSE
 					IF Opcode = XSAVE_OPCODE THEN
 					BEGIN
 						IF GetSymbolValue(SymbolList, 'BIT16')<>MAXLONGINT THEN Opcode := SAVE_OPCODE  // If 16 bit machine, no XSAVE
+						ELSE IF GetSymbolValue(SymbolList, 'HTML')<>MAXLONGINT THEN Opcode := SAVE_OPCODE  // If HTML, no XPICTURE
 						ELSE IF (Target='PCW') OR (Target='CPC') OR (Target='C64') OR (Target='CP4')  THEN Opcode := SAVE_OPCODE // If target PCW/C64/CP4/CPC, no XSAVE
 						ELSE MaluvaUsed := true;
 					END ELSE
 					IF Opcode = XLOAD_OPCODE THEN
 					BEGIN
 						IF GetSymbolValue(SymbolList, 'BIT16')<>MAXLONGINT THEN Opcode := LOAD_OPCODE  // If 16 bit machine, no XLOAD
+						ELSE IF GetSymbolValue(SymbolList, 'HTML')<>MAXLONGINT THEN Opcode := LOAD_OPCODE  // If HTML, no XPICTURE
 						ELSE IF (Target='PCW') OR (Target='CPC') OR (Target='C64') OR (Target='CP4')  THEN Opcode := LOAD_OPCODE // If target PCW/C64/CP4/CPC, no XLOAD
 						ELSE MaluvaUsed := true;
 					END ELSE

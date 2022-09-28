@@ -105,6 +105,7 @@ BEGIN
  IF Target = 'C64' THEN Result := 40 ELSE
  IF Target = 'CP4' THEN Result := 40 ELSE
  IF Target = 'CPC' THEN Result := 40 ELSE
+ IF Target = 'HTML' THEN Result := 40 ELSE
  IF Target = 'MSX' THEN Result := 42 ELSE
  IF Target = 'MSX2' THEN Result := getMSX2ColsBySubtarget(SubTarget) ELSE
  IF Target = 'ST' THEN Result := 53 ELSE
@@ -226,7 +227,8 @@ BEGIN
   machine :=AnsiUpperCase(Target);
   // The target superset BIT8 or BIT16
   if (machine='ZX') OR (machine='CPC') OR (machine='PCW') OR (machine='MSX') OR (machine='C64') OR (machine='CP4') or (MACHINE='MSX2') THEN AddSymbol(SymbolList, 'BIT8', 1);
-  if (machine='PC') OR (machine='AMIGA') OR (machine='ST') THEN   AddSymbol(SymbolList, 'BIT16', 1);
+  if (machine='PC') OR (machine='AMIGA') OR (machine='ST') THEN AddSymbol(SymbolList, 'BIT16', 1);
+  // Please notice HTML target adds neither BIT8 nor BIT16 symbols.
   // add COLS Symbol
   cols := getColsByTarget(Target, SubTarget);
   if (cols<>0) THEN AddSymbol(SymbolList, 'COLS', cols);
