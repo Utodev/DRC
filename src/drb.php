@@ -414,7 +414,7 @@ function getXMessageFileSizeByTarget($target, $subtarget, $adventure)
         case 'MSX' : return 64; 
         case 'PCW' : return 64; 
         case 'MSX2': return 16; 
-        case 'HTML': return 16; 
+        case 'HTML': return 64; 
         case 'CPC' : return 2;
         case 'C64' : return 2;
         case 'CP4' : return 2;      
@@ -1212,7 +1212,7 @@ function getBaseAddressByTarget($target)
 
 function isPaddingPlatform($target)
 {
-    return (($target=='PC') || ($target=='ST') || ($target=='AMIGA'));
+    return (($target=='PC') || ($target=='ST') || ($target=='AMIGA') || ($target=='HTML'));
 };
 
 function isLittleEndianPlatform($target)
@@ -1293,6 +1293,7 @@ function parseOptionalParameters($argv, $nextParam, &$adventure)
 
 function generateJDDB($outputFileName)
 {
+    echo "Movinng DDB to JDDB\n";
     $outputFileNameJDDB = strtolower($outputFileName);
     $outputFileNameJDDB = str_replace('.ddb','.jddb', $outputFileNameJDDB);
     $inputHandle = fopen($outputFileName, 'r');
@@ -1306,13 +1307,38 @@ function generateJDDB($outputFileName)
         $val = '0x' . dechex(ord($c));
         fputs($outputHandle,$val);
         if (!feof($inputHandle)) fputs($outputHandle,',');
+        $offset = '0x' . str_pad(dechex($i),4,'0',STR_PAD_LEFT);
         if ($i % 10 == 9) fputs($outputHandle, "\n");
+        
         $i++;
     }
     fputs($outputHandle, "\n];");
     fclose($inputHandle);
     fclose($outputHandle);
 
+    if (file_exists('0.XMB'))
+    {
+        echo "Moving XMB to JDDB\n";
+        $inputHandle = fopen('0.XMB', 'r');
+        $outputHandle = fopen($outputFileNameJDDB, "a");
+
+        fputs($outputHandle, "var XMBDATA = \n\n[\n");
+        $i= 0;
+        while (!feof($inputHandle))
+        {
+            $c = fgetc($inputHandle);
+            $val = '0x' . dechex(ord($c));
+            fputs($outputHandle,$val);
+            if (!feof($inputHandle)) fputs($outputHandle,',');
+            $offset = '0x' . str_pad(dechex($i),4,'0',STR_PAD_LEFT);
+            if ($i % 10 == 9) fputs($outputHandle, "\n");
+            
+            $i++;
+        }
+        fputs($outputHandle, "\n];");
+        fclose($inputHandle);
+        fclose($outputHandle);
+    }
 }
 
 function prependPlus3HeaderToDDB($outputFileName)
@@ -1400,7 +1426,7 @@ function dataToLet($flagno, $value)
 function mmlToBeep($note, &$values, $target, $subtarget)
 {
     // These targets don't support BEEP condact
-    if (($target=='ST') || ($target=='AMIGA') || ($target=='PCW') || (($target=='PC') && ($subtarget!='VGA256'))) return NULL;
+    if (($target=='ST') || ($target=='AMIGA') || ($target=='PCW') || ($target=='PCW') || (($target=='PC') && ($subtarget!='VGA256'))) return NULL;
 
     $condact = NULL;
     $noteIdx = array('C'=>0, 'C#'=>1, 'D'=>2, 'D#'=>3, 'E'=>4,  'F'=>5, 'F#'=>6, 'G'=>7, 'G#'=>8, 'A'=>9, 'A#'=>10, 'B'=>11,
@@ -1774,7 +1800,7 @@ addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Dump XMessagess if avaliable
 if (sizeof($adventure->xmessages))
 {
-    if ((!CheckMaluva($adventure)) && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XMESSAGE condact requires Maluva Extension');
+    if ((!CheckMaluva($adventure)) && ($target!='MSX2')&& ($target!='HTML') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XMESSAGE condact requires Maluva Extension');
     generateXmessages($adventure, $target, $subtarget, $outputFileName);
 }
 
