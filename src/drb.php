@@ -414,7 +414,7 @@ function getXMessageFileSizeByTarget($target, $subtarget, $adventure)
         case 'MSX' : return 64; 
         case 'PCW' : return 64; 
         case 'MSX2': return 16; 
-        case 'HTML': return 64; 
+        case 'HTML': return 16; 
         case 'CPC' : return 2;
         case 'C64' : return 2;
         case 'CP4' : return 2;      
@@ -1293,7 +1293,7 @@ function parseOptionalParameters($argv, $nextParam, &$adventure)
 
 function generateJDDB($outputFileName)
 {
-    echo "Movinng DDB to JDDB\n";
+    echo "Converting DDB to JDDB\n";
     $outputFileNameJDDB = strtolower($outputFileName);
     $outputFileNameJDDB = str_replace('.ddb','.jddb', $outputFileNameJDDB);
     $inputHandle = fopen($outputFileName, 'r');
@@ -1308,7 +1308,7 @@ function generateJDDB($outputFileName)
         fputs($outputHandle,$val);
         if (!feof($inputHandle)) fputs($outputHandle,',');
         $offset = '0x' . str_pad(dechex($i),4,'0',STR_PAD_LEFT);
-        if ($i % 10 == 9) fputs($outputHandle, "\n");
+        if ($i % 10 == 9) fputs($outputHandle, "// $offset\n");
         
         $i++;
     }
@@ -1316,29 +1316,6 @@ function generateJDDB($outputFileName)
     fclose($inputHandle);
     fclose($outputHandle);
 
-    if (file_exists('0.XMB'))
-    {
-        echo "Moving XMB to JDDB\n";
-        $inputHandle = fopen('0.XMB', 'r');
-        $outputHandle = fopen($outputFileNameJDDB, "a");
-
-        fputs($outputHandle, "var XMBDATA = \n\n[\n");
-        $i= 0;
-        while (!feof($inputHandle))
-        {
-            $c = fgetc($inputHandle);
-            $val = '0x' . dechex(ord($c));
-            fputs($outputHandle,$val);
-            if (!feof($inputHandle)) fputs($outputHandle,',');
-            $offset = '0x' . str_pad(dechex($i),4,'0',STR_PAD_LEFT);
-            if ($i % 10 == 9) fputs($outputHandle, "\n");
-            
-            $i++;
-        }
-        fputs($outputHandle, "\n];");
-        fclose($inputHandle);
-        fclose($outputHandle);
-    }
 }
 
 function prependPlus3HeaderToDDB($outputFileName)
@@ -1465,6 +1442,7 @@ function mmlToBeep($note, &$values, $target, $subtarget)
         $condact = new stdClass();
         if (($target=='MSX') || ($target=='CPC')) $condact->Opcode = XBEEP_OPCODE; else $condact->Opcode = BEEP_OPCODE;
         $condact->NumParams = 2;
+        if ($length==0) Error('Wrong length at note ' . $note);
         $condact->Param1 = intval(round($baseLength * (120 / $values[XPLAY_TEMPO]) / $length));
         $condact->Param2 = 24 + $values[XPLAY_OCTAVE]*24 + $idx*2;
         if (($target == 'C64') || ($target == 'CP4')) $condact->Param2 -= 24; // C64/CP4 interpreter pitch it's too high otherwise
@@ -1800,7 +1778,7 @@ addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Dump XMessagess if avaliable
 if (sizeof($adventure->xmessages))
 {
-    if ((!CheckMaluva($adventure)) && ($target!='MSX2')&& ($target!='HTML') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XMESSAGE condact requires Maluva Extension');
+    if ((!CheckMaluva($adventure)) && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XMESSAGE condact requires Maluva Extension');
     generateXmessages($adventure, $target, $subtarget, $outputFileName);
 }
 
