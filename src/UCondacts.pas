@@ -123,7 +123,7 @@ CONST Condacts : ARRAY[0..NUM_CONDACTS+NUM_FAKE_CONDACTS - 1] OF TCondact = (
 (NumParams:0;Condact:'BACKAT' ;Type1: none; Type2: none; Type3: none; CanBeJump: false), //  98
 (NumParams:2;Condact:'PRINTAT';Type1: value; Type2: value; Type3: none; CanBeJump: false), //  99
 (NumParams:0;Condact:'WHATO' ;Type1: none; Type2: none; Type3: none; CanBeJump: false), // 100
-(NumParams:1;Condact:'CALL'  ;Type1: value; Type2: none; Type3: none; CanBeJump: false), // 101
+(NumParams:2;Condact:'CALL'  ;Type1: value; Type2: value; Type3: none; CanBeJump: false), // 101
 (NumParams:1;Condact:'PUTO'  ;Type1: locno_; Type2: none; Type3: none; CanBeJump: false), // 102 ;: revisart
 (NumParams:0;Condact:'NOTDONE';Type1: none; Type2: none; Type3: none; CanBeJump: false), // 103
 (NumParams:1;Condact:'AUTOP' ;Type1: locno; Type2: none; Type3: none; CanBeJump: false), // 104
