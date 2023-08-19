@@ -113,7 +113,7 @@ CONST Condacts : ARRAY[0..NUM_CONDACTS+NUM_FAKE_CONDACTS - 1] OF TCondact = (
 (NumParams:2;Condact:'ISNOTAT';Type1: objno; Type2: locno_; Type3: none; CanBeJump: true), //  88
 (NumParams:2;Condact:'WEIGH' ;Type1: objno; Type2: flagno; Type3: none; CanBeJump: false), //  89
 (NumParams:2;Condact:'PUTIN' ;Type1: objno; Type2: locno; Type3: none; CanBeJump: false), //  90
-(NumParams:2;Condact:'TAKEOUT';Type1: objno; Type2: flagno; Type3: none; CanBeJump: false), //  91
+(NumParams:2;Condact:'TAKEOUT';Type1: objno; Type2: locno; Type3: none; CanBeJump: false), //  91
 (NumParams:0;Condact:'NEWTEXT';Type1: none; Type2: none; Type3: none; CanBeJump: false), //  92
 (NumParams:2;Condact:'ABILITY';Type1: value; Type2: value; Type3: none; CanBeJump: false), //  93
 (NumParams:1;Condact:'WEIGHT' ;Type1: flagno; Type2: none; Type3: none; CanBeJump: false), //  94
