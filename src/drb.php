@@ -239,7 +239,7 @@ var $newConversions = array(16=>'à',17=>'ã',18=>'ä',19=>'â',20=>'è',21=>'ë
 
 }
 define('VERSION_HI',0);
-define('VERSION_LO',29);
+define('VERSION_LO',33);
 
 
 function summary($adventure)
