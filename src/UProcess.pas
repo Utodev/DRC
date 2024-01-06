@@ -22,7 +22,7 @@ TYPE TPProcessEntryList = ^TProcessEntryList;
 	END;
 
 VAR Processes : ARRAY [0..MAX_PROCESSES] OF TProcess;
-	ProcessCount : Longint;
+	LastProcess : Longint;
 
 PROCEDURE InitializeProcesses();
 

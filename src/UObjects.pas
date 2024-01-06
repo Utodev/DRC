@@ -16,12 +16,16 @@ TYPE TPObjectList = ^TObjectList;
 	END;	
 
 VAR ObjectList : TPObjectList;	
+	CarriedObjects : Word;
+	WornObjects : Word;
 
 PROCEDURE AddObject(VAR AObjectList:TPObjectList; AValue, ANoun, AnAdjective, AWeight, AnInitiallyAt : Longint; SomeFlags : Word; AContainer, AWearable : Boolean);
 
 FUNCTION FindObject(AObjectList:TPObjectList; ANoun, AnAdjective : Longint):boolean;
 
 IMPLEMENTATION
+
+USES UConstants;
 
 PROCEDURE AddObject(VAR AObjectList:TPObjectList; AValue, ANoun, AnAdjective, AWeight, AnInitiallyAt : Longint; SomeFlags : Word; AContainer, AWearable : Boolean);
 BEGIN
@@ -38,6 +42,8 @@ BEGIN
 		AObjectList^.Noun := ANoun;
 		AObjectList^.Adjective := AnAdjective;
 		AObjectList^.Next := nil;
+		if (AnInitiallyAt = LOC_CARRIED) then Inc(CarriedObjects);
+		if (AnInitiallyAt = LOC_WORN) then Inc(WornObjects);
 	END  
 END;
 
@@ -50,4 +56,7 @@ BEGIN
 	ELSE Result := FindObject(AObjectList^.Next, ANoun, AnAdjective);   
 END;
 
+BEGIN
+ CarriedObjects := 0;
+ WornObjects := 0;
 END.			     

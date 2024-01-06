@@ -59,7 +59,7 @@ var procno, entryno : Word;
     TempCondactList : TPProcessCondactList;
     
 BEGIN
-	FOR procno := 0 TO ProcessCount - 1 DO
+	FOR procno := 0 TO LastProcess DO
 	BEGIN
 		TempEntriesList := Processes[procno].entries;
 		entryno := 0;
@@ -522,6 +522,8 @@ BEGIN
 		END;	
 	UNTIL CurrentTokenID = T_SECTION_PRO;
 	IF CurrentObj < OTXCount THEN SyntaxError('Definition for object #' + IntToStr(CurrentObj) + ' missing' );
+	AddSymbol(SymbolList, 'NUM_CARRIED', CarriedObjects);
+	AddSymbol(SymbolList, 'NUM_WORN', WornObjects);
 END;
 
 FUNCTION GetWordParamValue(Param: String; Opcode: Byte; ParameterNumber: Byte = 0): Integer;
@@ -920,21 +922,18 @@ END;
 
 
 PROCEDURE ParsePRO();
-VAR CurrentProcess : Longint;
-	ProcNum : Longint;
+VAR ProcNum : Longint;
 BEGIN
  	InitializeProcesses();
-	CurrentProcess := 0;
-	ProcessCount := 0;
+	LastProcess := -1;
 	REPEAT
 		Scan();
 		IF (CurrentTokenID<>T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Process number expected but "'+CurrentText+'" found');
 		ProcNum := GetIdentifierValue();
 		IF (Procnum = MAXLONGINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
-		IF ProcNum<>CurrentProcess THEN SyntaxError('Definition for process #' + IntToStr(CurrentProcess) + ' expected but process #' + IntToStr(ProcNum) + ' found');
-		ProcessCount := ProcessCount + 1;
-		ParseProcessEntries(CurrentProcess);
-    	Inc(CurrentProcess);
+		if (ProcNum > LastProcess) THEN LastProcess := ProcNum;
+		if (Processes[ProcNum].Entries <> nil) then Warning('Process #' + IntToStr(ProcNum) + ' already defined, concatenating entries');
+		ParseProcessEntries(ProcNum);
 	UNTIL CurrentTokenID = T_SECTION_END;
 END; 		
 

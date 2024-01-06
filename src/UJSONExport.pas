@@ -297,7 +297,7 @@ BEGIN
     INC(Indent);     
     WriteLn(JSON,tabs(),'[');
 
-    FOR i := 0 to ProcessCount - 1 DO // each process
+    FOR i := 0 to LastProcess  DO // each process
     BEGIN
             WriteLn(JSON,tabs(),'{');
             INC(Indent);       
@@ -364,7 +364,7 @@ BEGIN
             DEC(Indent);
             DEC(Indent);
             Write(JSON, tabs(), '}');
-            if (i  < ProcessCount-1) THEN WriteLn(JSON,',') ELSE WriteLn(JSON);
+            if (i  < LastProcess ) THEN WriteLn(JSON,',') ELSE WriteLn(JSON);
     END;
 
 
