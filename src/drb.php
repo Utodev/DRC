@@ -239,7 +239,7 @@ var $newConversions = array(16=>'à',17=>'ã',18=>'ä',19=>'â',20=>'è',21=>'ë
 
 }
 define('VERSION_HI',0);
-define('VERSION_LO',29);
+define('VERSION_LO',33);
 
 
 function summary($adventure)
@@ -414,7 +414,7 @@ function getXMessageFileSizeByTarget($target, $subtarget, $adventure)
         case 'MSX' : return 64; 
         case 'PCW' : return 64; 
         case 'MSX2': return 16; 
-        case 'HTML': return 16; 
+        case 'HTML': return 64; 
         case 'CPC' : return 2;
         case 'C64' : return 2;
         case 'CP4' : return 2;      
@@ -1314,7 +1314,29 @@ function generateJDDB($outputFileName)
     }
     fputs($outputHandle, "\n];");
     fclose($inputHandle);
+
+    if (file_exists('0.XMB'))
+    {
+        $inputHandle = fopen('0.XMB', 'r');
+        fputs($outputHandle, "var XMBDATA = [\n");
+        $i= 0;
+        while (!feof($inputHandle))
+        {
+            $c = fgetc($inputHandle);
+            $val = '0x' . dechex(ord($c));
+            fputs($outputHandle,$val);
+            if (!feof($inputHandle)) fputs($outputHandle,',');
+            $offset = '0x' . str_pad(dechex($i),4,'0',STR_PAD_LEFT);
+            if ($i % 10 == 9) fputs($outputHandle, "// $offset\n");
+            
+            $i++;
+        }
+        fputs($outputHandle, "\n];");
+        fclose($inputHandle);
+    }
+
     fclose($outputHandle);
+
 
 }
 
@@ -1778,7 +1800,7 @@ addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Dump XMessagess if avaliable
 if (sizeof($adventure->xmessages))
 {
-    if ((!CheckMaluva($adventure)) && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XMESSAGE condact requires Maluva Extension');
+    if ((!CheckMaluva($adventure)) && ($target!='HTML') && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XMESSAGE condact requires Maluva Extension');
     generateXmessages($adventure, $target, $subtarget, $outputFileName);
 }
 
