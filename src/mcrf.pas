@@ -102,7 +102,7 @@ BEGIN
   Writeln('Example: MCRF MYGAME.BIN INT.Z80 MYGAME.DDB MYGAME.GRA');
   Writeln('Example: MCRF MYGAME.BIN INT.Z80 MYGAME.DDB MYGAME.GRA PAW1.CHR');
   Writeln();
-  Writeln('Important: The interpreter and graphics files should have an AMSDOS header. The DDB (text database) one may have it or not, MCRF will auto-detect it.');
+  Writeln('Important: The graphics file should have an AMSDOS header. The DDB (text database) and the interpreter files may have it or not, MCRF will auto-detect it.');
   WriteLn('CHR files are raw definition of 8x8 characters, 256 total, so it should be a 256 x 8 bytes file (2048). If an Amsdos header is present, it will be ignored.');
   Halt(1);
 END;
