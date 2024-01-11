@@ -10,6 +10,7 @@ PROGRAM MCRF;
 USES sysutils, strutils;
 
 
+CONST DUMMY_HEADER : array[0..127] of byte = ($00 , $47 , $49 , $4C , $42 , $45 , $52 , $54 , $53 , $42 , $49 , $4E , $00 , $00 , $00 , $00 , $00 , $00 , $02 , $00 , $00 , $40 , $08 , $00 , $45 , $1D , $79 , $24 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $45 , $1D , $00 , $E0 , $04 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00);
 CONST VERSION=03;     (* Increased from original 01 for non CP/M version *)
 CONST FILEV=00;
 CONST PATHLEN=64;
@@ -28,7 +29,6 @@ VAR OutputFile, InputFile : FILE;
     GraphicsLength : Word;
     RealDDBLength: Word;
     RealInterpreterLength: Word;
-    InterpreterIsAmsdos: Boolean;
     CharsetOffset : Word;
 
 
@@ -133,15 +133,19 @@ BEGIN
 
   Write('Interpreter length is ');
   Blockread(InputFile, cpcHeader, 128); (* Get CPC header *)
-  BlockWrite(OutputFile, cpcHeader, 128); (* Make dummy CPC header *)
   IF (FileSize(InputFile) = (ReadHeaderWord(24) + 128)  )  THEN
   BEGIN
-    InterpreterIsAmsdos := TRUE;
-    RealInterpreterLength := ReadHeaderWord(24) // has AMSDOS header
+    RealInterpreterLength := ReadHeaderWord(24); // has AMSDOS header
+    BlockWrite(OutputFile, cpcHeader, 128); (* Make dummy CPC header *)
   END
   ELSE
   BEGIN
     RealInterpreterLength := FileSize(InputFile); // doesn't have AMSDOS header
+    FOR c:=0 TO 127 DO        (* Make dummy CPC header *)
+    BEGIN
+      Buffer1Byte := DUMMY_HEADER[c];
+      BlockWrite(OutputFile, Buffer1Byte, 1);
+    END;
     Seek(InputFile, 0);  // Rewind
   END;
     
