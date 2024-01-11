@@ -154,11 +154,11 @@ BEGIN
   END;
   CloseFile(InputFile);
 
-  IF ((DBADD-INTAT)> ReadHeaderWord(24)) THEN
+  IF ((DBADD-INTAT)> RealInterpreterLength) THEN
   BEGIN
-    WriteLn('Padding to db position using ',DBADD - INTAT - ReadHeaderWord(24),' bytes.');
+    WriteLn('Padding to db position using ',DBADD - INTAT - RealInterpreterLength,' bytes.');
     Buffer1Byte := 0;
-    FOR c:= 1 TO DBADD - INTAT - ReadHeaderWord(24) DO
+    FOR c:= 1 TO DBADD - INTAT - RealInterpreterLength DO
       BlockWrite(OutputFile, Buffer1Byte, 1);
   END;
 
