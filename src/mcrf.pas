@@ -27,6 +27,8 @@ VAR OutputFile, InputFile : FILE;
     FileLength :  Word;
     GraphicsLength : Word;
     RealDDBLength: Word;
+    RealInterpreterLength: Word;
+    InterpreterIsAmsdos: Boolean;
     CharsetOffset : Word;
 
 
@@ -132,9 +134,20 @@ BEGIN
   Write('Interpreter length is ');
   Blockread(InputFile, cpcHeader, 128); (* Get CPC header *)
   BlockWrite(OutputFile, cpcHeader, 128); (* Make dummy CPC header *)
-  WriteLn(ReadHeaderWord(24), ' bytes.');
+  IF (FileSize(InputFile) = (ReadHeaderWord(24) + 128)  )  THEN
+  BEGIN
+    InterpreterIsAmsdos := TRUE;
+    RealInterpreterLength := ReadHeaderWord(24) // has AMSDOS header
+  END
+  ELSE
+  BEGIN
+    RealInterpreterLength := FileSize(InputFile); // doesn't have AMSDOS header
+    Seek(InputFile, 0);  // Rewind
+  END;
+    
+  WriteLn(RealInterpreterLength, ' bytes.');
 
-  FOR c:=1 TO ReadHeaderWord(24) DO
+  FOR c:=1 TO RealInterpreterLength DO
   BEGIN
     Blockread(InputFile, Buffer1Byte, 1); 
     BlockWrite(OutputFile, Buffer1Byte, 1);
