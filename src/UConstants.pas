@@ -4,7 +4,7 @@ UNIT UConstants;
 INTERFACE
 
 CONST version_hi = 0;
-	  version_lo = 33;
+	  version_lo = 34;
 
       LOC_CARRIED = 254;
       LOC_WORN = 253;       
@@ -71,6 +71,7 @@ VAR ForceNormalMessages : Boolean;
     NoSemantic : Boolean;
     SemanticWarnings : Boolean;
     Verbose: Boolean;
+    CheckMaluva: Boolean;
 
 IMPLEMENTATION
 
@@ -79,4 +80,5 @@ BEGIN
        NoSemantic := false;
        SemanticWarnings := false;
        Verbose := false;
+       CheckMaluva := true;
 END.

@@ -32,6 +32,7 @@ BEGIN
   WriteLn('          -semantic-warnings: DRF will just show semantic errors as warnings, but won''t stop compilation');
   WriteLn('          -force-normal-messages: all xmessages will be treated as normal messages');
   WriteLn('          -force-x-messages: all user messages will be created as xmessages. Does not affect those written in the MTX table.');
+  WriteLn('          -check-maluva-disabled: the compiler won''t check if Maluva was included when finding Maluva condacts.');
   WriteLn();
 	WriteLn('[additional symbols] is an optional comma separated list of other symbols that would be created, so for instance if that parameter is "p3", then #ifdef "p3" will be true, and if that parameter is "p3,p4" then also #ifdef "p4" would be true.');
 	Halt(1);
@@ -338,6 +339,12 @@ BEGIN
                                     IF AuxString = '-force-x-messages' THEN
                                     BEGIN 
                                       ForceXMessages := true;
+                                      if Verbose THEN WriteLn('Warning: Forced XMessages'); 
+                                    END 
+                                    ELSE
+                                    IF AuxString = '-check-maluva-disabled' THEN
+                                    BEGIN 
+                                      CheckMaluva := false;
                                       if Verbose THEN WriteLn('Warning: Forced XMessages'); 
                                     END
                                     ELSE ParamError('Invalid option: ' + AuxString);
