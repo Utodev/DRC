@@ -157,8 +157,8 @@ PROCEDURE GenerateJSON(OutputFileName: string);
 VAR JSON : Text;
     TempObjectList : TPObjectList;	
     Aux,i,j : Word;
-    MessageListsArray : array [0..5] of TPMessageList;
-    MessageListsnames : array [0..5] of String;
+    MessageListsArray : array [0..6] of TPMessageList;
+    MessageListsnames : array [0..6] of String;
     TempMessageList : TPMessageList;
     TempEntriesList : TPProcessEntryList;
     TempCondactList : TPProcessCondactList;
@@ -176,7 +176,7 @@ BEGIN
     WriteLn(JSON,tabs(),'"settings":');
     INC(Indent);     
     WriteLn(JSON,tabs(),'[');
-    WriteLn(JSON,tabs(),'{"classic_mode":', byte(ClassicMode), ', "debug_mode":', byte(DebugMode) , ', "maluva_used":', byte(MaluvaUsed OR NOT CheckMaluva) , '}');
+    WriteLn(JSON,tabs(),'{"classic_mode":', byte(ClassicMode), ', "debug_mode":', byte(DebugMode) , ', "v3code":', byte(v3code) , ', "maluva_used":', byte(MaluvaUsed OR NOT CheckMaluva) , '}');
     WriteLn(JSON,tabs(),'],');
     DEC(Indent);
     // Symbols
@@ -247,7 +247,9 @@ BEGIN
         INC(Indent);       
         WriteLn(JSON,tabs(),'"FromLoc":', TempConnectionList^.FromLoc,',');
         WriteLn(JSON,tabs(),'"ToLoc":', TempConnectionList^.ToLoc,',');
-        WriteLn(JSON,tabs(),'"Direction":', TempConnectionList^.Direction);
+        WriteLn(JSON,tabs(),'"Direction":', TempConnectionList^.Direction,',');
+        WriteLn(JSON,tabs(),'"Blockable":', Byte(TempConnectionList^.Blockable),',');
+        WriteLn(JSON,tabs(),'"Blocked":', Byte(TempConnectionList^.Blocked));
         DEC(Indent);
         Write(JSON, tabs(), '}');
         if (TempConnectionList^.Next <> nil) THEN WriteLn(JSON,',') ELSE WriteLn(JSON);
@@ -264,6 +266,7 @@ BEGIN
     MessageListsArray[3]:=OTX;
     MessageListsArray[4]:=XTX;
     MessageListsArray[5]:=OtherTX;
+    MessageListsArray[6]:=MTX2;
 
     MessageListsnames[0]:='messages';
     MessageListsnames[1]:='sysmess';
@@ -271,8 +274,9 @@ BEGIN
     MessageListsnames[3]:='objects';
     MessageListsnames[4]:='xmessages';
     MessageListsnames[5]:='other_strings';
+    MessageListsnames[6]:='messages2';
 
-    for i := 0 to 5 DO
+    for i := 0 to 6 DO
     BEGIN
         TempMessageList := MessageListsArray[i];
         WriteLn(JSON,tabs(),'"',MessageListsnames[i],'":');
@@ -336,13 +340,16 @@ BEGIN
                     IF (TempCondactList^.isDB) THEN WriteLn(JSON,tabs(),'"Condact":"#DB/#INCBIN",') 
                     ELSE IF (TempCondactList^.Opcode = FAKE_USERPTR_CONDACT_CODE) THEN WriteLn(JSON,tabs(),'"Condact":"#USERPTR",') 
                     ELSE IF (TempCondactList^.Opcode = FAKE_DEBUG_CONDACT_CODE) THEN WriteLn(JSON,tabs(),'"Condact":"DEBUG",') 
-                    ELSE IF ((TempCondactList^.Opcode AND 256) = 256) THEN WriteLn(JSON,tabs(),'"Condact":"J', Condacts[TempCondactList^.Opcode AND 255].Condact,'",')
+                    ELSE IF ((TempCondactList^.Opcode AND 512) = 512) THEN WriteLn(JSON,tabs(),'"Condact":"', PrefixCondacts[TempCondactList^.Opcode - 512].Condact,'",')
                     ELSE WriteLn(JSON,tabs(),'"Condact":"', Condacts[TempCondactList^.Opcode].Condact,'",');
 
                     IF TempCondactList^.NumParams>0 THEN 
                     BEGIN
-                        IF TempCondactList^.Params[0].Indirection THEN Aux := 1 ELSE Aux := 0;
-                        WriteLn(JSON,tabs(),'"Indirection1":', Aux,',');
+                        FOR j:=0 to TempCondactList^.NumParams - 1 DO 
+                        BEGIN
+                          IF TempCondactList^.Params[j].Indirection THEN Aux := 1 ELSE Aux := 0;
+                          WriteLn(JSON,tabs(),'"Indirection',j+1,'":', Aux,',');
+                        END;
                         FOR J := 0 to TempCondactList^.NumParams - 1 DO WriteLn(JSON,tabs(),'"Param',j+1,'":', TempCondactList^.Params[j].Value,',');                        
                     END;
                     WriteLn(JSON,tabs(),'"NumParams":', TempCondactList^.NumParams);

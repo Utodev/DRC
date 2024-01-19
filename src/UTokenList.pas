@@ -13,13 +13,14 @@ TYPE TPTokenList = ^TTokenList;
 				lineno: Longint;
 				colno : Word;
 				Next : TPTokenList;
+				Previous : TPTokenList;
 			  end;
 
 var TokenList : TPTokenList;			  
 
 
 
-PROCEDURE AddToken(VAR ATokenList:TPTokenList; ATokenID: Word; AText: AnsiString; AIntVal:longint; yylineno: longint; yycolno: word);			     
+PROCEDURE AddToken(VAR ATokenList:TPTokenList; ATokenID: Word; AText: AnsiString; AIntVal:longint; yylineno: longint; yycolno: word; APrevTokenList:TPTokenList=nil);
 FUNCTION normalize(S: AnsiString) :AnsiString;
 IMPLEMENTATION
 uses sysutils;
@@ -35,9 +36,9 @@ Result :='';
  END;
 END;
 
-PROCEDURE AddToken(VAR ATokenList:TPTokenList; ATokenID: Word; AText: AnsiString; AIntVal:longint; yylineno: longint; yycolno: word);			     
+PROCEDURE AddToken(VAR ATokenList:TPTokenList; ATokenID: Word; AText: AnsiString; AIntVal:longint; yylineno: longint; yycolno: word; APrevTokenList:TPTokenList=nil);
 BEGIN
-	IF ATokenList <> nil THEN AddToken(ATokenList^.Next, ATokenID, AText, AIntVal, yylineno, yycolno)
+	IF ATokenList <> nil THEN AddToken(ATokenList^.Next, ATokenID, AText, AIntVal, yylineno, yycolno, ATokenList)
 	ELSE
 	BEGIN
 		New(ATokenList);
@@ -47,6 +48,7 @@ BEGIN
 		ATokenList^.lineno := yylineno;
 		AtokenList^.colno := yycolno - 1;
 		ATokenList^.Next := nil;
+		ATokenList^.Previous := APrevTokenList;
 	END  
 END;
 

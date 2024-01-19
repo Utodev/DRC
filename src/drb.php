@@ -43,6 +43,14 @@ define('XPLAY_VOLUME', 1);
 define('XPLAY_LENGTH', 2);
 define('XPLAY_TEMPO',  3);
 
+define('PREFIX_OPCODE', 120);
+define('SETP2_OPCODE',  122);
+define('SETP3_OPCODE',  124);
+define('MAX_V3_OBJECTS', 120);
+
+
+
+
 //================================================================= filewrite ========================================================
 
 // Writes a byte value to file
@@ -239,7 +247,7 @@ var $newConversions = array(16=>'à',17=>'ã',18=>'ä',19=>'â',20=>'è',21=>'ë
 
 }
 define('VERSION_HI',0);
-define('VERSION_LO',33);
+define('VERSION_LO',34);
 
 
 function summary($adventure)
@@ -509,6 +517,12 @@ function generateMTX($adventure, &$currentAddress, $outputFileHandler,  $isLittl
     generateMessages($adventure->messages, $currentAddress, $outputFileHandler,   $isLittleEndian, $target);
 }
 
+function generateMTX2($adventure, &$currentAddress, $outputFileHandler,  $isLittleEndian, $target)
+{
+    generateMessages($adventure->messages2, $currentAddress, $outputFileHandler,   $isLittleEndian, $target);
+}
+
+
 function generateSTX($adventure, &$currentAddress, $outputFileHandler,  $isLittleEndian, $target)
 {
     generateMessages($adventure->sysmess, $currentAddress, $outputFileHandler,  $isLittleEndian, $target);
@@ -537,9 +551,10 @@ function generateConnections($adventure, $target, &$currentAddress, $outputFileH
         $FromLoc = $connection->FromLoc;
         $ToLoc = $connection->ToLoc;
         $Direction = $connection->Direction;
-        $connectionsTable[$FromLoc][]=array($Direction,$ToLoc);
+        $Blockable = $connection->Blockable;
+        $Blocked = $connection->Blocked;
+        $connectionsTable[$FromLoc][]=array($Direction,$ToLoc, $Blockable, $Blocked);
     }
-
 
     // Write the connections
     $connectionsOffset = array();
@@ -550,6 +565,11 @@ function generateConnections($adventure, $target, &$currentAddress, $outputFileH
         $connections = $connectionsTable[$locID];
         foreach ($connections as $connection)
         {
+            if ($connection[2]) // Blockable
+            {
+                $Direction |= 0x80; // Blockable
+                if ($connection[3]) $Direction |= 0x40; // Blocked
+            }
             writeByte($outputFileHandler, $connection[0]);
             writeByte($outputFileHandler, $connection[1]);
             $currentAddress +=2;
@@ -565,6 +585,7 @@ function generateConnections($adventure, $target, &$currentAddress, $outputFileH
         writeWord($outputFileHandler, $connectionsOffset[$locID], $isLittleEndian);
         $currentAddress+=2;
     }
+
     
 }
 
@@ -576,6 +597,7 @@ function generateConnections($adventure, $target, &$currentAddress, $outputFileH
 function generateVocabulary($adventure, &$currentAddress, $outputFileHandler)
 {
   
+    echo "Generating vocabulary  $currentAddress\n";
     $daad_to_chr = new daadToChr();
     foreach ($adventure->vocabulary as $word)
     {
@@ -725,6 +747,7 @@ function getCondactsHash($adventure, $condacts, $from)
 
 function checkMaluva($adventure)
 {
+    if ($adventure->subtarget=='NEXT') return true;
     $count = 0;
     foreach ($adventure->externs as $extern)
     {
@@ -1049,6 +1072,8 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                 $condact = $entry->condacts[$condactID];
 
                 $opcode = $condact->Opcode;
+                $isPrefixed = ($opcode & 512) == 512;
+                $hasSecondParameterIndirection = ($condact->NumParams>1) && ($condact->Indirection2);
                 if (($opcode==FAKE_DEBUG_CONDACT_CODE) && (!$adventure->debugMode)) continue; // Not saving fake DEBUG condact if debug mode is not on.
                 if ($opcode==FAKE_USERPTR_CONDACT_CODE) 
                 {
@@ -1067,7 +1092,28 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
 
                 if (($condact->NumParams>0) && ($condact->Indirection1)) $opcode = $opcode | 0x80; // Set indirection bit
                 if (($opcode == FAKE_DEBUG_CONDACT_CODE) && ($adventure->verbose)) echo "Debug condact found, inserted.\n";
-                writeByte($outputFileHandler, $opcode);
+                // To build indirection for second parameter we use SETP3 or SETP2 condacts. Basically, any condact with indirection in the second parameter, like
+                // LET 100 @200, will become SETP2 200 LET 100 0. When executing SETP2, the value of its parameter (200) will be stored in the DDB , where parameter
+                // 2 is, so that LET 100 0 will be executed as LET 100 @200. This is somehow auto-modifiable DAAD code. SETP3 is used when the condact is a prefixed condact
+                // like with BSET 100 @200, which will become SETP3 200 (prefix) BSET 100 0. Please notice indirection for first parameter works as usual
+                if ($hasSecondParameterIndirection) 
+                {
+                    if ($isPrefixed) writeByte($outputFileHandler, SETP3_OPCODE); 
+                               ELSE writeByte($outputFileHandler, SETP2_OPCODE);
+                    writeByte($outputFileHandler, $condact->Param2);            
+                    $currentAddress+=2;                               
+                }
+
+                if ($isPrefixed) 
+                {
+                    writeByte($outputFileHandler, PREFIX_OPCODE); // Prefix byte
+                    $currentAddress++;
+                }
+
+                if ($isPrefixed) $opcode -= 512; // Remove the prefix
+                writeByte($outputFileHandler, $opcode); 
+                $isPrefixed = false;
+                
                 $currentAddress++;
                 for($i=0;$i<$condact->NumParams;$i++) 
                 {
@@ -1202,12 +1248,16 @@ function getMachineIDByTarget($target, $subtarget)
 
 function getBaseAddressByTarget($target)
 {
-  if ($target=='ZX')  return 0x8400; else
-  if ($target=='MSX') return 0x0100; else
-  if ($target=='CPC') return 0x2880; else
-  if ($target=='PCW') return 0x100; else
-  if ($target=='CP4') return 0x7080; else
-  if ($target=='C64') return 0x3880; else return 0;
+    switch($target)
+    {
+        case 'ZX': return 0x8400;break;
+        case 'MSX': return 0x0100;break;
+        case 'CPC': return 0x2880;break;
+        case 'PCW': return 0x100;break;
+        case 'CP4': return 0x7080;break;
+        case 'C64': return 0x3880;break;
+        default: return 0;
+    }
 };
 
 function isPaddingPlatform($target)
@@ -1336,7 +1386,6 @@ function generateJDDB($outputFileName)
     }
 
     fclose($outputHandle);
-
 
 }
 
@@ -1595,6 +1644,8 @@ if (!file_exists($tokensFilename)) {
 }
 
 // Parse optional parameters
+$adventure->target  =$target;
+$adventure->subtarget  =$subtarget;
 $adventure->verbose = false;
 $adventure->prependC64Header = false;
 $adventure->prependPlus3Header = false;
@@ -1628,6 +1679,7 @@ $outputFileHandler = fopen($outputFileName, "wr");
 if (!$outputFileHandler) Error('Can\'t create output file');
     // Check settings in JSON
 $adventure->classicMode = $adventure->settings[0]->classic_mode;
+$v3code = $adventure->settings[0]->v3code;
 if ($adventure->forcedClassicMode) $adventure->classicMode = true;
 $adventure->debugMode = $adventure->settings[0]->debug_mode;
 if ($adventure->forcedDebugMode) $adventure->debugMode = true;
@@ -1645,6 +1697,7 @@ if ($adventure->verbose)
     if ($adventure->debugMode) echo "Debug mode ON, generating DEBUG information for ZesarUX debugger.\n";
     if ($adventure->forcedNoPadding) echo "No padding has been forced.\n";
     if ($adventure->forcedPadding) echo "Padding has been forced.\n";
+    if ($v3code) echo "Linking DAAD v3 DDB.\n";
 }                            
 
 
@@ -1666,6 +1719,7 @@ if ($adventure->verbose)
 
 // DAAD version
 $b = 2; 
+if ($v3code) $b = 3;
 writeByte($outputFileHandler, $b);
 
 // Machine and language
@@ -1696,10 +1750,18 @@ writeByte($outputFileHandler, $numberOfProcesses);
 // Fill the rest of the header with zeros, as we don't know yet the offset values. Will comeupdate them later.
 writeBlock($outputFileHandler, 26); 
 $currentAddress+=34;
+if ($v3code) 
+{
+    writeBlock($outputFileHandler, 3); 
+    $currentAddress+=3; // 3 bytes more for v3 DDBs in the
+}
 // extern - vectors // fill with default values
 for($i=0;$i<13;$i++)
     writeWord($outputFileHandler, $adventure->extvec[$i],$isLittleEndian);
 $currentAddress+=26;
+
+if (($v3code) && ($numberOfObjects>MAX_V3_OBJECTS)) Error("Too many objects for DAAD v3. Maximum is " . MAX_V3_OBJECTS);
+
 
 
 // *********************************************
@@ -1764,6 +1826,14 @@ generateMTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian, $
 $messageLookupOffset = $currentAddress - 2 * sizeof($adventure->messages);
 if ($adventure->verbose) echo "Messages          [" . prettyFormat($messageLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+if ($v3code)
+{
+    // Messages2
+    generateMTX2($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian, $target);
+    $message2LookupOffset = $currentAddress - 2 * sizeof($adventure->messages2);
+    if ($adventure->verbose) echo "Messages2         [" . prettyFormat($message2LookupOffset) . "]\n";
+    addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+}
 // Object Texts
 generateOTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian, $target);
 $objectLookupOffset = $currentAddress - 2 * sizeof($adventure->object_data);
@@ -1776,7 +1846,7 @@ if ($adventure->verbose) echo "Locations         [" . prettyFormat($locationLook
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Connections
 generateConnections($adventure, $target, $currentAddress, $outputFileHandler,$isLittleEndian);
-$connectionsLookupOffset = $currentAddress - 2 * sizeof($adventure->locations) ;
+$connectionsLookupOffset = $currentAddress - 2 * sizeof($adventure->locations);
 if ($adventure->verbose) echo "Connections       [" . prettyFormat($connectionsLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Object names
@@ -1838,6 +1908,13 @@ writeWord($outputFileHandler, $objectNamesOffset, $isLittleEndian);
 writeWord($outputFileHandler, $objectWeightAndAttrOffset, $isLittleEndian);
 // Extra object attributes 
 writeWord($outputFileHandler, $objectExtraAttrOffset, $isLittleEndian);
+if ($v3code)
+{
+    // User messages 2 count
+    writeByte($outputFileHandler, sizeof($adventure->messages2));
+    // User messages lookup list position
+    writeWord($outputFileHandler, $message2LookupOffset, $isLittleEndian);
+}
 // File length 
 $fileSize = $currentAddress;// - $baseAddress;
 writeWord($outputFileHandler, $fileSize, $isLittleEndian);

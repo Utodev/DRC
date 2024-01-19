@@ -33,6 +33,7 @@ BEGIN
   WriteLn('          -force-normal-messages: all xmessages will be treated as normal messages');
   WriteLn('          -force-x-messages: all user messages will be created as xmessages. Does not affect those written in the MTX table.');
   WriteLn('          -check-maluva-disabled: the compiler won''t check if Maluva was included when finding Maluva condacts.');
+  WriteLn('          -v3: compile for DAAD version 3.');
   WriteLn();
 	WriteLn('[additional symbols] is an optional comma separated list of other symbols that would be created, so for instance if that parameter is "p3", then #ifdef "p3" will be true, and if that parameter is "p3,p4" then also #ifdef "p4" would be true.');
 	Halt(1);
@@ -346,6 +347,13 @@ BEGIN
                                     BEGIN 
                                       CheckMaluva := false;
                                       if Verbose THEN WriteLn('Warning: Forced XMessages'); 
+                                    END
+                                    ELSE
+                                    IF AuxString = '-v3' THEN
+                                    BEGIN 
+                                      V3CODE := true;
+                                      MAX_PARAM_ACCEPTING_INDIRECTION := 2;
+                                      if Verbose THEN WriteLn('Warning: Generating code for DAAD V3'); 
                                     END
                                     ELSE ParamError('Invalid option: ' + AuxString);
                                    END;

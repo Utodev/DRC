@@ -230,6 +230,13 @@ BEGIN
 	 IF CurrentTokenID = T_ENDIF  THEN CurrTokenPTR := PreviousTokenPtr;  // But it it's a #endif we rewind one step so it points to the #ifdef and the un-identation of nested #ifdef works naturally 
 END;
 
+PROCEDURE UnScan();
+BEGIN
+	if (CurrTokenPTR^.Previous = nil) OR  (CurrTokenPTR^.Previous^.Previous = nil)
+	   THEN SyntaxError('UnScan() called when there is no previous token');
+	CurrTokenPTR := CurrTokenPTR^.Previous^.Previous;
+	Scan();
+END;
 
 PROCEDURE Scan();
 VAR Evaluation: Boolean;
@@ -392,6 +399,7 @@ PROCEDURE ParseLocationConnections(Fromloc : Longint);
 VAR AuxVocabularyTree: TPVocabularyTree;
 	TheWord : AnsiString;
 	Direction, ToLoc : Longint;
+	Blockable, Blocked : Boolean;
 BEGIN
 	REPEAT
 		Scan();
@@ -407,8 +415,28 @@ BEGIN
 			if (CurrentTokenID <> T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Location number expected');
 			ToLoc := GetIdentifierValue();
 			IF (ToLoc = MAXLONGINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
-			IF FindConnection(Connections, FromLoc, ToLoc, Direction) THEN SyntaxError('Connection already defined');
-			AddConnection(Connections, FromLoc, ToLoc, Direction);
+			Blockable := false;
+			Blocked := false;
+			if (V3CODE) THEN
+			BEGIN
+				IF Direction>=MAX_V3_DIRECTION THEN SyntaxError('Invalid direction. DAAD V3 only supports the first 64 verbs as directions.');
+				Scan();
+				if (CurrentTokenID = T_IDENTIFIER) THEN 
+				BEGIN
+				    if (AnsiUpperCase(CurrentText) = 'BLOCKED') THEN BEGIN 
+																	  Blockable := true;
+																	  Blocked := true;
+																	 END 
+					ELSE IF (AnsiUpperCase(CurrentText) = 'UNBLOCKED') THEN BEGIN 
+																			  Blockable := true;
+																			  Blocked := false;
+																			 END 
+					ELSE UnScan(); // If not BLOCKED or UNBLOCKED, it's a new direction or section, rewind
+				END			
+				ELSE UnScan(); // If not identifier, it's a new direction or section, rewind
+			END;	
+			IF FindConnection(Connections, FromLoc, ToLoc, Direction, Blockable, Blocked) THEN SyntaxError('Connection already defined');
+			AddConnection(Connections, FromLoc, ToLoc, Direction, Blockable, Blocked);
 		END;
 	UNTIL (CurrentTokenID=T_LIST_ENTRY) OR (CurrentTokenID = T_SECTION_OBJ);
 END;
@@ -950,6 +978,7 @@ BEGIN
 	LTXCount := 0;
 	OTXCount := 0;
 	OtherTXCount := 0;
+	MTX2Count := 0;
 	Target := ATarget;
 	Subtarget := ASubtarget;
 	GlobalNestedIfdefCount := 0;
