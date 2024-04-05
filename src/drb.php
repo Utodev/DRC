@@ -46,7 +46,7 @@ define('XPLAY_TEMPO',  3);
 define('PREFIX_OPCODE', 120);
 define('SETP2_OPCODE',  122);
 define('SETP3_OPCODE',  124);
-define('MAX_V3_OBJECTS', 120);
+
 
 
 
@@ -544,6 +544,7 @@ function generateOTX($adventure, &$currentAddress, $outputFileHandler, $isLittle
 function generateConnections($adventure, $target, &$currentAddress, $outputFileHandler, $isLittleEndian)
 {
 
+    global $v3code;
     $connectionsTable = array();
     for ($locID=0;$locID<sizeof($adventure->locations);$locID++) $connectionsTable[$locID] = array();
     foreach($adventure->connections as $connection)
@@ -557,7 +558,10 @@ function generateConnections($adventure, $target, &$currentAddress, $outputFileH
     }
 
     // Write the connections
+    $BlockableConnectionsList = array();
+    $CurrentBlockableConnections = "";
     $connectionsOffset = array();
+    $blockableConnectionsOrdinal = 0;
     for ($locID=0;$locID<sizeof($adventure->locations);$locID++)
     {
         addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
@@ -565,27 +569,59 @@ function generateConnections($adventure, $target, &$currentAddress, $outputFileH
         $connections = $connectionsTable[$locID];
         foreach ($connections as $connection)
         {
-            if ($connection[2]) // Blockable
+            $Direction = $connection[0];
+            $ToLoc = $connection[1];
+            $Blockable = $connection[2];
+            $Blocked = $connection[3];
+
+            if ($Blockable) 
             {
                 $Direction |= 0x80; // Blockable
-                if ($connection[3]) $Direction |= 0x40; // Blocked
+                if ($Blocked) $CurrentBlockableConnections="1$CurrentBlockableConnections"; else $CurrentBlockableConnections="0$CurrentBlockableConnections";
+                if (strlen($CurrentBlockableConnections)==8)
+                {
+                    $BlockableConnectionsList[] = bindec($CurrentBlockableConnections);
+                    $CurrentBlockableConnections = "";
+                }
             }
-            writeByte($outputFileHandler, $connection[0]);
-            writeByte($outputFileHandler, $connection[1]);
+            writeByte($outputFileHandler, $Direction);
+            
+            if ($Blockable) 
+            {
+                writeByte($outputFileHandler, $blockableConnectionsOrdinal);
+                $blockableConnectionsOrdinal++;
+                $currentAddress++;
+            }
+            writeByte($outputFileHandler, $ToLoc);
             $currentAddress +=2;
         }
         writeFF($outputFileHandler); //mark of end of connections
         $currentAddress ++;
     }
+    if ($CurrentBlockableConnections!="") $BlockableConnectionsList[] = bindec($CurrentBlockableConnections);
 
-    // Write the Lookup table
+    // Write the connections Lookup table
     addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+    $lookupOffset = $currentAddress;
     for ($locID=0;$locID<sizeof($adventure->locations);$locID++)
     {
         writeWord($outputFileHandler, $connectionsOffset[$locID], $isLittleEndian);
         $currentAddress+=2;
     }
 
+    addPaddingIfRequired($target, $outputFileHandler, $currentAddress);       
+    $blockableInitiallyOffset = $currentAddress;
+    if ($v3code)
+    {
+        // Write the default values for blockable connections table
+        for($i=0;$i<sizeof($BlockableConnectionsList);$i++)
+        {
+            writeByte($outputFileHandler, $BlockableConnectionsList[$i]);
+            $currentAddress++;
+        }
+    }
+
+    return array($lookupOffset, $blockableInitiallyOffset, $blockableConnectionsOrdinal);
     
 }
 
@@ -597,7 +633,6 @@ function generateConnections($adventure, $target, &$currentAddress, $outputFileH
 function generateVocabulary($adventure, &$currentAddress, $outputFileHandler)
 {
   
-    echo "Generating vocabulary  $currentAddress\n";
     $daad_to_chr = new daadToChr();
     foreach ($adventure->vocabulary as $word)
     {
@@ -653,6 +688,7 @@ function generateVocabulary($adventure, &$currentAddress, $outputFileHandler)
         }
         writeByte($outputFileHandler, $word->Value);
         writeByte($outputFileHandler, $word->VocType);
+        
         $currentAddress+=7;
     }
     writeZero($outputFileHandler); // store 0 to mark end of vocabulary
@@ -1073,7 +1109,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
 
                 $opcode = $condact->Opcode;
                 $isPrefixed = ($opcode & 512) == 512;
-                $hasSecondParameterIndirection = ($condact->NumParams>1) && ($condact->Indirection2);
+                $hasSecondParameterIndirection = ($condact->NumParams>1) && (isset($condact->Indirection2)) && ($condact->Indirection2);
                 if (($opcode==FAKE_DEBUG_CONDACT_CODE) && (!$adventure->debugMode)) continue; // Not saving fake DEBUG condact if debug mode is not on.
                 if ($opcode==FAKE_USERPTR_CONDACT_CODE) 
                 {
@@ -1752,15 +1788,14 @@ writeBlock($outputFileHandler, 26);
 $currentAddress+=34;
 if ($v3code) 
 {
-    writeBlock($outputFileHandler, 3); 
-    $currentAddress+=3; // 3 bytes more for v3 DDBs in the
+    writeBlock($outputFileHandler, 6); 
+    $currentAddress+=6; // 3 bytes more for v3 DDBs in the header
 }
 // extern - vectors // fill with default values
 for($i=0;$i<13;$i++)
     writeWord($outputFileHandler, $adventure->extvec[$i],$isLittleEndian);
 $currentAddress+=26;
 
-if (($v3code) && ($numberOfObjects>MAX_V3_OBJECTS)) Error("Too many objects for DAAD v3. Maximum is " . MAX_V3_OBJECTS);
 
 
 
@@ -1845,9 +1880,15 @@ $locationLookupOffset =  $currentAddress - 2 * sizeof($adventure->locations);
 if ($adventure->verbose) echo "Locations         [" . prettyFormat($locationLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Connections
-generateConnections($adventure, $target, $currentAddress, $outputFileHandler,$isLittleEndian);
-$connectionsLookupOffset = $currentAddress - 2 * sizeof($adventure->locations);
+$result = generateConnections($adventure, $target, $currentAddress, $outputFileHandler,$isLittleEndian);
+$connectionsLookupOffset = $result[0];
+$blockableInitiallyOffset = $result[1];
+$blockableConnectionsCount = $result[2];
+
+
 if ($adventure->verbose) echo "Connections       [" . prettyFormat($connectionsLookupOffset) . "]\n";
+if (($adventure->verbose) && ($v3code)) echo "Connections Init  [" . prettyFormat($blockableInitiallyOffset) . "]\n";
+
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Object names
 $objectNamesOffset = $currentAddress;
@@ -1912,8 +1953,12 @@ if ($v3code)
 {
     // User messages 2 count
     writeByte($outputFileHandler, sizeof($adventure->messages2));
+    // Blockable connections count
+    writeByte($outputFileHandler, $blockableConnectionsCount);
     // User messages lookup list position
     writeWord($outputFileHandler, $message2LookupOffset, $isLittleEndian);
+    // Blockable connections lookup list position
+    writeWord($outputFileHandler, $blockableInitiallyOffset, $isLittleEndian);
 }
 // File length 
 $fileSize = $currentAddress;// - $baseAddress;

@@ -375,6 +375,8 @@ BEGIN
 	ParseMessageList(OTX, OTXCount, T_SECTION_LTX);
 	AddSymbol(SymbolList, 'LAST_OBJECT', OTXCount -1);
 	AddSymbol(SymbolList, 'NUM_OBJECTS', OTXCount);
+	if ((NOT V3CODE) AND (OTXCount > MAX_OBJECTS_V2)) THEN SyntaxError('Too many objects, maximum allowed is ' + IntToStr(MAX_OBJECTS_V2));
+	if ((V3CODE) AND (OTXCount > MAX_OBJECTS_V3)) THEN SyntaxError('Too many objects, maximum allowed is for DAAD v3 is ' + IntToStr(MAX_OBJECTS_V3));
 END;
 
 PROCEDURE ParseLTX();
@@ -419,7 +421,7 @@ BEGIN
 			Blocked := false;
 			if (V3CODE) THEN
 			BEGIN
-				IF Direction>=MAX_V3_DIRECTION THEN SyntaxError('Invalid direction. DAAD V3 only supports the first 64 verbs as directions.');
+				IF Direction>MAX_V3_DIRECTION THEN SyntaxError('Invalid direction. DAAD V3 only supports the first '+IntToStr(MAX_V3_DIRECTION+1)+' verbs as directions.');
 				Scan();
 				if (CurrentTokenID = T_IDENTIFIER) THEN 
 				BEGIN
@@ -437,6 +439,7 @@ BEGIN
 			END;	
 			IF FindConnection(Connections, FromLoc, ToLoc, Direction, Blockable, Blocked) THEN SyntaxError('Connection already defined');
 			AddConnection(Connections, FromLoc, ToLoc, Direction, Blockable, Blocked);
+			if (BlockableCount >MAX_BLOCKABLE_CONNECTIONS) THEN SyntaxError('Too many blockable connections, maximum allowed is ' + IntToStr(MAX_BLOCKABLE_CONNECTIONS));
 		END;
 	UNTIL (CurrentTokenID=T_LIST_ENTRY) OR (CurrentTokenID = T_SECTION_OBJ);
 END;
@@ -651,13 +654,13 @@ BEGIN
 					  Scan();
 					END;
 			
-					IF (CurrentTokenID = T_STRING) AND (Opcode in [MESSAGE_OPCODE,MES_OPCODE, SYSMESS_OPCODE, XMES_OPCODE, XMESSAGE_OPCODE, XPLAY_OPCODE, XDATA_OPCODE]) THEN  
+					IF (CurrentTokenID = T_STRING) AND ((Opcode in [MESSAGE_OPCODE,MES_OPCODE, SYSMESS_OPCODE, XMES_OPCODE, XMESSAGE_OPCODE, XPLAY_OPCODE])  OR (Opcode = TOGGLECON_OPCODE)) THEN  
 					BEGIN
 						SemanticExempt := true;
 						CurrentText := Copy(CurrentText, 2, Length(CurrentText)-2);
 						
 						// Implements the ForceXMessages parameter
-						IF (Opcode IN [MES_OPCODE, MESSAGE_OPCODE]) AND (ForceXMessages) THEN
+						IF ((Opcode IN [MES_OPCODE, MESSAGE_OPCODE]) OR (Opcode = MES2_OPCODE)) AND (ForceXMessages) THEN
 						BEGIN
 							if Opcode = MES_OPCODE THEN Opcode := XMES_OPCODE
 												   ELSE Opcode := XMESSAGE_OPCODE;
@@ -677,13 +680,19 @@ BEGIN
 						 CASE Opcode OF  // In case we are in a 16 bit machine, XMESSAGES are converted to normal messages
 							  XMES_OPCODE : Opcode := MES_OPCODE;
 							  XMESSAGE_OPCODE :Opcode := MESSAGE_OPCODE;
-						  END;
-						  IF (Opcode in  [XPLAY_OPCODE, XDATA_OPCODE]) THEN 
+						 END;
+						 IF (Opcode in  [XPLAY_OPCODE, XDATA_OPCODE]) THEN 
 						  BEGIN					  
-						  	CurrentIntVal := insertMessageFromProcessIntoSpecificList(OtherTX, CurrentText);
+						  	CurrentIntVal := insertMessageFromProcessIntoSpecificList(OtherTX, CurrentText); // Signal with +512 so DRB knows it's a "other string" index and not a proper value.
 							MaXMESs := MAXLONGINT;
 						  END
 						  ELSE
+						  IF  (Opcode = TOGGLECON_OPCODE) THEN 
+						  BEGIN
+						     CurrentIntVal := getConnectionOrdinalFromString(CurrentText);
+							 IF (CurrentIntVal = MAXLONGINT) THEN SyntaxError('Invalid blockable connection: "'+CurrentText+'"');
+						  END
+           	  			  ELSE
 						  BEGIN
 							CurrentIntVal := insertMessageFromProcess(Opcode, CurrentText, ClassicMode);
 							MaXMESs :=MAX_MESSAGES_PER_TABLE;

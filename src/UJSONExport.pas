@@ -249,7 +249,8 @@ BEGIN
         WriteLn(JSON,tabs(),'"ToLoc":', TempConnectionList^.ToLoc,',');
         WriteLn(JSON,tabs(),'"Direction":', TempConnectionList^.Direction,',');
         WriteLn(JSON,tabs(),'"Blockable":', Byte(TempConnectionList^.Blockable),',');
-        WriteLn(JSON,tabs(),'"Blocked":', Byte(TempConnectionList^.Blocked));
+        Write(JSON,tabs(),'"Blocked":', Byte(TempConnectionList^.Blocked));
+        if (TempConnectionList^.BlockedOrdinal<>-1) THEN WriteLn(JSON, ','#13,tabs(),'"Ordinal":', TempConnectionList^.BlockedOrdinal) ELSE WriteLn(JSON, #13);
         DEC(Indent);
         Write(JSON, tabs(), '}');
         if (TempConnectionList^.Next <> nil) THEN WriteLn(JSON,',') ELSE WriteLn(JSON);

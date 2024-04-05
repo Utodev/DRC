@@ -6,7 +6,7 @@ INTERFACE
 USES UConstants;
 
 type TParamType = (none, locno, objno, flagno, sysno, mesno, procno, value, locno_, percent, 
-				  vocabularyVerb, vocabularyNoun, vocabularyPrep, vocabularyAdverb, vocabularyAdjective, 
+				  vocabularyVerb, vocabularyNoun, vocabularyPrep, vocabularyAdverb, vocabularyAdjective,
 				  skip, string_,mesno2,
 				  window, // 0-7
 				  bitno // 0-15
@@ -179,7 +179,7 @@ CONST PrefixCondacts : ARRAY[0..NUM_PREFIX_CONDACTS-1] OF TCondact = (
 	(Numparams:1;Condact:'SELECT';Type1: flagno; Type2: none; Type3: none; CanBeJump: false), //5 SELECT flagno 
 	(Numparams:2;Condact:'OPTION';Type1: value; Type2:string_; Type3: none; CanBeJump: false), //6 OPTION value "option"
 	(Numparams:0;Condact:'CHOICE';Type1: none; Type2: none; Type3: none; CanBeJump: false), //7 CHOICE 
-	(Numparams:1;Condact:'TOGGLECON';Type1: vocabularyVerb; Type2: none; Type3: none; CanBeJump: false), //8 TOGGLECON verb
+	(Numparams:1;Condact:'TOGGLECON';Type1: string_; Type2: none; Type3: none; CanBeJump: false), //8 TOGGLECON verb
 	(Numparams:1;Condact:'MES2';Type1: mesno2; Type2: none; Type3: none; CanBeJump: false) //9 MES2 mesno, internal condact, not documented nor usable from DSF file
 
 	 

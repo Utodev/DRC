@@ -14,11 +14,14 @@ CONST version_hi = 0;
       MAX_FLAG_VALUE = 255;
       VOCABULARY_LENGTH = 5;
       MAX_DIRECTION_VOCABULARY = 13;
-      MAX_CONVERTIBLE_NAME = 19;
+      MAX_CONVERTIBLE_NAME = 39;
       MAX_PROCESSES = 255;
       MAX_CONDACT_PARAMS  =3;
-      MAX_V3_DIRECTION = 64;
-      
+      MAX_V3_DIRECTION = 127;
+      MAX_BLOCKABLE_CONNECTIONS = 128;
+      MAX_OBJECTS_V2 = 256;
+      MAX_OBJECTS_V3 = 120;
+            
       MAX_MESSAGES_PER_TABLE = 255;
       MAX_WEIGHT = 63;
 
@@ -29,6 +32,7 @@ CONST version_hi = 0;
       NUM_CONDACTS  =128;
       NUM_FAKE_CONDACTS = 15;
       NUM_PREFIX_CONDACTS = 10;
+
 
       MESSAGE_OPCODE = 38;
       MES_OPCODE =77;
@@ -66,6 +70,8 @@ CONST version_hi = 0;
       FAKE_DEBUG_CONDACT_TEXT = 'DEBUG';
 
       FAKE_USERPTR_CONDACT_CODE = 256;    
+
+      TOGGLECON_OPCODE = 520;
 
 // Compile options
 VAR ForceNormalMessages : Boolean;
