@@ -250,6 +250,18 @@ BEGIN
   AddSymbol(SymbolList, 'YEARLOW', YearOf(Now) MOD 100);
   AddSymbol(SymbolList, 'MONTH', MonthOf(Now) MOD 100);
   AddSymbol(SymbolList, 'DAY', DayOf(Now) MOD 100);
+  // The SFX commands symbols
+  AddSymbol(SymbolList, 'PLAYSFX', 1);
+  AddSymbol(SymbolList, 'PLAYSFXL', 2);
+  AddSymbol(SymbolList, 'PLAYSFXF', 3);
+  AddSymbol(SymbolList, 'PLAYSFXFL', 4);
+  AddSymbol(SymbolList, 'STOPSFX', 5);
+  AddSymbol(SymbolList, 'PLAYDRO', 6);
+  AddSymbol(SymbolList, 'PLAYDROL', 7);
+  AddSymbol(SymbolList, 'STOPDRO', 8);
+  AddSymbol(SymbolList, 'PLAYFLI', 9);
+  AddSymbol(SymbolList, 'PLAYFLIL', 10);
+  
   // Add additionalSymbols if present
   i := 1;
   REPEAT
