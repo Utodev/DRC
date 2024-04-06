@@ -261,7 +261,14 @@ BEGIN
   AddSymbol(SymbolList, 'STOPDRO', 8);
   AddSymbol(SymbolList, 'PLAYFLI', 9);
   AddSymbol(SymbolList, 'PLAYFLIL', 10);
-  
+
+  // THe MOUSE command symbols
+  AddSymbol(SymbolList, 'RESETMOUSE', 0);
+  AddSymbol(SymbolList, 'SHOWMOUSE', 1);
+  AddSymbol(SymbolList, 'HIDEMOUSE', 2);
+  AddSymbol(SymbolList, 'GETMOUSE', 3);
+
+
   // Add additionalSymbols if present
   i := 1;
   REPEAT
