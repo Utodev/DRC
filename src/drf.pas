@@ -263,10 +263,14 @@ BEGIN
   AddSymbol(SymbolList, 'PLAYFLIL', 10);
 
   // THe MOUSE command symbols
-  AddSymbol(SymbolList, 'RESETMOUSE', 0);
-  AddSymbol(SymbolList, 'SHOWMOUSE', 1);
-  AddSymbol(SymbolList, 'HIDEMOUSE', 2);
-  AddSymbol(SymbolList, 'GETMOUSE', 3);
+  AddSymbol(SymbolList, 'RESETMS', 0);
+  AddSymbol(SymbolList, 'SHOWMS', 1);
+  AddSymbol(SymbolList, 'HIDEMS', 2);
+  AddSymbol(SymbolList, 'GETMS', 3);
+  AddSymbol(SymbolList, 'GETFINEMS', 4);
+  AddSymbol(SymbolList, 'POINTERMS', 5);
+  AddSymbol(SymbolList, 'DELTAXMS', 6);
+  AddSymbol(SymbolList, 'DELTAYMS', 7);
 
 
   // Add additionalSymbols if present
