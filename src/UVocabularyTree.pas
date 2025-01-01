@@ -18,7 +18,10 @@ TYPE TVocType = (VOC_VERB,VOC_ADVERB,VOC_NOUN,  VOC_ADJECT, VOC_PREPOSITION, VOC
 				Left : TPVocabularyTree;
 			  end;
 
+
+
 VAR VocabularyTree : TPVocabularyTree;
+	
 
 (* Adds a new Vocabulary and returns true if succcesful, otherwise (basically cause word already exists) returns false *)
 FUNCTION AddVocabulary(VAR AVocabularyTree: TPVocabularyTree; AVocabularyWord: AnsiString; AValue : Longint; AVocabularyType: TVocType):boolean;
@@ -46,18 +49,20 @@ BEGIN
 		Result := S;
 END;
 
-FUNCTION AddVocabulary(VAR AVocabularyTree: TPVocabularyTree; AVocabularyWord: AnsiString; AValue : Longint; AVocabularyType: TVocType):boolean;
+
+
+FUNCTION AddVocabularyInternal(VAR AVocabularyTree: TPVocabularyTree; AVocabularyWord: AnsiString; AValue : Longint; AVocabularyType: TVocType):boolean;
 BEGIN
 	IF (AVocabularyTree <> nil) THEN
 	BEGIN
-	  IF (AVocabularyWord > AVocabularyTree^.VocWord) THEN Result := AddVocabulary(AVocabularyTree^.Right, AVocabularyWord, AValue, AVocabularyType)
-	  ELSE IF (AVocabularyWord < AVocabularyTree^.VocWord) THEN Result := AddVocabulary(AVocabularyTree^.Left, AVocabularyWord, AValue, AVocabularyType)
+	  IF (AVocabularyWord > AVocabularyTree^.VocWord) THEN Result := AddVocabularyInternal(AVocabularyTree^.Right, AVocabularyWord, AValue, AVocabularyType)
+	  ELSE IF (AVocabularyWord < AVocabularyTree^.VocWord) THEN Result := AddVocabularyInternal(AVocabularyTree^.Left, AVocabularyWord, AValue, AVocabularyType)
 	  ELSE Result := false;
 	 END
 	 ELSE
 	 BEGIN
 	 	New(AVocabularyTree);
-	 	AVocabularyTree^.VocWord := FixSpanishChars(AnsiUpperCase(AVocabularyWord));
+	 	AVocabularyTree^.VocWord := AVocabularyWord;
 	 	AVocabularyTree^.Value := AValue;
 	 	AVocabularyTree^.VocType := AVocabularyType;
 	 	AVocabularyTree^.Left := nil;
@@ -67,14 +72,26 @@ BEGIN
 	 END;
 END;
 
-FUNCTION GetVocabulary(AVocabularyTree: TPVocabularyTree; AVocabularyWord: AnsiString; AVocabularyType : TVocType): TPVocabularyTree;
+FUNCTION AddVocabulary(VAR AVocabularyTree: TPVocabularyTree; AVocabularyWord: AnsiString; AValue : Longint; AVocabularyType: TVocType):boolean;
 BEGIN
-	AVocabularyWord := FixSpanishChars((AnsiUpperCase(AVocabularyWord)));
+  AVocabularyWord := FixSpanishChars(AnsiUpperCase(AVocabularyWord));
+  AddVocabulary := AddVocabularyInternal(AVocabularyTree, AVocabularyWord, AValue, AVocabularyType);
+END; 
+
+
+FUNCTION GetVocabularyInternal(AVocabularyTree: TPVocabularyTree; AVocabularyWord: AnsiString; AVocabularyType : TVocType): TPVocabularyTree;
+BEGIN
 	IF (AVocabularyTree = nil) THEN Result:= nil
 	ELSE
 	IF (AVocabularyTree^.VocWord = AVocabularyWord) AND ((AVocabularyType=VOC_ANY) OR (AVocabularyTree^.VocType = AVocabularyType)) THEN Result := AVocabularyTree ELSE
-	IF (AVocabularyTree^.VocWord > AVocabularyWord) THEN Result := GetVocabulary(AVocabularyTree^.Left, AVocabularyWord, AVocabularyType)
-	ELSE Result := GetVocabulary(AVocabularyTree^.Right, AVocabularyWord, AVocabularyType);
+	IF (AVocabularyTree^.VocWord > AVocabularyWord) THEN Result := GetVocabularyInternal(AVocabularyTree^.Left, AVocabularyWord, AVocabularyType)
+	ELSE Result := GetVocabularyInternal(AVocabularyTree^.Right, AVocabularyWord, AVocabularyType);
+END;
+
+FUNCTION GetVocabulary(AVocabularyTree: TPVocabularyTree; AVocabularyWord: AnsiString; AVocabularyType : TVocType): TPVocabularyTree;
+BEGIN
+	AVocabularyWord := FixSpanishChars((AnsiUpperCase(AVocabularyWord)));
+	Result := GetVocabularyInternal(AVocabularyTree, AVocabularyWord, AVocabularyType);
 END;
 
 FUNCTION GetVocabularyByNumber(AVocabularyTree: TPVocabularyTree; AVocabularyValue: Longint; AVocabularyType : TVocType): TPVocabularyTree;

@@ -292,7 +292,10 @@ BEGIN
 	value: Result := '';
 	locno_: IF (ParamValue >= LTXCount) AND (ParamValue< 252) THEN Result := 'Location  ' + IntToStr(ParamValue) + ' does not exist';
 	percent: IF (ParamValue >= 100) OR (ParamValue=0) THEN Result := 'Invalid percent value, must be in the 1-99 range';
-	vocabularyVerb : Result := SemanticVocabularyCheck(VOC_VERB, ParamAsString);
+	vocabularyVerb : BEGIN
+						Result := SemanticVocabularyCheck(VOC_VERB, ParamAsString);
+						if (Result<>'') then Result := SemanticVocabularyCheck(VOC_NOUN, ParamAsString); // Only SYNONYN has a vocabularyVerb parameter, and in that case, it can also be a convertible noun. Semantically we only check if it's a noun, if it's convertible is checked elsewhere
+					END;	
 	vocabularyNoun : Result := SemanticVocabularyCheck(VOC_NOUN, ParamAsString);
 	vocabularyPrep : Result := SemanticVocabularyCheck(VOC_PREPOSITION, ParamAsString);
 	vocabularyAdjective : Result := SemanticVocabularyCheck(VOC_ADJECT, ParamAsString);

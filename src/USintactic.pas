@@ -573,6 +573,11 @@ BEGIN
 						SYNONYM_OPCODE: IF ParameterNumber=0 THEN AuxVocType := VOC_VERB ELSE AuxVocType:= VOC_NOUN;
  					 END;
   AuxVocabularyPTR := GetVocabulary(VocabularyTree, TheWord, AuxVocType);
+  IF (AuxVocabularyPTR = nil) and (Opcode=SYNONYM_OPCODE) AND (ParameterNumber=0) THEN // Special case, SYNONYM may have a noun as first parameter if noun is convertible
+  BEGIN
+    AuxVocabularyPTR := GetVocabulary(VocabularyTree, TheWord, VOC_NOUN);
+	if (AuxVocabularyPTR <> nil) AND (AuxVocabularyPTR^.Value > MAX_CONVERTIBLE_NAME)  THEN AuxVocabularyPTR:=nil; // If it's a non convertible noun, it's not valid
+  END;
   IF AuxVocabularyPTR = nil THEN Result := MAXLONGINT ELSE  Result := AuxVocabularyPTR^.Value;
 END;
 
