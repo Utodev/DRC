@@ -248,7 +248,7 @@ var $newConversions = array(16=>'à',17=>'ã',18=>'ä',19=>'â',20=>'è',21=>'ë
 
 }
 define('VERSION_HI',0);
-define('VERSION_LO',35);
+define('VERSION_LO',34);
 
 
 function summary($adventure)
@@ -1535,7 +1535,7 @@ function mmlToBeep($note, &$values, $target, $subtarget)
                      'C-'=>-1,        'D-'=>1,         'E-'=>3, 'F-'=>4,         'G-'=>6,         'A-'=>8,          'B-'=>10);
     switch ($target)
     {
-        case 'ZX': $baseLength = 195; break;
+        case 'ZX': if ($subtarget=='NEXT') $baseLength = 100; else  $baseLength = 195; break;
         case 'C64':
         case 'CP4': $baseLength = 205; break;
         case 'PC':  
