@@ -1535,7 +1535,7 @@ function mmlToBeep($note, &$values, $target, $subtarget)
                      'C-'=>-1,        'D-'=>1,         'E-'=>3, 'F-'=>4,         'G-'=>6,         'A-'=>8,          'B-'=>10);
     switch ($target)
     {
-        case 'ZX': if ($subtarget=='NEXT') $baseLength = 100; else  $baseLength = 195; break;
+        case 'ZX': if (($subtarget=='NEXT') || ($subtarget=='UNO')) $baseLength = 100; else $baseLength = 195; break;
         case 'C64':
         case 'CP4': $baseLength = 205; break;
         case 'PC':  
