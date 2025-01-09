@@ -82,6 +82,7 @@ VAR ForceNormalMessages : Boolean;
     CheckMaluva: Boolean;
     V3CODE : Boolean;
     MAX_PARAM_ACCEPTING_INDIRECTION: Byte;
+    replace_xcondacts: Boolean;
 
 IMPLEMENTATION
 
@@ -93,4 +94,5 @@ BEGIN
        CheckMaluva := true;
        V3CODE := false; 
        MAX_PARAM_ACCEPTING_INDIRECTION := 1;
+       replace_xcondacts := false;
 END.

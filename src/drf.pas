@@ -33,6 +33,7 @@ BEGIN
   WriteLn('          -force-normal-messages: all xmessages will be treated as normal messages');
   WriteLn('          -force-x-messages: all user messages will be created as xmessages. Does not affect those written in the MTX table.');
   WriteLn('          -check-maluva-disabled: the compiler won''t check if Maluva was included when finding Maluva condacts.');
+  WriteLn('          -replace-xcondacts: replace XSAVE, XPICTURE, XLOAD and XLOAD condacts with the original ones if the target does not support them. This does not affect XMES and XMESSAGE.');
   WriteLn('          -v3: compile for DAAD version 3.');
   WriteLn();
 	WriteLn('[additional symbols] is an optional comma separated list of other symbols that would be created, so for instance if that parameter is "p3", then #ifdef "p3" will be true, and if that parameter is "p3,p4" then also #ifdef "p4" would be true.');
@@ -377,6 +378,12 @@ BEGIN
                                       V3CODE := true;
                                       MAX_PARAM_ACCEPTING_INDIRECTION := 2;
                                       if Verbose THEN WriteLn('Warning: Generating code for DAAD V3'); 
+                                    END
+                                    ELSE
+                                    IF AuxString = '-replace-xcondacts' THEN
+                                    BEGIN 
+                                      replace_xcondacts := true;
+                                      if Verbose THEN WriteLn('Warning: Replacing Xcondacts'); 
                                     END
                                     ELSE ParamError('Invalid option: ' + AuxString);
                                    END;
