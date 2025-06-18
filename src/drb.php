@@ -8,10 +8,12 @@
 
 global $adventure;
 global $xMessageOffsets;
+global $paddingSize;
 global $xMessageSize;
 global $maxFileSizeForXMessages;
 
 $xMessageSize = 0;
+$paddingSize = 0;
 
 define('FAKE_DEBUG_CONDACT_CODE',220);
 define('FAKE_USERPTR_CONDACT_CODE',256);    
@@ -420,7 +422,11 @@ function getXMessageFileSizeByTarget($target, $subtarget, $adventure)
     if ($adventure->dumpToXMB) return 64; // If generating TX messages in the XMEssages file, use 64K always as it would be hard disk based machine
     switch ($target) 
     {
-        case 'ZX'  : return 64; 
+        case 'ZX'  : switch($subtarget)
+                        {
+                            case 'PLUS3': return 16;
+                            default:  return 64;     
+                        }
         case 'MSX' : return 64; 
         case 'PCW' : return 64; 
         case 'MSX2': return 16; 
@@ -445,19 +451,29 @@ function generateXMessages($adventure, $target, $subtarget, $outputFileName)
     if (($maxFileSize==2048) && ($currentFile<10)) $currentFile = "0$currentFile";
     $outputFileName = "$currentFile.XMB";
     $fileHandler = fopen($outputFileName, "w");
+    
+    //Start the Spectrum +3 file with a gap of 512 bytes. In the latest implementation the +3 interpreter loads
+    // first 16K of the file in the RAM (page 1 in the 128K memory layout), but it will have to load other messages
+    // from disk (those beyond offset 16384 in the file. That's why this gap is added, so first real xmessage is
+    // at offset 512, and the first 512 bytes of that page can be used as buffer
+    if ($subtarget=='PLUS3') 
+    {
+        $gapSize = 512;
+        writeBlock($fileHandler, $gapSize); 
+        $currentOffset += $gapSize;   
+    }
+
     for($i=0;$i<sizeof($adventure->xmessages);$i++)
     {
         $message = $adventure->xmessages[$i];
         $messageLength = strlen($message->Text);
-        if ($messageLength + $currentOffset + 1  > $maxFileSize) // Won't fit, next File  , +1  for the end of message mark
+        // in case message won't fit in current file, change to next one. For +3, 512 bytes incluiding the message should fit (see +3 interpreter source code)
+        if (($messageLength + $currentOffset + 1  > $maxFileSize) || (($subtarget='PLUS3')&&(($currentOffset + 512  > $maxFileSize)))) 
         {
-            if ($target=="MSX2") 
-            {
-                writeBlock($fileHandler, $maxFileSize - $currentOffset);
-                $currentFile++;
-                $currentOffset = 0;
-            }
-            else 
+            // maxFileSize of the xmes files means when one file is "full" you have to close it and create the next one.
+            // But with some targets, there is only one file, which needs padding to $maxFileSize though, to be 
+            // able to load those parts in the RAM
+            if (($target!="MSX2") && ($subtarget!='PLUS3')) 
             {
                 fclose($fileHandler);
                 $currentFile++;
@@ -465,6 +481,13 @@ function generateXMessages($adventure, $target, $subtarget, $outputFileName)
                 if (($maxFileSize==2048) && ($currentFile<10)) $currentFile = "0$currentFile";
                 $outputFileName = "$currentFile.XMB";
                 $fileHandler = fopen($outputFileName, "w");
+            }
+            else 
+            {
+                writeBlock($fileHandler, $maxFileSize - $currentOffset); // Fill current 16K slot
+                $currentFile++;
+                $currentOffset = 0;   
+                $GLOBALS['paddingSize'] = $maxFileSize;
             }
         }
         $GLOBALS['xMessageOffsets'][$i] = $currentOffset + $currentFile * $maxFileSize;
@@ -479,6 +502,7 @@ function generateXMessages($adventure, $target, $subtarget, $outputFileName)
         $currentOffset++;
     }
     fclose($fileHandler);
+    if ($currentOffset>65535) Error("XMessages data exceeds 64K");
     $GLOBALS['xMessageSize'] = $maxFileSize * $currentFile + $currentOffset;
 }
 
@@ -798,7 +822,6 @@ function getCondactsHash($adventure, $condacts, $from)
 
 function checkMaluva($adventure)
 {
-    if ($adventure->subtarget=='NEXT') return true;
     $count = 0;
     foreach ($adventure->externs as $extern)
     {
@@ -844,7 +867,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->NumParams=2;
                     $condact->Param2 = 0; // Maluva function 0
                     $condact->Condact = 'EXTERN';
-                    if ((!CheckMaluva($adventure)) && ($target!='HTML') && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256'))) Error("XPICTURE condact requires Maluva Extension $target $subtarget");
+                    if ((!CheckMaluva($adventure)) && ($target!='HTML') && ($target!='MSX') && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256'))) Error("XPICTURE condact requires Maluva Extension $target $subtarget");
                 }
                 else if ($condact->Opcode == XUNDONE_OPCODE)
                 {
@@ -854,60 +877,19 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Param2 = 7; // Maluva function 7
                     $condact->Indirection1 = 0; // Also useless, but it must be set
                     $condact->Condact = 'EXTERN';
-                    if ((!CheckMaluva($adventure)) && ($target!='MSX2') && ($target!='HTML') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XUNDONE condact requires Maluva Extension');
+                    if ((!CheckMaluva($adventure)) && ($target!='HTML') && ($target!='MSX') && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')) && ($subtarget!='ESXDOS') && ($subtarget!='PLUS3') && ($subtarget!='NEXT') && ($subtarget!='UNO')) Error('XUNDONE condact requires Maluva Extension');
                 }
                 else if ($condact->Opcode == XNEXTCLS_OPCODE)
                 {
-                    $condact->Opcode = EXTERN_OPCODE;
-                    $condact->NumParams=2;
-                    $condact->Param1 = 0; // Useless but it must be set
-                    $condact->Param2 = 8; // Maluva function 8
-                    $condact->Indirection1 = 0; // Also useless, but it must be set
-                    $condact->Condact = 'EXTERN';
-                    if (!CheckMaluva($adventure)) Error('XNEXTCLS condact requires Maluva Extension');
-                    if (($target!='ZX') || ($subtarget!='NEXT'))  // If target does not support XNEXTCLS_OPCODE replace by always true condition "AT @38"
-                    {
-                        $condact->Opcode = AT_OPCODE;
-                        $condact->Condact = 'AT';
-                        $condact->Indirection1 = 1;
-                        $condact->Param1 = 38;
-                        $condact->NumPrams=1;
-                    }
+                    Error('XNEXTCLS condact is deprecated');
                 }
                 else if ($condact->Opcode == XNEXTRST_OPCODE)
                 {
-                    $condact->Opcode = EXTERN_OPCODE;
-                    $condact->NumParams=2;
-                    $condact->Param1 = 0; // Useless but it must be set
-                    $condact->Param2 = 9; // Maluva function 9
-                    $condact->Indirection1 = 0; // Also useless, but it must be set
-                    $condact->Condact = 'EXTERN';
-                    if (!CheckMaluva($adventure)) Error('XNEXTRST  condact requires Maluva Extension');
-                    if (($target!='ZX') || ($subtarget!='NEXT'))  // If target does not support XNEXTRST_OPCODE replace by always true condition "AT @38"
-                    {
-                        $condact->Opcode = AT_OPCODE;
-                        $condact->Condact = 'AT';
-                        $condact->Indirection1 = 1;
-                        $condact->Param1 = 38;
-                        $condact->NumPrams=1;
-                    }
+                    Error('XNEXTRST condact is deprecated');
                 }
                 else if ($condact->Opcode == XSPEED_OPCODE)
                 {
-                    $condact->Opcode = EXTERN_OPCODE;
-                    $condact->NumParams=2;
-                    $condact->Param2 = 10; // Maluva function 10
-                    $condact->Condact = 'EXTERN';
-                    if (!CheckMaluva($adventure)) Error('XSPEED condact requires Maluva Extension');
-                    $targetSubtarget = "${target}${subtarget}";
-                    if (($targetSubtarget!='ZXNEXT') && ($targetSubtarget!='ZXUNO'))  // If target does not support XSPEED_OPCODE replace by always true condition "AT @38"
-                    {
-                        $condact->Opcode = AT_OPCODE;
-                        $condact->Condact = 'AT';
-                        $condact->Indirection1 = 1;
-                        $condact->Param1 = 38;
-                        $condact->NumPrams=1;
-                    }
+                    Error('XSPEED condact is deprecated. ');
                 }
                 else if ($condact->Opcode == XSAVE_OPCODE)
                 {
@@ -915,7 +897,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->NumParams=2;
                     $condact->Param2 = 1; // Maluva function 1 
                     $condact->Condact = 'EXTERN';
-                    if ((!CheckMaluva($adventure)) && ($target!='HTML') && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XSAVE condact requires Maluva Extension');
+                    if ((!CheckMaluva($adventure)) && ($target!='HTML') && ($target!='MSX') && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XSAVE condact requires Maluva Extension');
                 }
                 else if ($condact->Opcode == XLOAD_OPCODE)
                 {
@@ -923,7 +905,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->NumParams=2;
                     $condact->Param2 = 2; // Maluva function 2
                     $condact->Condact = 'EXTERN';
-                    if ((!CheckMaluva($adventure)) && ($target!='HTML') && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XLOAD condact requires Maluva Extension');
+                    if ((!CheckMaluva($adventure)) && ($target!='HTML') && ($target!='MSX') && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XLOAD condact requires Maluva Extension');
                 }
                 else if ($condact->Opcode == XPART_OPCODE)
                 {
@@ -931,7 +913,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->NumParams=2;
                     $condact->Param2 = 4; // Maluva function 4
                     $condact->Condact = 'EXTERN';
-                    if ((!CheckMaluva($adventure))  && ($target!='HTML') && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XPART condact requires Maluva Extension');
+                    if ((!CheckMaluva($adventure)) && ($target!='HTML') && ($target!='MSX') && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')) && ($subtarget!='ESXDOS') && ($subtarget!='PLUS3') && ($subtarget!='NEXT') && ($subtarget!='UNO'))  Error('XPART condact requires Maluva Extension');
                 }
                 else if ($condact->Opcode == XBEEP_OPCODE)
                 {
@@ -948,7 +930,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                         $condact->Param3 = $condact->Param2; 
                         $condact->Param2 = 5; // Maluva function 5
                         $condact->Condact = 'EXTERN'; // XBEEP A B  ==> EXTERN A 5 B  (3 parameters)
-                        if ((!CheckMaluva($adventure))  && ($target!='HTML') && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XBEEP condact requires Maluva Extension');
+                        if ((!CheckMaluva($adventure))  && ($target!='HTML') && ($target!='MSX') && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XBEEP condact requires Maluva Extension');
                     }
                 }
                 else if ($condact->Opcode == BEEP_OPCODE)
@@ -969,14 +951,14 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                         $condact->Param2 = $tmp;
                     }
                     else
-                    if (($target=='MSX') || ($target=='CPC')) // Convert BEEP to XBEEP
+                    if ($target=='CPC') // Convert BEEP to XBEEP
                     {
                         $condact->Opcode = EXTERN_OPCODE;
                         $condact->NumParams=3;
                         $condact->Param3 = $condact->Param2; 
                         $condact->Param2 = 5; // Maluva function 5
                         $condact->Condact = 'EXTERN'; // XBEEP A B  ==> EXTERN A 5 B  (3 parameters)
-                        if ((!CheckMaluva($adventure)) && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XBEEP condact requires Maluva Extension');
+                        if ((!CheckMaluva($adventure)) && ($target!='MSX') && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XBEEP condact requires Maluva Extension');
                     }
                 }
                 else if ($condact->Opcode == XPLAY_OPCODE)
@@ -1535,7 +1517,7 @@ function mmlToBeep($note, &$values, $target, $subtarget)
                      'C-'=>-1,        'D-'=>1,         'E-'=>3, 'F-'=>4,         'G-'=>6,         'A-'=>8,          'B-'=>10);
     switch ($target)
     {
-        case 'ZX': if (($subtarget=='NEXT') || ($subtarget=='UNO')) $baseLength = 100; else $baseLength = 195; break;
+        case 'ZX': if (($subtarget=='NEXT') || ($subtarget=='PLUS3') || ($subtarget=='UNO')) $baseLength = 100; else $baseLength = 195; break;
         case 'C64':
         case 'CP4': $baseLength = 205; break;
         case 'PC':  
@@ -1564,14 +1546,14 @@ function mmlToBeep($note, &$values, $target, $subtarget)
             $length = intval(substr($note, $end)) / $period;
 
         $condact = new stdClass();
-        if (($target=='MSX') || ($target=='CPC')) $condact->Opcode = XBEEP_OPCODE; else $condact->Opcode = BEEP_OPCODE;
+        if ($target=='CPC') $condact->Opcode = XBEEP_OPCODE; else $condact->Opcode = BEEP_OPCODE;
         $condact->NumParams = 2;
         if ($length==0) Error('Wrong length at note ' . $note);
         $condact->Param1 = intval(round($baseLength * (120 / $values[XPLAY_TEMPO]) / $length));
         $condact->Param2 = 24 + $values[XPLAY_OCTAVE]*24 + $idx*2;
         if (($target == 'C64') || ($target == 'CP4')) $condact->Param2 -= 24; // C64/CP4 interpreter pitch it's too high otherwise
         $condact->Indirection1 = 0;
-        if (($target=='MSX') ||($target=='CPC')) $condact->Condact = 'XBEEP'; else $condact->Condact = 'BEEP';
+        if ($target=='CPC') $condact->Condact = 'XBEEP'; else $condact->Condact = 'BEEP';
     } else
     // ############ Note lenght [1-64] (1=full note, 2=half note, 3=third note, ..., default:4)
     if ($cmd=='L') {
@@ -1608,12 +1590,12 @@ function mmlToBeep($note, &$values, $target, $subtarget)
         $idx = intval(@substr($note, 1));    //Note index
 
         $condact = new stdClass();
-        if (($target=='MSX') || ($target=='CPC')) $condact->Opcode = XBEEP_OPCODE; else $condact->Opcode = BEEP_OPCODE;
+        if ($target=='CPC') $condact->Opcode = XBEEP_OPCODE; else $condact->Opcode = BEEP_OPCODE;
         $condact->NumParams = 2;
         $condact->Param1 = intval(round($baseLength * (120 / $values[XPLAY_TEMPO]) / $length));
         $condact->Param2 = 48 + $idx*2;
         $condact->Indirection1 = 0;
-        if (($target=='MSX') ||($target=='CPC')) $condact->Condact = 'XBEEP'; else $condact->Condact = 'BEEP';
+        if ($target=='CPC') $condact->Condact = 'XBEEP'; else $condact->Condact = 'BEEP';
     } else
     // ############ Octave [1-8] (default:4)
     if ($cmd=='O') {
@@ -1864,7 +1846,7 @@ for ($j=0;$j<sizeof($compressionData->tokens);$j++)
 // Dump XMessagess if avaliable
 if (sizeof($adventure->xmessages))
 {
-    if ((!CheckMaluva($adventure)) && ($target!='HTML') && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')))  Error('XMESSAGE condact requires Maluva Extension');
+    if ((!CheckMaluva($adventure)) && ($target!='HTML') && ($target!='MSX') && ($target!='MSX2') && !(($target=='PC') && ($subtarget=='VGA256')) && ($subtarget!='PLUS3') && ($subtarget!='ESXDOS') && ($subtarget!='NEXT') && ($subtarget!='UNO'))  Error('XMESSAGE condact requires Maluva Extension');
     generateXmessages($adventure, $target, $subtarget, $outputFileName);
 }
 
@@ -1884,6 +1866,26 @@ generateOTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian, $
 $objectLookupOffset = $currentAddress - 2 * sizeof($adventure->object_data);
 if ($adventure->verbose) echo "Object texts      [" . prettyFormat($objectLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+// Object names
+$objectNamesOffset = $currentAddress;
+if ($adventure->verbose) echo "Object words      [" . prettyFormat($objectNamesOffset) . "]\n";
+generateObjectNames($adventure, $currentAddress, $outputFileHandler);
+// Weight & standard Attr
+$objectWeightAndAttrOffset = $currentAddress;
+if ($adventure->verbose) "Weight & std attr [" . prettyFormat($objectWeightAndAttrOffset) . "]\n";
+generateObjectWeightAndAttr($adventure, $currentAddress, $outputFileHandler);
+addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+// Extra Attr
+$objectExtraAttrOffset = $currentAddress;
+if ($adventure->verbose) echo "Extra attr        [" . prettyFormat($objectExtraAttrOffset) . "]\n";
+generateObjectExtraAttr($adventure, $currentAddress, $outputFileHandler, $isLittleEndian);
+// InitiallyAt
+$initiallyAtOffset = $currentAddress;
+if ($adventure->verbose) echo "Initially at      [" . prettyFormat($initiallyAtOffset) . "]\n";
+generateObjectInitially($adventure, $currentAddress, $outputFileHandler);
+addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+
+addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Dump Vocabulary
 $vocabularyOffset = $currentAddress;
 if ($adventure->verbose) echo "Vocabulary        [" . prettyFormat($vocabularyOffset) . "]\n";
@@ -1893,16 +1895,19 @@ addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 if ($hasTokens) $compressedTextOffset = $currentAddress; else $compressedTextOffset = 0; // If no compression, the header should have 0x0000 in the compression pointer
 if ($adventure->verbose) echo "Tokens            [" . prettyFormat($compressedTextOffset) . "]\n";
 generateTokens($adventure , $currentAddress, $outputFileHandler, $hasTokens, $compressionData, $textSavings);
-addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
-// Messages
-generateMTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian, $target, $adventure->dumpToXMB, $XMBCurrentAddress, $XMBFileHandler);
-$messageLookupOffset = $currentAddress - 2 * sizeof($adventure->messages);
-if ($adventure->verbose) echo "Messages          [" . prettyFormat($messageLookupOffset) . "]\n";
+
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Sysmess
 generateSTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian, $target, $adventure->dumpToXMB, $XMBCurrentAddress, $XMBFileHandler);
 $sysmessLookupOffset = $currentAddress - 2 * sizeof($adventure->sysmess);
 if ($adventure->verbose) echo "Sysmess           [" . prettyFormat($sysmessLookupOffset) . "]\n";
+
+addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+// Messages
+generateMTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian, $target, $adventure->dumpToXMB, $XMBCurrentAddress, $XMBFileHandler);
+$messageLookupOffset = $currentAddress - 2 * sizeof($adventure->messages);
+if ($adventure->verbose) echo "Messages          [" . prettyFormat($messageLookupOffset) . "]\n";
+
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 
 if ($v3code)
@@ -1928,25 +1933,6 @@ $blockableConnectionsCount = $result[2];
 if ($adventure->verbose) echo "Connections       [" . prettyFormat($connectionsLookupOffset) . "]\n";
 if (($adventure->verbose) && ($v3code)) echo "Connections Init  [" . prettyFormat($blockableInitiallyOffset) . "]\n";
 
-addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
-// Object names
-$objectNamesOffset = $currentAddress;
-if ($adventure->verbose) echo "Object words      [" . prettyFormat($objectNamesOffset) . "]\n";
-generateObjectNames($adventure, $currentAddress, $outputFileHandler);
-// Weight & standard Attr
-$objectWeightAndAttrOffset = $currentAddress;
-if ($adventure->verbose) "Weight & std attr [" . prettyFormat($objectWeightAndAttrOffset) . "]\n";
-generateObjectWeightAndAttr($adventure, $currentAddress, $outputFileHandler);
-addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
-// Extra Attr
-$objectExtraAttrOffset = $currentAddress;
-if ($adventure->verbose) echo "Extra attr        [" . prettyFormat($objectExtraAttrOffset) . "]\n";
-generateObjectExtraAttr($adventure, $currentAddress, $outputFileHandler, $isLittleEndian);
-// InitiallyAt
-$initiallyAtOffset = $currentAddress;
-if ($adventure->verbose) echo "Initially at      [" . prettyFormat($initiallyAtOffset) . "]\n";
-generateObjectInitially($adventure, $currentAddress, $outputFileHandler);
-addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 
 // Dump Processes
 generateProcesses($adventure, $currentAddress, $outputFileHandler, $isLittleEndian, $target, $subtarget);
@@ -1993,9 +1979,11 @@ if ($v3code)
     // Blockable connections lookup list position
     writeWord($outputFileHandler, $blockableInitiallyOffset, $isLittleEndian);
 }
-// File length 
+// File length  at SPARE position in the DDB
 $fileSize = $currentAddress;// - $baseAddress;
-writeWord($outputFileHandler, $fileSize, $isLittleEndian);
+// If target is PLUS3, we put the Xmessage size instead of the DDB size in the filesize position, as it's needed for the +3DOS Xmessage support.
+if (($xMessageSize) && ($subtarget=='PLUS3'))  writeWord($outputFileHandler, $xMessageSize, $isLittleEndian);
+                                               else writeWord($outputFileHandler, $fileSize, $isLittleEndian);
 for($i=0;$i<13;$i++)
     writeWord($outputFileHandler, $adventure->extvec[$i],$isLittleEndian);
 fclose($outputFileHandler);
@@ -2004,13 +1992,12 @@ if ($adventure->verbose) summary($adventure);
 if ($adventure->verbose) echo "$outputFileName for $target created.\n";
 if ($currentAddress>0xFFFF) echo "Warning: DDB file goes " . ($currentAddress - 0xFFFF) . " bytes over the 65535 memory address boundary.\n";
 echo "DDB size is " . ($fileSize - $baseAddress) . " bytes.\nDatabase ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
-if ($xMessageSize) echo "XMessages size is $xMessageSize bytes in files of ". $maxFileSizeForXMessages. "K.\n";
-if (file_exists('0.XMB')) 
+if ($xMessageSize)
 {
-    $XMBSize = filesize('0.XMB');
-    echo "XMB file size is $XMBSize bytes.\n";
-    if ($XMBSize>65536) Error('Too many message texts. XMB file is bigger than 64K');
-}
+   
+    if ($paddingSize==0) echo "XMessages size is $xMessageSize bytes in files of ". $maxFileSizeForXMessages. "K.\n";
+    else echo "XMessages size is $xMessageSize bytes in files of 64K (" . round($paddingSize/1024,0) ."K padding) .\n";   
+} 
  
 if ($textSavings>0) echo "Text compression saving: $textSavings bytes.\n";
 if ($adventure->prependC64Header)
