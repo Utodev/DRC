@@ -166,16 +166,9 @@ END;
 
 FUNCTION getMaluvaFilename(): String;
 BEGIN
-  IF (target='ZX') AND (Subtarget='PLUS3') THEN Result:='MLV_P3.BIN' ELSE
-  IF (target='ZX') AND (Subtarget='NEXT') THEN Result:='MLV_NEXT.BIN' ELSE
-  IF (target='ZX') AND (Subtarget='UNO') THEN Result:='MLV_UNO.BIN' ELSE
-  IF (target='ZX') AND (Subtarget='ESXDOS') THEN Result:='MLV_ESX.BIN' ELSE
-  IF target='MSX' THEN Result:='MLV_MSX.BIN' ELSE
   IF target='C64' THEN Result:='MLV_C64.BIN' ELSE
   IF target='CP4' THEN Result:='MLV_CP4.BIN' ELSE
-  IF target='CPC' THEN Result:='MLV_CPC.BIN' ELSE
-  IF target='PCW' THEN Result:='MLV_PCW.BIN' ELSE
-  IF target='MSX2' THEN Result:= 'MSX2' ELSE  Result:='MALUVA';
+  IF target='PCW' THEN Result:='MLV_PCW.BIN';
 END;
 
 PROCEDURE ParseExtern(ExternType: String);
@@ -184,15 +177,7 @@ BEGIN
 	Scan();
 	IF CurrentTokenID <> T_STRING THEN SyntaxError('Included extern file should be in between quotes');
 	FileName := Copy(CurrentText, 2, length(CurrentText) - 2);
-	IF Filename = 'MALUVA' THEN 
-	BEGIN
-			IF (target='MSX2') and (ExternType='EXTERN') THEN
-			BEGIN
-				WriteLn('#'+ExternType+''' "' + Filename + '" skipped as target is MSX2.');		
-				Exit;
-			END;
-			FileName := getMaluvaFilename();
-	END;
+	IF Filename = 'MALUVA' THEN FileName := getMaluvaFilename();
 	IF NOT FileExists(Filename) THEN SyntaxError('Extern file "'+FileName+'" not found');
 	WriteLn('#'+ExternType+''' "' + Filename + '" processed.');
 	AddCTL_Extern(CTLExternList, FileName, ExternType); // Adds the file to binary files to be included
@@ -621,31 +606,20 @@ BEGIN
 					BEGIN
 						IF Opcode = XPICTURE_OPCODE THEN
 						BEGIN
-							IF GetSymbolValue(SymbolList, 'BIT16')<>MAXLONGINT THEN Opcode := PICTURE_OPCODE  // If 16 bit machine, no XPICTURE
-							ELSE IF GetSymbolValue(SymbolList, 'HTML')<>MAXLONGINT THEN Opcode := PICTURE_OPCODE  // If HTML, no XPICTURE
-							ELSE IF (target='PCW')  THEN Opcode := PICTURE_OPCODE // If target PCW, no XPICTURE
+						    IF (target<>'CP4') AND (target<>'C64') AND (target<>'CPC') AND (target<>'MSX') THEN SyntaxError('XPICTURE cannot be used in this target ['+target+'].')
 							ELSE MaluvaUsed := true;
 						END ELSE
 						IF Opcode = XSAVE_OPCODE THEN
 						BEGIN
-							IF GetSymbolValue(SymbolList, 'BIT16')<>MAXLONGINT THEN Opcode := SAVE_OPCODE  // If 16 bit machine, no XSAVE
-							ELSE IF GetSymbolValue(SymbolList, 'HTML')<>MAXLONGINT THEN Opcode := SAVE_OPCODE  // If HTML, no SAVE
-							ELSE IF (Target='PCW') OR (Target='CPC') OR (Target='C64') OR (Target='CP4') OR (Target='MSX')  THEN Opcode := SAVE_OPCODE // If target PCW/C64/CP4/CPC, no XSAVE
-							ELSE IF (SubTarget='NEXT') THEN Opcode := SAVE_OPCODE
-							ELSE MaluvaUsed := true;
+							SyntaxError('XSAVE has been deprecated, use SAVE instead.');
 						END ELSE
 						IF Opcode = XLOAD_OPCODE THEN
 						BEGIN
-							IF GetSymbolValue(SymbolList, 'BIT16')<>MAXLONGINT THEN Opcode := LOAD_OPCODE  // If 16 bit machine, no XLOAD
-							ELSE IF GetSymbolValue(SymbolList, 'HTML')<>MAXLONGINT THEN Opcode := LOAD_OPCODE  // If HTML, no XLOAD
-							ELSE IF (Target='PCW') OR (Target='CPC') OR (Target='C64') OR (Target='CP4') OR (Target='MSX')  THEN Opcode := LOAD_OPCODE // If target PCW/C64/CP4/CPC, no XLOAD
-							ELSE IF (SubTarget='NEXT') THEN Opcode := LOAD_OPCODE
-							ELSE MaluvaUsed := true;
+							SyntaxError('XLOAD has been deprecated, use LOAD instead.');
 						END ELSE
 						IF Opcode = XBEEP_OPCODE THEN
 						BEGIN
-							IF (Target<>'CPC') THEN Opcode := BEEP_OPCODE 
-							ELSE MaluvaUsed := true;  // Only CPC support XBEEP, the rest just use BEEP (which will do nothing in PCW, AMIGA, ST and PC, but will play in ZX, CP4 and C64)
+							SyntaxError('XBEEP has been deprecated, use BEEP instead.');
 						END;
 				 END; 		// if (replace_xcondacts)
 				END; 
