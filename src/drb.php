@@ -250,7 +250,7 @@ var $newConversions = array(16=>'à',17=>'ã',18=>'ä',19=>'â',20=>'è',21=>'ë
 
 }
 define('VERSION_HI',0);
-define('VERSION_LO',34);
+define('VERSION_LO',35);
 
 
 function summary($adventure)
@@ -833,7 +833,7 @@ function checkMaluva($adventure)
 function MaluvaEmbedded($adventure, $target, $subtarget)
 {
     // All ZX targets, jDAAD, PCDAAD, MSX2DAAD, CPC target and MSX2 target have Maluva embedded
-    if (($target=='HTML') || ($target=='MSX') || ($target=='CPC') ||  ($target=='ZX') ||  ($target=='MSX2') || ($subtarget=='VGA256')) return true;
+    if (($target=='HTML') || ($target=='MSX1') || ($target=='MSX') || ($target=='CPC') ||  ($target=='ZX') ||  ($target=='MSX2') || ($subtarget=='VGA256')) return true;
     return false;
 }
 
@@ -867,10 +867,11 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Param1 = $offset & 0xFF; // Offset LSB
                     $condact->Param3 = ($offset & 0xFF00) >> 8; // Offset MSB
                     $condact->Condact = 'EXTERN';
+                    if ((!CheckMaluva($adventure)) && !MaluvaEmbedded($adventure, $target, $subtarget)) Error("XMES condact requires Maluva Extension [$target $subtarget]");
                 }
                 else if ($condact->Opcode == XPICTURE_OPCODE)
                 {
-                    if ((!CheckMaluva($adventure)) && !MaluvaEmbedded($adventure, $target, $subtarget)) Error("XPICTURE condact requires Maluva Extension $target $subtarget");
+                    if ((!CheckMaluva($adventure)) && !MaluvaEmbedded($adventure, $target, $subtarget)) Error("XPICTURE condact requires Maluva Extension [$target $subtarget]");
                     $condact->Opcode = EXTERN_OPCODE;
                     $condact->NumParams=2;
                     $condact->Param2 = 0; // Maluva function 0
@@ -917,7 +918,6 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                 }
                 else if ($condact->Opcode == BEEP_OPCODE)
                 {
-                    
                     // Out of range values, replace BEEP with PAUSE
                     if (($condact->Param2<48) || ($condact->Param2>238)) 
                     {
@@ -926,7 +926,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                         $condact->NumParams = 1;
                     }
                     else
-                    if ($target=='ZX')  // Zx Spectrum interpreter expects BEEP parameters in opposite order
+                    if (($target=='ZX') || ($target=='CP4')) // Zx Spectrum interpreter expects BEEP parameters in opposite order
                     {
                         $tmp = $condact->Param1;
                         $condact->Param1 = $condact->Param2;
@@ -954,6 +954,14 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     {
                         array_splice($entry->condacts, $condactID, 1, $xplay);
                         $condactID --; // As the current condact has been replaced with a sequentia of BEEPs, we move the pointer one step back to make sure the changes made for BEEP in ZX Spectrum applies
+                    }
+                    else // If nothing in the XPLAY chain, or invalid target, replace the XPLAY with "AT @38", which is always true
+                    {
+                        $condact->Opcode = AT_OPCODE;
+                        $condact->Condact = 'AT';
+                        $condact->NumParams = 1;
+                        $condact->Param1 = 38;
+                        $condact->Indirection1 = 1;
                     }
                 }
                 else if ($condact->Opcode == XDATA_OPCODE)
@@ -1470,9 +1478,6 @@ function dataToLet($flagno, $value)
 
 function mmlToBeep($note, &$values, $target, $subtarget)
 {
-    // These targets don't support BEEP condact
-    if (($target=='ST') || ($target=='AMIGA') || ($target=='PCW') || ($target=='PCW') || (($target=='PC') && ($subtarget!='VGA256'))) return NULL;
-
     $condact = NULL;
     $noteIdx = array('C'=>0, 'C#'=>1, 'D'=>2, 'D#'=>3, 'E'=>4,  'F'=>5, 'F#'=>6, 'G'=>7, 'G#'=>8, 'A'=>9, 'A#'=>10, 'B'=>11,
                      'C+'=>1,         'D+'=>3,         'E+'=>5, 'F+'=>6,         'G+'=>8,         'A+'=>10,         'B+'=>12,
@@ -1480,10 +1485,11 @@ function mmlToBeep($note, &$values, $target, $subtarget)
     switch ($target)
     {
         case 'ZX': if (($subtarget=='NEXT') || ($subtarget=='PLUS3') || ($subtarget=='UNO')) $baseLength = 100; else $baseLength = 195; break;
-        case 'C64':
-        case 'CP4': $baseLength = 205; break;
-        case 'PC':  
-        case 'HTML':  
+        case 'C64':$baseLength = 120; break;
+        case 'CP4': $baseLength = 240; break;
+        case 'PC': if ($subtarget=='VGA256') $baseLength = 110; else $baseLength = 200; break;
+        case 'HTML': 
+        case 'CPC': $baseLength = 300; break;
 	    case 'MSX': 
 	    case 'MSX2': $baseLength = 200; break;
         default: $baseLength = 200; // Full note (1 sec)
@@ -1513,7 +1519,8 @@ function mmlToBeep($note, &$values, $target, $subtarget)
         if ($length==0) Error('Wrong length at note ' . $note);
         $condact->Param1 = intval(round($baseLength * (120 / $values[XPLAY_TEMPO]) / $length));
         $condact->Param2 = 24 + $values[XPLAY_OCTAVE]*24 + $idx*2;
-        if (($target == 'C64') || ($target == 'CP4')) $condact->Param2 -= 24; // C64/CP4 interpreter pitch it's too high otherwise
+        if (($target == 'C64') || ($target == 'CP4')  ) $condact->Param2 += 24; // C64/CP4 interpreter pitch it's too low otherwise
+        if ($target == 'CPC') $condact->Param2 += 18; // C64/CP4 interpreter pitch it's too low otherwise
         $condact->Indirection1 = 0;
         $condact->Condact = 'BEEP';
     } else
@@ -1609,6 +1616,9 @@ if (($target=='MSX2') || ($target=='PC') || ($target=='ZX'))
     $nextParam++;
     if (!isValidSubtarget($target, $subtarget)) Error("Invalid subtarget '$subtarget'");
 }
+echo "Target: $target";
+if ($subtarget!='') echo " ($subtarget)";
+echo "\n";
 $language = strtoupper($argv[$nextParam]); $nextParam++;
 if (($language!='ES') && ($language!='EN') && ($language!='DE') && ($language!='PT') && ($language!='FR')) Error('Invalid target language');
 $inputFileName = $argv[$nextParam]; $nextParam++;
