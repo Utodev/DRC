@@ -21,7 +21,7 @@ BEGIN
 	WriteLn('[subtarget] is an parameter only required when the target is ZX, MSX2 or PC. Will define the internal variable COLS, which can later be used in DAAD processes.');
   Writeln('For MSX2 values are a compound value of video mode (from mode 5 to 12, except 9 and 11) and the with of the charset im pixels, which can be 6 or 8. Example: 5_8, 10_8, 12_6, 7_6, etc.');
   WriteLn('For PC values can be VGA256, VGA, EGA, CGA or TEXT.');
-  WriteLn('For ZX the values can be PLUS3, ESXDOS, UNO or NEXT.');
+  WriteLn('For ZX the values can be 48K, PLUS3, ESXDOS, UNO or NEXT.');
   WriteLn('Please notice subtarget for ZX is only relevant if you use Maluva, if you don''t use it or you don''t know what it is, choose any of the targets, i.e. plus3');
   WriteLn();
 	WriteLn('[output.json] is optional file name for output json file, if missing, '+AppName+' will just use same name of input file, but with .json extension.');
@@ -298,7 +298,7 @@ FUNCTION isValidSubTarget(Target, Subtarget: AnsiString): Boolean;
 BEGIN
  if Target='MSX2' THEN  Result :=  (Subtarget = '5_6') OR (Subtarget = '5_8') OR  (Subtarget = '6_6') OR  (Subtarget = '6_8') OR  (Subtarget = '7_6') OR  (Subtarget = '7_8') OR  (Subtarget = '8_6') OR (Subtarget = '8_8')  OR (Subtarget = '10_6') OR  (Subtarget = '10_8') OR (Subtarget = '12_6') OR (Subtarget = '12_8');;
  if Target='PC'   THEN Result := (Subtarget = 'VGA256') OR (Subtarget = 'VGA') OR (Subtarget = 'EGA') OR  (Subtarget = 'CGA') OR  (Subtarget = 'TEXT');
- if Target='ZX' THEN Result :=  (Subtarget = 'PLUS3') OR (Subtarget = 'ESXDOS') OR  (Subtarget = 'NEXT') OR  (Subtarget = 'UNO');
+ if Target='ZX' THEN Result :=  (Subtarget = 'PLUS3') OR (Subtarget = 'ESXDOS') OR  (Subtarget = 'NEXT') OR  (Subtarget = 'UNO') OR (Subtarget = '48K');
 END;
 
 

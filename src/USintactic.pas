@@ -636,7 +636,7 @@ BEGIN
 					  Scan();
 					END;
 			
-					IF (CurrentTokenID = T_STRING) AND ((Opcode in [MESSAGE_OPCODE,MES_OPCODE, SYSMESS_OPCODE, XMES_OPCODE, XMESSAGE_OPCODE, XPLAY_OPCODE])  OR (Opcode = TOGGLECON_OPCODE)) THEN  
+					IF (CurrentTokenID = T_STRING) AND ((Opcode in [MESSAGE_OPCODE,MES_OPCODE, SYSMESS_OPCODE, XMES_OPCODE, XMESSAGE_OPCODE, XPLAY_OPCODE, XDATA_OPCODE])  OR (Opcode = TOGGLECON_OPCODE)) THEN  
 					BEGIN
 						SemanticExempt := true;
 						CurrentText := Copy(CurrentText, 2, Length(CurrentText)-2);
@@ -663,8 +663,8 @@ BEGIN
 							  XMES_OPCODE : Opcode := MES_OPCODE;
 							  XMESSAGE_OPCODE :Opcode := MESSAGE_OPCODE;
 						 END;
-						 IF (Opcode in  [XPLAY_OPCODE, XDATA_OPCODE]) THEN 
-						  BEGIN					  
+						 IF (Opcode = XPLAY_OPCODE) or (Opcode = XDATA_OPCODE) THEN 
+						  BEGIN		
 						  	CurrentIntVal := insertMessageFromProcessIntoSpecificList(OtherTX, CurrentText); // Signal with +512 so DRB knows it's a "other string" index and not a proper value.
 							MaXMESs := MAXLONGINT;
 						  END
