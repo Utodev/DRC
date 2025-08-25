@@ -902,11 +902,11 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                 }
                 else if ($condact->Opcode == XSAVE_OPCODE)
                 {
-                    Error('XSPEED condact has been deprecated.');
+                    Error('XSAVE condact has been deprecated.');
                 }
                 else if ($condact->Opcode == XLOAD_OPCODE)
                 {
-                    Error('XSPEED condact has been deprecated.');
+                    Error('XLOAD condact has been deprecated.');
                 }
                 else if ($condact->Opcode == XPART_OPCODE)
                 {
