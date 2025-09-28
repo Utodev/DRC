@@ -1008,9 +1008,8 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->NumParams=2;
                     $condact->Param2 = 6; // Maluva function 6.
                     $condact->Condact = 'EXTERN'; // XSPLITSCR X  ==> EXTERN X 6 
-                    $targetSubtarget ="${target}${subtarget}";
-                    if ((!CheckMaluva($adventure)) && ($target=='C64')) Error('XSPLITSCR condact requires Maluva extension');               
-                    if  (($target!='CPC')  && ($target!='C64')) Error('XSPLITSCR is not supported by target [ '.$target.' ]');
+                    $targetSubtarget ="${target}${subtarget}";                    
+                    if (($target!='CPC')  && ($target!='C64')) Error('XSPLITSCR is not supported by target [ '.$target.' ]');
                 }
             }
         }
