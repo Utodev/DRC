@@ -468,7 +468,7 @@ function generateXMessages($adventure, $target, $subtarget, $outputFileName)
         $message = $adventure->xmessages[$i];
         $messageLength = strlen($message->Text);
         // in case message won't fit in current file, change to next one. For +3, 512 bytes incluiding the message should fit (see +3 interpreter source code)
-        if (($messageLength + $currentOffset + 1  > $maxFileSize) || (($subtarget='PLUS3')&&(($currentOffset + 512  > $maxFileSize)))) 
+        if (($messageLength + $currentOffset + 1  > $maxFileSize) || (($subtarget=='PLUS3')&&(($currentOffset + 512  > $maxFileSize)))) 
         {
             // maxFileSize of the xmes files means when one file is "full" you have to close it and create the next one.
             // But with some targets, there is only one file, which needs padding to $maxFileSize though, to be 
@@ -833,7 +833,7 @@ function checkMaluva($adventure)
 function MaluvaEmbedded($adventure, $target, $subtarget)
 {
     // All ZX targets, jDAAD, PCDAAD, MSX2DAAD, CPC target and MSX2 target have Maluva embedded
-    if (($target=='HTML') || ($target=='MSX1') || ($target=='MSX') || ($target=='CPC') ||  ($target=='ZX') ||  ($target=='MSX2') || ($subtarget=='VGA256')) return true;
+    if (($target=='C64') || ($target=='HTML') || ($target=='MSX1') || ($target=='MSX') || ($target=='CPC') ||  ($target=='ZX') ||  ($target=='MSX2') || ($subtarget=='VGA256')) return true;
     return false;
 }
 
