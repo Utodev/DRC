@@ -89,12 +89,14 @@ CONST version_hi = 0;
 
 var Buffer: TBigBuffer;
     TAPFilename, DDBFilename, SDGFilename, INTFilename, SCRFilename, LoaderFilename, CHRFilename, BINIDXFilename : string;
-    FileTAP, FileDDB, FileSDG, FileSCR, FileINT, FileLoader, FileCHR, FileBINIDX : file;
+    FileTAP, FileDDB, FileSDG, FileSCR, FileINT, FileLoader, FileCHR, FileBINIDX, FilePage : file;
     SDGAddress : word;
+    PageFileAddress : word;
     GameName : ShortString;
     AuxStr : ShortString;
     i : integer;
     FileSizeBINIDX : word;
+    PageString : ShortString;
 
 procedure SYNTAX();
 begin
@@ -310,11 +312,35 @@ begin
     END;
     SaveBlockFromBuffer(Gamename, FileTAP, Buffer, 0, filesize(FileSDG) + FileSizeBINIDX, SDGAddress);
 
+    IF (BINIDXFilename <>'') then
+    begin
+      //Add the 128K pages
+      PageString := '';
+      while (buffer[FileSizeBINIDX - 1] <> 255) do
+      begin
+        PageString := PageString + CHR(buffer[FileSizeBINIDX - 1]);
+        FileSizeBINIDX := FileSizeBINIDX - 1;
+      end;
+      // at this point we have a string like 134 o 34167, etc.
+      for i := 1 to length(PageString) do
+        begin
+         Assign(FilePage, 'PAGE' + PageString[i] + '.BIN');
+         Reset(FilePage, 1);
+         Blockread(FilePage, Buffer, filesize(FilePage));
+         GameName[10] := PageString[i];
+         if (PageString[i] = '1') then PageFileAddress:= $C000 + 6912 + 512 else PageFileAddress := $C000; // Page 1 has the buffer RAMSAVE and PICTURE buffers at the beginning, so we load the file at $C000 + 6912 + 512
+         SaveBlockFromBuffer(GameName, FileTAP, Buffer, 0, filesize(FilePage), PageFileAddress);
+         Close(FilePage);
+        end; 
+    end;  
 
     Close(FileTap);
     Close(FileINT);
     Close(FileDDB);
     Close(FileSDG);
+
+
+
     IF CHRFilename<>'' THEN Close(FileCHR);
     IF BINIDXFilename<>'' THEN Close(FileBINIDX);
     IF (SDGFilename=SDGTMP) then Erase(FileSDG);
