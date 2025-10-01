@@ -85,22 +85,23 @@ CONST EmptyGraphics : array[0..2088] of byte =
 228, 247, 228, 255, 255, 255, 1, 0, 0);
 
 CONST version_hi = 0;
-      version_lo = 5;
+      version_lo = 6;
 
 var Buffer: TBigBuffer;
-    TAPFilename, DDBFilename, SDGFilename, INTFilename, SCRFilename, LoaderFilename, CHRFilename : string;
-    FileTAP, FileDDB, FileSDG, FileSCR, FileINT, FileLoader, FileCHR : file;
+    TAPFilename, DDBFilename, SDGFilename, INTFilename, SCRFilename, LoaderFilename, CHRFilename, BINIDXFilename : string;
+    FileTAP, FileDDB, FileSDG, FileSCR, FileINT, FileLoader, FileCHR, FileBINIDX : file;
     SDGAddress : word;
     GameName : ShortString;
     AuxStr : ShortString;
     i : integer;
+    FileSizeBINIDX : word;
 
 procedure SYNTAX();
 begin
     WriteLn('DAADMAKER ' , version_hi, '.', version_lo);
     Writeln('Creates ZX Spectrum TAP files from DAAD DDB file and database');
     Writeln('Syntax:');
-    WriteLn('daadmaker <TAP file> <INT file> <DDB file> [SDG file] [SCR file] [CHR file] [loader file]');
+    WriteLn('daadmaker <TAP file> <INT file> <DDB file> [SDG file] [SCR file] [CHR file] [loader file] [BIN Indexfile]');
     WriteLn();
     WriteLn('<TAP file> : output TAP file');
     WriteLn('<INT file> : ZX Spectrum interpreter file');
@@ -109,8 +110,9 @@ begin
     WriteLn('[SCR file] : input SCR file (optional)');
     WriteLn('[CHR file] : input CHR file (optional)');
     WriteLn('[loader file] : alternative basic loader, already in tap format (optional)');
+    WriteLn('[BIN Index file] : input BIN file (optional)');
     WriteLn();
-    WriteLn('Please notice parameters after third one will be identified by file extension, depending on if it''s SDG, SCR, CHR or TAP. A CHR file is a 2048 bytes file with the definition of a charset (o bytes per character, 256 characters).');
+    WriteLn('Please notice parameters after third one will be identified by file extension, depending on if it''s SDG, SCR, CHR, BIN or TAP. A CHR file is a 2048 bytes file with the definition of a charset (o bytes per character, 256 characters).A BIn IDX file is a file that will be preppended to the SDG file and loaded just below with bytes in inverse order. ');
     halt(1);
 end;
 
@@ -215,6 +217,7 @@ begin
     SCRFilename := '';
     LoaderFilename := '';
     CHRFilename := '';
+    BINIDXFilename := '';
     for i := 4 to ParamCount() do
     begin
       AuxStr := ParamStr(i);
@@ -222,6 +225,7 @@ begin
       if UpperCase(ExtractFileExt(AuxStr)) = '.SCR' then SCRFilename := AuxStr else 
       if UpperCase(ExtractFileExt(AuxStr)) = '.TAP' then LoaderFilename := AuxStr else 
       if UpperCase(ExtractFileExt(AuxStr)) = '.CHR' then CHRFilename := AuxStr else 
+      if UpperCase(ExtractFileExt(AuxStr)) = '.BIN' then BINIDXFilename := AuxStr else
       if UpperCase(ExtractFileExt(AuxStr)) = '.SDG' then SDGFilename := AuxStr else Error('Invalid extension '+UpperCase(ExtractFileExt(AuxStr))+', must be either SCR, TAP or SDG');
     end;
 
@@ -250,6 +254,13 @@ begin
         Assign(FileCHR, CHRFilename);
         Reset(FileCHR, 1);
     END;
+    IF BINIDXFilename<>'' THEN
+    BEGIN
+        Assign(FileBINIDX, BINIDXFilename);
+        Reset(FileBINIDX, 1);
+        FileSizeBINIDX := filesize(FileBINIDX);
+    END
+    else FileSizeBINIDX := 0;
     
     // Export the basic loader. There are three options: custom one, loader without SCREEN$ and loader with SCREEN$
     IF LoaderFilename<>''then  // Custom loader
@@ -283,17 +294,21 @@ begin
     GameName[10] := 'D';
     SaveBlockFromFile(GameName,FileTAP, FileDDB, $8400);
     // Save the SDG
-    SDGAddress := $FFFF - filesize(FileSDG) +1;
+    SDGAddress := $FFFF - filesize(FileSDG) - FileSizeBINIDX +1;
     if (filesize(fileDDB)+ $8400 > SDGAddress) then Error('DDB + SDG exceed RAM size');
     GameName[10] := 'G';
-    Blockread(FileSDG, Buffer, filesize(FileSDG));
+    if (FileSizeBINIDX>0) then
+    begin
+        Blockread(FileBINIDX, Buffer, FileSizeBINIDX);
+    end;    
+    Blockread(FileSDG, Buffer[filesize(FileBINIDX)], filesize(FileSDG));
     IF CHRFilename<>'' THEN 
     BEGIN
       IF (FileSize(FileCHR)<>2048) AND (FileSize(FileCHR)<>2048+128) THEN Error('Invalid CHR file. Must be 2048 bytes long.');
       IF (FileSize(FileCHR)=2048+128) THEN Seek(FileCHR, 128);
-      Blockread(FileCHR,Buffer[FileSize(FileSDG)-2076], 2048);
+      Blockread(FileCHR,Buffer[FileSize(FileSDG)+  FileSizeBINIDX - 2076], 2048);
     END;
-    SaveBlockFromBuffer(Gamename, FileTAP, Buffer, 0, filesize(FileSDG), SDGAddress);
+    SaveBlockFromBuffer(Gamename, FileTAP, Buffer, 0, filesize(FileSDG) + FileSizeBINIDX, SDGAddress);
 
 
     Close(FileTap);
@@ -301,6 +316,7 @@ begin
     Close(FileDDB);
     Close(FileSDG);
     IF CHRFilename<>'' THEN Close(FileCHR);
+    IF BINIDXFilename<>'' THEN Close(FileBINIDX);
     IF (SDGFilename=SDGTMP) then Erase(FileSDG);
     WriteLn('File ', TAPFilename, ' created.');
 end.
