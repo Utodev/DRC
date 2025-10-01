@@ -130,27 +130,30 @@ begin
 end;
 
 
-procedure SaveBlockFromBuffer(Blockname: ShortString; var Foutput: file; var buffer: TBigBuffer; Offset: Word; size: word; Address: word);
+procedure SaveBlockFromBuffer(Blockname: ShortString; var Foutput: file; var buffer: TBigBuffer; Offset: Word; size: word; Address: word; Headerless: boolean);
 var header: TTapHeader;
     blockLength : word;
     i : word;
     checksum : byte;
     aByte : byte;
 begin
-   // Save the header
-    BlockLength:=19;
-    Blockwrite(Foutput, BlockLength,2);
-    header.BlockType := 0; // it's a header
-    header.BlockContent := 3; // it's CODE block
-    for i := 1 to 10 do header.filename[i] := Blockname[i];
-    header.LengthOfDataBlock := size;
-    header.Parameter1 := Address; // Load address
-    header.Parameter2 := 32768; // All code blocks have this as Param2
-    //Calculate the checksum of header
-    checksum := 0;
-    for i:= 0 to 17 do checksum := checksum XOR (TTapHeaderRAW(header))[i];
-    header.checksum := checksum;
-    BlockWrite(Foutput, header, 19);
+  if (not Headerless) then
+  begin
+    // Save the header
+        BlockLength:=19;
+        Blockwrite(Foutput, BlockLength,2);
+        header.BlockType := 0; // it's a header
+        header.BlockContent := 3; // it's CODE block
+        for i := 1 to 10 do header.filename[i] := Blockname[i];
+        header.LengthOfDataBlock := size;
+        header.Parameter1 := Address; // Load address
+        header.Parameter2 := 32768; // All code blocks have this as Param2
+        //Calculate the checksum of header
+        checksum := 0;
+        for i:= 0 to 17 do checksum := checksum XOR (TTapHeaderRAW(header))[i];
+        header.checksum := checksum;
+        BlockWrite(Foutput, header, 19);
+    end;    
     // Save the data
     BlockLength := Size+2;
     Blockwrite(Foutput, BlockLength,2);
@@ -184,7 +187,7 @@ begin
     Length := Length - 128;
  end;
  // Save block
- SaveBlockFromBuffer(Blockname,Foutput, Buffer, Start, Length, Address);
+ SaveBlockFromBuffer(Blockname,Foutput, Buffer, Start, Length, Address,false);
 end;
 
 procedure SaveLoader(var Foutput: file; GameName : String; withScreen: boolean );
@@ -310,15 +313,16 @@ begin
       IF (FileSize(FileCHR)=2048+128) THEN Seek(FileCHR, 128);
       Blockread(FileCHR,Buffer[FileSize(FileSDG)+  FileSizeBINIDX - 2076], 2048);
     END;
-    SaveBlockFromBuffer(Gamename, FileTAP, Buffer, 0, filesize(FileSDG) + FileSizeBINIDX, SDGAddress);
+    SaveBlockFromBuffer(Gamename, FileTAP, Buffer, 0, filesize(FileSDG) + FileSizeBINIDX, SDGAddress,false);
 
     IF (BINIDXFilename <>'') then
     begin
       //Add the 128K pages
       PageString := '';
-      while (buffer[FileSizeBINIDX - 1] <> 255) do
+      FileSizeBINIDX := filesize(FileBINIDX) -1 ;
+      while (buffer[FileSizeBINIDX] <> 255) do
       begin
-        PageString := PageString + CHR(buffer[FileSizeBINIDX - 1]);
+        PageString := PageString + CHR(buffer[FileSizeBINIDX]+48);
         FileSizeBINIDX := FileSizeBINIDX - 1;
       end;
       // at this point we have a string like 134 o 34167, etc.
@@ -329,7 +333,7 @@ begin
          Blockread(FilePage, Buffer, filesize(FilePage));
          GameName[10] := PageString[i];
          if (PageString[i] = '1') then PageFileAddress:= $C000 + 6912 + 512 else PageFileAddress := $C000; // Page 1 has the buffer RAMSAVE and PICTURE buffers at the beginning, so we load the file at $C000 + 6912 + 512
-         SaveBlockFromBuffer(GameName, FileTAP, Buffer, 0, filesize(FilePage), PageFileAddress);
+         SaveBlockFromBuffer(GameName, FileTAP, Buffer, 0, filesize(FilePage), PageFileAddress, true);
          Close(FilePage);
         end; 
     end;  
