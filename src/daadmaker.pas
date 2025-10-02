@@ -248,30 +248,36 @@ begin
     
     Assign(FileTAP, TAPFilename);
     Rewrite(FileTAP,1);
+    if (ioresult<>0) then Error('Error creating TAP file ' + TAPFilename);
     Assign(FileDDB, DDBFilename);
     Reset(FileDDB,1);
+    if (ioresult<>0) then Error('Error opening DDB file ' + DDBFilename);
     Assign(FileSDG, SDGFilename);
     Reset(FileSDG,1);
+    if (ioresult<>0) then Error('Error opening SDG file ' + SDGFilename);
     Assign(FileINT, INTFilename);
     Reset(FileINT, 1);
+    if (ioresult<>0) then Error('Error opening INT file ' + INTFilename);
     IF CHRFilename<>'' THEN
     BEGIN
         Assign(FileCHR, CHRFilename);
         Reset(FileCHR, 1);
+        if (ioresult<>0) then Error('Error opening CHR file ' + CHRFilename);
     END;
     IF BINIDXFilename<>'' THEN
     BEGIN
         Assign(FileBINIDX, BINIDXFilename);
         Reset(FileBINIDX, 1);
+        if (ioresult<>0) then Error('Error opening BIN Index file ' + BINIDXFilename);
         FileSizeBINIDX := filesize(FileBINIDX);
     END
     else FileSizeBINIDX := 0;
-    
     // Export the basic loader. There are three options: custom one, loader without SCREEN$ and loader with SCREEN$
     IF LoaderFilename<>''then  // Custom loader
     begin
         Assign(FileLoader, LoaderFilename);  
         Reset(FileLoader, 1);
+        if (ioresult<>0) then Error('Error opening loader file ' + LoaderFilename);
         Blockread(FileLoader, Buffer, filesize(FileLoader));
         BlockWrite(FileTap, Buffer, filesize(FileLoader));
         Close(FileLoader);
@@ -300,13 +306,13 @@ begin
     SaveBlockFromFile(GameName,FileTAP, FileDDB, $8400);
     // Save the SDG
     SDGAddress := $FFFF - filesize(FileSDG) - FileSizeBINIDX +1;
-    if (filesize(fileDDB)+ $8400 > SDGAddress) then Error('DDB + SDG exceed RAM size');
+    if (filesize(fileDDB)+ $8400 > SDGAddress) then Error('DDB + SDG exceeds RAM size');
     GameName[10] := 'G';
     if (FileSizeBINIDX>0) then
     begin
         Blockread(FileBINIDX, Buffer, FileSizeBINIDX);
     end;    
-    Blockread(FileSDG, Buffer[filesize(FileBINIDX)], filesize(FileSDG));
+    Blockread(FileSDG, Buffer[FileSizeBINIDX], filesize(FileSDG));
     IF CHRFilename<>'' THEN 
     BEGIN
       IF (FileSize(FileCHR)<>2048) AND (FileSize(FileCHR)<>2048+128) THEN Error('Invalid CHR file. Must be 2048 bytes long.');
@@ -325,11 +331,13 @@ begin
         PageString := PageString + CHR(buffer[FileSizeBINIDX]+48);
         FileSizeBINIDX := FileSizeBINIDX - 1;
       end;
+
       // at this point we have a string like 134 o 34167, etc.
       for i := 1 to length(PageString) do
         begin
          Assign(FilePage, 'PAGE' + PageString[i] + '.BIN');
          Reset(FilePage, 1);
+         if (ioresult<>0) then Error('Error opening page file PAGE' + PageString[i] + '.BIN');
          Blockread(FilePage, Buffer, filesize(FilePage));
          GameName[10] := PageString[i];
          if (PageString[i] = '1') then PageFileAddress:= $C000 + 6912 + 512 else PageFileAddress := $C000; // Page 1 has the buffer RAMSAVE and PICTURE buffers at the beginning, so we load the file at $C000 + 6912 + 512
@@ -344,9 +352,8 @@ begin
     Close(FileSDG);
 
 
-
     IF CHRFilename<>'' THEN Close(FileCHR);
-    IF BINIDXFilename<>'' THEN Close(FileBINIDX);
+
+    IF FileSizeBINIDX > 0  THEN Close(FileBINIDX);
     IF (SDGFilename=SDGTMP) then Erase(FileSDG);
-    WriteLn('File ', TAPFilename, ' created.');
 end.
