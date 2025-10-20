@@ -467,8 +467,9 @@ function generateXMessages($adventure, $target, $subtarget, $outputFileName)
     {
         $message = $adventure->xmessages[$i];
         $messageLength = strlen($message->Text);
-        // in case message won't fit in current file, change to next one. For +3, 512 bytes incluiding the message should fit (see +3 interpreter source code)
-        if (($messageLength + $currentOffset + 1  > $maxFileSize) || (($subtarget=='PLUS3')&&(($currentOffset + 512  > $maxFileSize)))) 
+        // in case message won't fit in current file, change to next one. For +3 and 128k, 512 bytes incluiding the message should fit (see +3 interpreter source code to understand why, it's related to the 512 bytes swap from upper page to lowe)
+        $shouldfit512 = (($subtarget=='PLUS3') || ($subtarget=='128K'));
+        if (($messageLength + $currentOffset + 1  > $maxFileSize) || (($shouldfit512) && (($currentOffset + 512  > $maxFileSize)))) 
         {
             // maxFileSize of the xmes files means when one file is "full" you have to close it and create the next one.
             // But with some targets, there is only one file, which needs padding to $maxFileSize though, to be 
@@ -1489,14 +1490,31 @@ function mmlToBeep($note, &$values, $target, $subtarget)
                      'C-'=>-1,        'D-'=>1,         'E-'=>3, 'F-'=>4,         'G-'=>6,         'A-'=>8,          'B-'=>10);
     switch ($target)
     {
-        case 'ZX': if (($subtarget=='NEXT') || ($subtarget=='PLUS3') || ($subtarget=='UNO')) $baseLength = 100; else $baseLength = 195; break;
+        case 'ZX':  if (($subtarget=='NEXT') || ($subtarget=='PLUS3') || ($subtarget=='UNO') || ($subtarget=='128K')) 
+                        {
+                            $baseLength = 100;
+                        }
+                        else
+                        {
+                          $baseLength = 195; 
+                        }           
+                        break;
+                   
         case 'C64':$baseLength = 120; break;
-        case 'CP4': $baseLength = 240; break;
-        case 'PC': if ($subtarget=='VGA256') $baseLength = 110; else $baseLength = 200; break;
-        case 'HTML': 
+        case 'CP4': $baseLength = 80; break;
+        case 'PC': if ($subtarget=='VGA256')
+                    {
+                        $baseLength = 110;
+                    }
+                    else
+                    {
+                        $baseLength = 200;
+                    }  
+                    break;
+        case 'HTML': $baseLength = 230; break;
         case 'CPC': $baseLength = 300; break;
 	    case 'MSX': 
-	    case 'MSX2': $baseLength = 200; break;
+	    case 'MSX2': $baseLength = 230; break;
         default: $baseLength = 200; // Full note (1 sec)
     }
     

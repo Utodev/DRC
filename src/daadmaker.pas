@@ -16,7 +16,7 @@ type TTapHeader = packed record
 
        TBigBuffer = array[0..65535] of byte;
 
-CONST SDGTMP = 'SDG.TMP';
+CONST SDGTMP = 'SDG.SDG';
 
 //This next two arrays are actually a TAP file, including a basic loader which includes or not a loading screen. It can be replaced by adding a second tap file in command line
 CONST BasicLoader : array[0..73] of byte =
@@ -335,9 +335,9 @@ begin
       // at this point we have a string like 134 o 34167, etc.
       for i := 1 to length(PageString) do
         begin
-         Assign(FilePage, 'PAGE' + PageString[i] + '.BIN');
+         Assign(FilePage, 'PAGE' + PageString[i] + '.TMP');
          Reset(FilePage, 1);
-         if (ioresult<>0) then Error('Error opening page file PAGE' + PageString[i] + '.BIN');
+         if (ioresult<>0) then Error('Error opening page file PAGE' + PageString[i] + '.TMP');
          Blockread(FilePage, Buffer, filesize(FilePage));
          GameName[10] := PageString[i];
          if (PageString[i] = '1') then PageFileAddress:= $C000 + 6912 + 512 else PageFileAddress := $C000; // Page 1 has the buffer RAMSAVE and PICTURE buffers at the beginning, so we load the file at $C000 + 6912 + 512
