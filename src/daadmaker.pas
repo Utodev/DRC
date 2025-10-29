@@ -325,7 +325,7 @@ begin
     begin
       //Add the 128K pages
       PageString := '';
-      FileSizeBINIDX := filesize(FileBINIDX) -1 ;
+      FileSizeBINIDX := filesize(FileBINIDX) -5 ;
       while (buffer[FileSizeBINIDX] <> 255) do
       begin
         PageString := PageString + CHR(buffer[FileSizeBINIDX]+48);
