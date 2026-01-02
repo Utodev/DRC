@@ -77,7 +77,7 @@ END;
 FUNCTION getPCColsBySubtarget(SubTarget:AnsiString):Byte;
 BEGIN
  IF Subtarget = 'TEXT' THEN Result := 80
- ELSE IF Subtarget = 'VGA256' THEN Result := 40
+ ELSE IF Subtarget = 'VGA256' THEN Result := 53
  ELSE Result :=53;  // Conservative
 END;
 
@@ -108,7 +108,7 @@ BEGIN
  IF Target = 'C64' THEN Result := 40 ELSE
  IF Target = 'CP4' THEN Result := 40 ELSE
  IF Target = 'CPC' THEN Result := 40 ELSE
- IF Target = 'HTML' THEN Result := 40 ELSE
+ IF Target = 'HTML' THEN Result := 53 ELSE
  IF Target = 'MSX' THEN Result := 42 ELSE
  IF Target = 'MSX2' THEN Result := getMSX2ColsBySubtarget(SubTarget) ELSE
  IF Target = 'ST' THEN Result := 53 ELSE
