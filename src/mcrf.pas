@@ -11,7 +11,7 @@ USES sysutils, strutils;
 
 
 CONST DUMMY_HEADER : array[0..127] of byte = ($00 , $47 , $49 , $4C , $42 , $45 , $52 , $54 , $53 , $42 , $49 , $4E , $00 , $00 , $00 , $00 , $00 , $00 , $02 , $00 , $00 , $40 , $08 , $00 , $45 , $1D , $79 , $24 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $45 , $1D , $00 , $E0 , $04 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00 , $00);
-CONST VERSION=03;     (* Increased from original 01 for non CP/M version *)
+CONST VERSION='3.1';     
 CONST FILEV=00;
 CONST PATHLEN=64;
 CONST IPSSIZE=128;
@@ -160,7 +160,7 @@ BEGIN
 
   IF ((DBADD-INTAT)> RealInterpreterLength) THEN
   BEGIN
-    WriteLn('Padding to db position using ',DBADD - INTAT - RealInterpreterLength,' bytes.');
+    WriteLn('Padding to DDB position using ',DBADD - INTAT - RealInterpreterLength,' bytes.');
     Buffer1Byte := 0;
     FOR c:= 1 TO DBADD - INTAT - RealInterpreterLength DO
       BlockWrite(OutputFile, Buffer1Byte, 1);
@@ -171,14 +171,14 @@ BEGIN
   TRY
   Reset(InputFile, 1);
   EXCEPT
-   on E: Exception DO Error('Text database file not found or invalid.');
+   on E: Exception DO Error('DDB file not found or invalid.');
   END; 
 
-  Write('Text database file length is ');
+  Write('DDB length is ');
   Blockread(InputFile, cpcHeader, 128); (* Get CPC header *)
   IF (FileSize(InputFile) = (ReadHeaderWord(24) + 128)  )  THEN  RealDDBLength := ReadHeaderWord(24) // has AMSDOS header
   ELSE
-  BEGIN // Get from spare
+  BEGIN // Get from ral file
     RealDDBLength := FileSize(InputFile);
     Seek(InputFile, 0);  // Rewind
   END;
@@ -199,10 +199,10 @@ BEGIN
   TRY
   Reset(InputFile, 1);
   EXCEPT
-   on E: Exception DO Error('Graphics database file not found or invalid.');
+   on E: Exception DO Error('Graphics file not found or invalid.');
   END; 
 
-  Write('Graphics database file length is ');
+  Write('Graphics database length is ');
   Blockread(InputFile, cpcHeader, 128); (* Get CPC header *)
   WriteLn(ReadHeaderWord(24), ' bytes.');
   FOR c:=1 TO ReadHeaderWord(24) DO
@@ -222,8 +222,8 @@ BEGIN
     END; 
     //Seek(OutputFile, FileSize(OutputFile)-128);
     Seek(OutputFile, CharsetOffset +48);
-    WriteLn('Loading font file.');
-    IF (fileSize(InputFile)<>2048) AND (fileSize(InputFile)<>2048+128)  THEN  Error('Invalid size of font file.');
+    WriteLn('Updating font file.');
+    IF (fileSize(InputFile)<>2048) AND (fileSize(InputFile)<>2048+128)  THEN  Error('Invalid font file size.');
     IF fileSize(InputFile)=2048+128 THEN Seek(InputFile, 128);
     FOR C:=1 TO 2048 DO
     BEGIN
@@ -233,8 +233,12 @@ BEGIN
     CloseFile(InputFile);
   END;
 
+
   GraphicsLength := ReadHeaderWord(24);
   FileLength :=  FileLength + GraphicsLength;
+
+  if (FileLength + INTAT) >= $C000 THEN
+    Error('Final file too large for CPC system. Please reduce size of DDB or graphics files.');
 
   Writeln('Creating valid CPC header block');
   Writeln('-------------------------------');
