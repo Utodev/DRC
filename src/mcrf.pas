@@ -237,8 +237,9 @@ BEGIN
   GraphicsLength := ReadHeaderWord(24);
   FileLength :=  FileLength + GraphicsLength;
 
-  if (FileLength + INTAT) >= $C000 THEN
-    Error('Final file too large for CPC system. Please reduce size of DDB or graphics files.');
+  if (FileLength + INTAT) >= $A6FC THEN  // A6FC is the variable area, after which is C000 the vram. We could write here if we didn't use the firmware, but we do.
+    Error('Final file too large for CPC system. Please reduce size of DDB or graphics files.'); 
+     
 
   Writeln('Creating valid CPC header block');
   Writeln('-------------------------------');
