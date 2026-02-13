@@ -766,6 +766,8 @@ function generateObjectWeightAndAttr($adventure, &$currentAddress, $outputFileHa
             $b = $b | 0x40;
             $locno = $object->Value;
             $text = $adventure->objects[$locno]->Text;
+            if (count($adventure->locations) <= $locno) echo "Warning: object #$locno ($text) is a container. You are supposed to reserve location #$locno to hold the objects in the container, but location #$locno does not exist.\n";
+            else
             if ($adventure->locations[$locno]->Text != '') echo "Warning: object #$locno ($text) is a container. You are supposed to reserve location #$locno to hold the objects in the container, but location #$locno has a description.\n";         
         }
         if ($object->Wearable) $b = $b | 0x80;
@@ -870,14 +872,14 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Condact = 'EXTERN';
                     if ((!CheckMaluva($adventure)) && !MaluvaEmbedded($adventure, $target, $subtarget)) Error("XMES condact requires Maluva Extension [$target $subtarget]");
                 }
-                else if ($condact->Opcode == XPICTURE_OPCODE)
+                else if ($condact->Opcode == PAUSE_OPCODE)
                 {
-                    if ((!CheckMaluva($adventure)) && !MaluvaEmbedded($adventure, $target, $subtarget)) Error("XPICTURE condact requires Maluva Extension [$target $subtarget]");
-                    $condact->Opcode = EXTERN_OPCODE;
-                    $condact->NumParams=2;
-                    $condact->Param2 = 0; // Maluva function 0
-                    $condact->Condact = 'EXTERN';
-
+                    if (!isset($condact->DurationAdjusted))
+                    {
+                        $condact->DurationAdjusted = true;
+                        $condact->Param1 = round($condact->Param1 * getDurationAdjustment($target, $subtarget));
+                        if ($condact->Param1>255) $condact->Param1 = 255; // Maximum duration is 255
+                    }
                 }
                 else if ($condact->Opcode == XUNDONE_OPCODE)
                 {
@@ -889,37 +891,17 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Condact = 'EXTERN';
                     if ((!CheckMaluva($adventure)) && !MaluvaEmbedded($adventure, $target, $subtarget)) Error('XUNDONE condact requires Maluva Extension');
                 }
-                else if ($condact->Opcode == XNEXTCLS_OPCODE)
-                {
-                    Error('XNEXTCLS condact has been deprecated.');
-                }
-                else if ($condact->Opcode == XNEXTRST_OPCODE)
-                {
-                    Error('XNEXTRST condact has been deprecated.');
-                }
-                else if ($condact->Opcode == XSPEED_OPCODE)
-                {
-                    Error('XSPEED condact has been deprecated.');
-                }
-                else if ($condact->Opcode == XSAVE_OPCODE)
-                {
-                    Error('XSAVE condact has been deprecated.');
-                }
-                else if ($condact->Opcode == XLOAD_OPCODE)
-                {
-                    Error('XLOAD condact has been deprecated.');
-                }
-                else if ($condact->Opcode == XPART_OPCODE)
-                {
-                    Error('XPART condact has been deprecated');
-                }
-                else if ($condact->Opcode == XBEEP_OPCODE)
-                {
-                    Error('XBEEP condact has been deprecated');                
-                }
                 else if ($condact->Opcode == BEEP_OPCODE)
                 {
-                    // Out of range values, replace BEEP with PAUSE
+                    // Adjust the duration depending on the target and subtarget
+                    if (!isset($condact->DurationAdjusted)) 
+                    {
+                        $condact->DurationAdjusted = true;
+                        $condact->Param1 = round($condact->Param1 * getDurationAdjustment($target, $subtarget));
+                        if ($condact->Param1>255) $condact->Param1 = 255; // Maximum duration is 255
+                    }
+
+                    // Out of range values of frequency, get BEEP replaced with PAUSE
                     if (($condact->Param2<48) || ($condact->Param2>238)) 
                     {
                         $condact->Opcode = PAUSE_OPCODE;
@@ -927,7 +909,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                         $condact->NumParams = 1;
                     }
                     else
-                    if (($target=='ZX') || ($target=='CP4')) // Zx Spectrum interpreter expects BEEP parameters in opposite order
+                    if ($target=='ZX') // Zx Spectrum interpreter expects BEEP parameters in opposite order
                     {
                         $tmp = $condact->Param1;
                         $condact->Param1 = $condact->Param2;
@@ -1011,6 +993,38 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Condact = 'EXTERN'; // XSPLITSCR X  ==> EXTERN X 6 
                     $targetSubtarget ="${target}${subtarget}";                    
                     if (($target!='CPC')  && ($target!='C64')) Error('XSPLITSCR is not supported by target [ '.$target.' ]');
+                }
+                else if ($condact->Opcode == XPICTURE_OPCODE)
+                {
+                    Error('XPICTURE condact has been deprecated.');
+                }
+                else if ($condact->Opcode == XNEXTCLS_OPCODE)
+                {
+                    Error('XNEXTCLS condact has been deprecated.');
+                }
+                else if ($condact->Opcode == XNEXTRST_OPCODE)
+                {
+                    Error('XNEXTRST condact has been deprecated.');
+                }
+                else if ($condact->Opcode == XSPEED_OPCODE)
+                {
+                    Error('XSPEED condact has been deprecated.');
+                }
+                else if ($condact->Opcode == XSAVE_OPCODE)
+                {
+                    Error('XSAVE condact has been deprecated.');
+                }
+                else if ($condact->Opcode == XLOAD_OPCODE)
+                {
+                    Error('XLOAD condact has been deprecated.');
+                }
+                else if ($condact->Opcode == XPART_OPCODE)
+                {
+                    Error('XPART condact has been deprecated');
+                }
+                else if ($condact->Opcode == XBEEP_OPCODE)
+                {
+                    Error('XBEEP condact has been deprecated');                
                 }
             }
         }
@@ -1482,15 +1496,19 @@ function dataToLet($flagno, $value)
 
 //********************************************** XPLAY *************************************************************** */
 
-function mmlToBeep($note, &$values, $target, $subtarget)
+
+define('DEFAULT_NOTE_DURAION',200);
+
+function getBaseLength($target, $subtarget)
 {
-    $condact = NULL;
-    $noteIdx = array('C'=>0, 'C#'=>1, 'D'=>2, 'D#'=>3, 'E'=>4,  'F'=>5, 'F#'=>6, 'G'=>7, 'G#'=>8, 'A'=>9, 'A#'=>10, 'B'=>11,
-                     'C+'=>1,         'D+'=>3,         'E+'=>5, 'F+'=>6,         'G+'=>8,         'A+'=>10,         'B+'=>12,
-                     'C-'=>-1,        'D-'=>1,         'E-'=>3, 'F-'=>4,         'G-'=>6,         'A-'=>8,          'B-'=>10);
-    switch ($target)
+   switch ($target)
     {
-        case 'ZX':  if (($subtarget=='NEXT') || ($subtarget=='PLUS3') || ($subtarget=='UNO') || ($subtarget=='128K')) 
+        case 'ZX':  {if (($subtarget=='NEXT') ||  ($subtarget=='UNO')) 
+                        {
+                            $baseLength = 120;
+                        }
+                        else
+                        if (($subtarget=='PLUS3')  || ($subtarget=='128K')) 
                         {
                             $baseLength = 100;
                         }
@@ -1498,8 +1516,8 @@ function mmlToBeep($note, &$values, $target, $subtarget)
                         {
                           $baseLength = 195; 
                         }           
-                        break;
-                   
+                     break;
+                    }
         case 'C64':$baseLength = 120; break;
         case 'CP4': $baseLength = 80; break;
         case 'PC': if ($subtarget=='VGA256')
@@ -1515,10 +1533,25 @@ function mmlToBeep($note, &$values, $target, $subtarget)
         case 'CPC': $baseLength = 300; break;
 	    case 'MSX': 
 	    case 'MSX2': $baseLength = 230; break;
-        default: $baseLength = 200; // Full note (1 sec)
+        default: $baseLength = DEFAULT_NOTE_DURAION; // Full note (1 sec)
     }
+    return $baseLength; // Base length in milliseconds
+}
+
+function getDurationAdjustment($target, $subtarget)
+{
+    return getBaseLength($target, $subtarget) / DEFAULT_NOTE_DURAION; 
+}
+
+function mmlToBeep($note, &$values, $target, $subtarget)
+{
+    $condact = NULL;
+    $noteIdx = array('C'=>0, 'C#'=>1, 'D'=>2, 'D#'=>3, 'E'=>4,  'F'=>5, 'F#'=>6, 'G'=>7, 'G#'=>8, 'A'=>9, 'A#'=>10, 'B'=>11,
+                     'C+'=>1,         'D+'=>3,         'E+'=>5, 'F+'=>6,         'G+'=>8,         'A+'=>10,         'B+'=>12,
+                     'C-'=>-1,        'D-'=>1,         'E-'=>3, 'F-'=>4,         'G-'=>6,         'A-'=>8,          'B-'=>10);
     
 
+    $baseLength = getBaseLength($target, $subtarget);
     $cmd = $note[0];
     // ############ Note: [A-G][#:halftone][num:length][.:period]
     if ($cmd>='A' && $cmd<='G') {
@@ -1538,6 +1571,7 @@ function mmlToBeep($note, &$values, $target, $subtarget)
 
         $condact = new stdClass();
         $condact->Opcode = BEEP_OPCODE;
+        $condact->DurationAdjusted = true; // This beep has duration already adjusted
         $condact->NumParams = 2;
         if ($length==0) Error('Wrong length at note ' . $note);
         $condact->Param1 = intval(round($baseLength * (120 / $values[XPLAY_TEMPO]) / $length));
@@ -1565,6 +1599,7 @@ function mmlToBeep($note, &$values, $target, $subtarget)
 
         $condact = new stdClass();
         $condact->Opcode = PAUSE_OPCODE;
+        $condact->getDurationAdjustment = true; // This pause has duration already adjusted
         $condact->NumParams = 1;
         $condact->Param1 = intval(round($baseLength * (120 / $values[XPLAY_TEMPO]) / $length));
         $condact->Indirection1 = 0;
