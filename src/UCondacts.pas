@@ -203,6 +203,8 @@ FUNCTION GetCondact(Condact : String): Integer;
 VAR i : integer;
 	found : boolean;
 BEGIN
+  IF (UpperCase(Condact)='JUMP') THEN Condact := 'SKIP';
+
   IF (UpperCase(Condact)=FAKE_DEBUG_CONDACT_TEXT) THEN
 	BEGIN
 	 Result := FAKE_DEBUG_CONDACT_CODE;
