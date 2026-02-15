@@ -965,7 +965,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     {
                         $element = $dataArray[$i];
                         $var = filter_var($element, FILTER_VALIDATE_INT, array());
-                        if (!$var) Error("Non integer value in XDATA condact element #$i '$element'");
+                        if ($var===false) Error("Non integer value in XDATA condact element #$i '$element'");
                         if (($element < 0) || ($element > 255)) Error("XDATA values must be in the 0-255 range, element #$i is not ($element)");
                     }
 
@@ -2020,7 +2020,9 @@ fclose($outputFileHandler);
 if ($adventure->dumpToXMB) fclose($XMBFileHandler);
 if ($adventure->verbose) summary($adventure);
 if ($adventure->verbose) echo "$outputFileName for $target created.\n";
-if ($currentAddress>0xFFFF) echo "Warning: DDB file goes " . ($currentAddress - 0xFFFF) . " bytes over the 65535 memory address boundary.\n";
+
+if ($currentAddress>0xFFFF) Error("DDB file goes " . ($currentAddress - 0xFFFF) . " bytes over the 65535 memory address boundary.\n");
+
 echo "DDB size is " . ($fileSize - $baseAddress) . " bytes.\nDatabase ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
 if ($xMessageSize)
 {
