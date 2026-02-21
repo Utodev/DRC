@@ -125,7 +125,7 @@ END;
 
  FUNCTION targetUsesDstringsGraphics(Target:AnsiString): Boolean;
  BEGIN
-  Result := (Target='ZX') OR (Target='CPC') OR (Target='C64') OR (Target='CP4')  OR (Target='MSX');
+  Result := (Target='ZX') AND (SubTarget='48K');
  END;
 
 // Global vars
