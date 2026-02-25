@@ -1315,7 +1315,8 @@ function Syntax()
     echo ("          -d  : Forced debug mode\n");
     echo ("          -np : Forced no padding on padding platforms\n");
     echo ("          -p  : Forced padding on non padding platforms\n");
-    echo("           -x  : Generate TX sections data in the XMB file(s).\n"); 
+    echo ("          -x  : Generate TX sections data in the XMB file(s).\n"); 
+    echo ("          -s  : ask the interpreter not to apply enclitic pronoun suffixes for verbs over #240. Ignored if language is not Spanish.\n");
     echo "\n";
     echo "Examples:\n";
     echo "php drb zx es game.json\n";
@@ -1354,6 +1355,7 @@ function parseOptionalParameters($argv, $nextParam, &$adventure)
                 case "-NP" : $adventure->forcedNoPadding = true; break;
                 case "-P" : $adventure->forcedPadding = true; break;
                 case "-X" : $adventure->dumpToXMB = true; break;
+                case "-S" : $adventure->noPronominalSuffixes = true; break;
                 default: Error("$currentParam is not a valid option");
             }
         } 
@@ -1719,6 +1721,7 @@ $adventure->forcedDebugMode = false;
 $adventure->forcedNoPadding = false;
 $adventure->forcedPadding = false;
 $adventure->dumpToXMB = false;
+$adventure->noPronominalSuffixes = false;
 $outputFileName = parseOptionalParameters($argv, $nextParam, $adventure);
 if ($outputFileName=='') $outputFileName = replace_extension($inputFileName, 'DDB');
 if ($outputFileName==$inputFileName) Error('Input and output file name cannot be the same');
@@ -1796,6 +1799,8 @@ writeByte($outputFileHandler, $b);
 $b = getMachineIDByTarget($target, $subtarget);
 $b = $b << 4; // Move machine ID to high nibble
 if (($language=='ES') || ($language=='PT')) $b = $b | 1; // Set spanish language  (DE and EN keep English)
+if (($adventure->noPronominalSuffixes) && ($language=='ES')) $b = $b | 8; // Set bit 3 for locking pronouns over 240
+
 writeByte($outputFileHandler, $b);
 
 // This byte stored the null character, usually underscore, as set in /CTL section. That's why all classic  DDBs have same value: 95. For new targets (MSX2) we use that byte for subtarget information.
