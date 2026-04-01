@@ -4,7 +4,7 @@ UNIT UConstants;
 INTERFACE
 
 CONST version_hi = 0;
-	  version_lo = 38;
+	  version_lo = 40;
 
       LOC_CARRIED = 254;
       LOC_WORN = 253;       
@@ -19,8 +19,7 @@ CONST version_hi = 0;
       MAX_CONDACT_PARAMS  =3;
       MAX_V3_DIRECTION = 127;
       MAX_BLOCKABLE_CONNECTIONS = 128;
-      MAX_OBJECTS_V2 = 256;
-      MAX_OBJECTS_V3 = 120;
+      MAX_OBJECTS = 256;
             
       MAX_MESSAGES_PER_TABLE = 255;
       MAX_WEIGHT = 63;
@@ -30,7 +29,7 @@ CONST version_hi = 0;
       MAX_LABELS = 1024;
 
       NUM_CONDACTS  =128;
-      NUM_FAKE_CONDACTS = 15;
+      NUM_FAKE_CONDACTS = 16;
       NUM_PREFIX_CONDACTS = 10;
 
 

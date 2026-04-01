@@ -360,8 +360,8 @@ BEGIN
 	ParseMessageList(OTX, OTXCount, T_SECTION_LTX);
 	AddSymbol(SymbolList, 'LAST_OBJECT', OTXCount -1);
 	AddSymbol(SymbolList, 'NUM_OBJECTS', OTXCount);
-	if ((NOT V3CODE) AND (OTXCount > MAX_OBJECTS_V2)) THEN SyntaxError('Too many objects, maximum allowed is ' + IntToStr(MAX_OBJECTS_V2));
-	if ((V3CODE) AND (OTXCount > MAX_OBJECTS_V3)) THEN SyntaxError('Too many objects, maximum allowed is for DAAD v3 is ' + IntToStr(MAX_OBJECTS_V3));
+	if (OTXCount > MAX_OBJECTS) THEN SyntaxError('Too many objects, maximum allowed is ' + IntToStr(MAX_OBJECTS));
+	
 END;
 
 PROCEDURE ParseLTX();
@@ -386,7 +386,6 @@ PROCEDURE ParseLocationConnections(Fromloc : Longint);
 VAR AuxVocabularyTree: TPVocabularyTree;
 	TheWord : AnsiString;
 	Direction, ToLoc : Longint;
-	Blockable, Blocked : Boolean;
 BEGIN
 	REPEAT
 		Scan();
@@ -402,29 +401,8 @@ BEGIN
 			if (CurrentTokenID <> T_IDENTIFIER) AND (CurrentTokenID<>T_NUMBER) THEN SyntaxError('Location number expected');
 			ToLoc := GetIdentifierValue();
 			IF (ToLoc = MAXLONGINT) THEN SyntaxError('"' +CurrentText + '" is not defined');
-			Blockable := false;
-			Blocked := false;
-			if (V3CODE) THEN
-			BEGIN
-				IF Direction>MAX_V3_DIRECTION THEN SyntaxError('Invalid direction. DAAD V3 only supports the first '+IntToStr(MAX_V3_DIRECTION+1)+' verbs as directions.');
-				Scan();
-				if (CurrentTokenID = T_IDENTIFIER) THEN 
-				BEGIN
-				    if (AnsiUpperCase(CurrentText) = 'BLOCKED') THEN BEGIN 
-																	  Blockable := true;
-																	  Blocked := true;
-																	 END 
-					ELSE IF (AnsiUpperCase(CurrentText) = 'UNBLOCKED') THEN BEGIN 
-																			  Blockable := true;
-																			  Blocked := false;
-																			 END 
-					ELSE UnScan(); // If not BLOCKED or UNBLOCKED, it's a new direction or section, rewind
-				END			
-				ELSE UnScan(); // If not identifier, it's a new direction or section, rewind
-			END;	
-			IF FindConnection(Connections, FromLoc, ToLoc, Direction, Blockable, Blocked) THEN SyntaxError('Connection already defined');
-			AddConnection(Connections, FromLoc, ToLoc, Direction, Blockable, Blocked);
-			if (BlockableCount >MAX_BLOCKABLE_CONNECTIONS) THEN SyntaxError('Too many blockable connections, maximum allowed is ' + IntToStr(MAX_BLOCKABLE_CONNECTIONS));
+			IF FindConnection(Connections, FromLoc, ToLoc, Direction) THEN SyntaxError('Connection already defined');
+			AddConnection(Connections, FromLoc, ToLoc, Direction);
 		END;
 	UNTIL (CurrentTokenID=T_LIST_ENTRY) OR (CurrentTokenID = T_SECTION_OBJ);
 END;
@@ -669,12 +647,6 @@ BEGIN
 							MaXMESs := MAXLONGINT;
 						  END
 						  ELSE
-						  IF  (Opcode = TOGGLECON_OPCODE) THEN 
-						  BEGIN
-						     CurrentIntVal := getConnectionOrdinalFromString(CurrentText);
-							 IF (CurrentIntVal = MAXLONGINT) THEN SyntaxError('Invalid blockable connection: "'+CurrentText+'"');
-						  END
-           	  			  ELSE
 						  BEGIN
 							CurrentIntVal := insertMessageFromProcess(Opcode, CurrentText, ClassicMode);
 							MaXMESs :=MAX_MESSAGES_PER_TABLE;

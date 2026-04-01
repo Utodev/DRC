@@ -145,9 +145,9 @@ CONST Condacts : ARRAY[0..NUM_CONDACTS+NUM_FAKE_CONDACTS - 1] OF TCondact = (
 (NumParams:2;Condact:'COPYOF' ;Type1: objno; Type2: flagno; Type3: none; CanBeJump: false), // 119
 (NumParams:0;Condact:'dumb'  ;Type1: none; Type2: none; Type3: none; CanBeJump: false), // 120 // In V3, this is PREFIX for prefixed condacts
 (NumParams:2;Condact:'COPYOO' ;Type1: objno; Type2: objno; Type3: none; CanBeJump: false), // 121 
-(NumParams:0;Condact:'dumb'  ;Type1: none; Type2: none; Type3: none; CanBeJump: false), // 122 // In V3, this is SETP2
+(NumParams:0;Condact:'dumb'  ;Type1: none; Type2: none; Type3: none; CanBeJump: false), // 122 // In V3, this is INDIR
 (NumParams:2;Condact:'COPYFO' ;Type1: flagno; Type2: objno; Type3: none; CanBeJump: false), // 123
-(NumParams:0;Condact:'dumb'  ;Type1: none; Type2: none; Type3: none; CanBeJump: false), // 124 // In V3, this is SETP2
+(NumParams:0;Condact:'dumb'  ;Type1: none; Type2: none; Type3: none; CanBeJump: false), // 124 // In V3, this is SETAT
 (NumParams:2;Condact:'COPYFF' ;Type1: flagno; Type2: flagno; Type3: none; CanBeJump: false), // 125 
 (NumParams:2;Condact:'COPYBF' ;Type1: flagno; Type2: flagno; Type3: none; CanBeJump: false), // 126 
 (NumParams:0;Condact:'RESET' ;Type1: none; Type2: none; Type3: none; CanBeJump: false),  // 127 
@@ -167,23 +167,10 @@ CONST Condacts : ARRAY[0..NUM_CONDACTS+NUM_FAKE_CONDACTS - 1] OF TCondact = (
 (Numparams:0;Condact:'XNEXTRST';Type1: none; Type2: none; Type3: none; CanBeJump: false), //139
 (Numparams:1;Condact:'XSPEED';Type1: value; Type2: none; Type3: none; CanBeJump: false), //140
 (Numparams:1;Condact:'PENDINGSKIP';Type1: value;Type2:none; Type3: none; CanBeJump: false), //141  This one is used internally by the compiler only
-(Numparams:1;Condact:'XDATA';Type1: string_; Type2: none; Type3: none; CanBeJump: false) //142
+(Numparams:1;Condact:'XDATA';Type1: string_; Type2: none; Type3: none; CanBeJump: false), //142
+(Numparams:0;Condact:'GETKEY';Type1: none; Type2: none; Type3: none; CanBeJump: false) //143
 );
 
-CONST PrefixCondacts : ARRAY[0..NUM_PREFIX_CONDACTS-1] OF TCondact = (
-	(Numparams:2;Condact:'BSET';Type1: flagno; Type2: bitno; Type3: none; CanBeJump: false), //0  BSET flagno bitno
-	(Numparams:2;Condact:'BCLEAR';Type1: flagno; Type2: bitno; Type3: none; CanBeJump: false), //1 BCLEAR flagno bitno
-	(Numparams:2;Condact:'BTOGGLE';Type1: flagno; Type2: bitno; Type3: none; CanBeJump: false), //2 BTOGGLE flagno bitno
-	(Numparams:2;Condact:'BZERO';Type1: flagno; Type2: bitno; Type3: none; CanBeJump: false), //3 BZERO flagno bitno
-	(Numparams:2;Condact:'BNOTZERO';Type1: flagno; Type2: bitno; Type3: none; CanBeJump: false), //4 BNOTZERO flagno bitno
-	(Numparams:1;Condact:'SELECT';Type1: flagno; Type2: none; Type3: none; CanBeJump: false), //5 SELECT flagno 
-	(Numparams:2;Condact:'OPTION';Type1: value; Type2:string_; Type3: none; CanBeJump: false), //6 OPTION value "option"
-	(Numparams:0;Condact:'CHOICE';Type1: none; Type2: none; Type3: none; CanBeJump: false), //7 CHOICE 
-	(Numparams:1;Condact:'TOGGLECON';Type1: string_; Type2: none; Type3: none; CanBeJump: false), //8 TOGGLECON verb
-	(Numparams:1;Condact:'MES2';Type1: mesno2; Type2: none; Type3: none; CanBeJump: false) //9 MES2 mesno, internal condact, not documented nor usable from DSF file
-
-	 
-);
 
 (* Returns the condact index in the codacts table, or -1 if not found*)
 FUNCTION GetCondact(Condact : String): Integer;
@@ -194,6 +181,8 @@ FUNCTION GetNumParams(Opcode: Longint): Byte;
 (* Performs semantic check for parameters *)
 FUNCTION SemanticCheck(Opcode: Longint; ParamNum: Byte; ParamValue: Byte;ParamAsString: AnsiString): AnsiString;
 
+{* Changes the tables for DAAD v3 *}
+PROCEDURE ApplyV3Changes;
 
 IMPLEMENTATION	
 
@@ -221,21 +210,7 @@ BEGIN
 				found := true;
 			END;
 			Inc(i);	
-		END;
-		
-		IF (NOT FOUND) AND (V3CODE) THEN // Search for Prefixed Condacts
-		BEGIN
-			i := 0;
-			while (i < NUM_PREFIX_CONDACTS) AND (NOT found) DO
-			BEGIN
-				if (AnsiUpperCase(Condact) = AnsiUpperCase(PrefixCondacts[i].Condact)) THEN
-				BEGIN
-					Result := i + 512; // returns the condact id + 512
-					found := true;
-				END;
-				Inc(i);	
-			END;
-		END;
+		END;	
 		IF NOT FOUND THEN Result := -1;
 	END;
 END;
@@ -243,24 +218,14 @@ END;
 FUNCTION GetNumParams(Opcode: Longint): Byte;
 BEGIN
  IF Opcode = FAKE_DEBUG_CONDACT_CODE THEN Result :=0 
-   ELSE IF (((Opcode AND 512) = 512) AND V3CODE) THEN Result := PrefixCondacts[Opcode - 512].NumParams 
-												 ELSE Result := Condacts[Opcode].NumParams;
+								ELSE Result := Condacts[Opcode].NumParams;
 END;
 
 FUNCTION GetParamType(Opcode:Longint; ParamNum: Byte): TParamType;
 BEGIN
- IF (((Opcode AND 512) = 512) AND V3CODE) THEN
- BEGIN
-	if (ParamNum = 1) THEN Result := PrefixCondacts[Opcode-512].Type1
-		ELSE if (ParamNum = 2) THEN Result := PrefixCondacts[Opcode - 512].Type2
-			ELSE Result := PrefixCondacts[Opcode-512].Type3;
- END
- ELSE
- BEGIN
 	if (ParamNum = 1) THEN Result := Condacts[Opcode].Type1
 		ELSE if (ParamNum = 2) THEN Result := Condacts[Opcode].Type2
 			ELSE Result := Condacts[Opcode].Type3;
-  END;		
 END;
 
 FUNCTION SemanticVocabularyCheck(VocType: TVocType; AWord: AnsiString):AnsiString;
@@ -307,6 +272,24 @@ BEGIN
 	window :  IF ParamValue > 7  THEN Result := 'Invalid window number, must be in the 0-7 range';
 	ELSE Result := '';
  END; //case
+END;
+
+PROCEDURE ApplyV3Changes;
+BEGIN
+    Condacts[124].Numparams := 2;
+	Condacts[124].Condact := 'SETAT';
+	Condacts[124].Type1 := value;
+	Condacts[124].Type2 := value;
+	Condacts[124].Type3 := none;
+	Condacts[124].CanBeJump := false;
+
+	Condacts[122].Numparams := 1;
+	Condacts[122].Condact := 'INDIR';
+	Condacts[122].Type1 := value;
+	Condacts[122].Type2 := none;
+	Condacts[122].Type3 := none;
+	Condacts[122].CanBeJump := false;
+
 END;
 
 

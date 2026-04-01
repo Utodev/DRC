@@ -377,7 +377,8 @@ BEGIN
                                     BEGIN 
                                       V3CODE := true;
                                       MAX_PARAM_ACCEPTING_INDIRECTION := 2;
-                                      if Verbose THEN WriteLn('Warning: Generating code for DAAD V3'); 
+                                      WriteLn('Generating DAAD V3 DDB'); 
+                                      ApplyV3Changes;
                                     END
                                     ELSE
                                     IF AuxString = '-replace-xcondacts' THEN
