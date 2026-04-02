@@ -273,6 +273,11 @@ BEGIN
   AddSymbol(SymbolList, 'DELTAXMS', 6);
   AddSymbol(SymbolList, 'DELTAYMS', 7);
 
+  // DAAD VERSION
+  if (V3CODE) THEN AddSymbol(SymbolList, 'V3', 1) 
+              ELSE AddSymbol(SymbolList, 'V2', 1);
+
+
 
   // Add additionalSymbols if present
   i := 1;
