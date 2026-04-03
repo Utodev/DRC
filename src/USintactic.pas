@@ -626,7 +626,7 @@ BEGIN
 												   ELSE Opcode := XMESSAGE_OPCODE;
 						END;
 
-						IF (Opcode IN [XMES_OPCODE, XMESSAGE_OPCODE]) AND ( (GetSymbolValue(SymbolList, 'BIT16')=MAXLONGINT) OR (SubTarget='VGA256'))  AND (NOT ForceNormalMessages) THEN  
+						IF (Opcode IN [XMES_OPCODE, XMESSAGE_OPCODE]) AND (NOT ForceNormalMessages) THEN  
 						BEGIN
 							IF (length(CurrentText)>511) THEN SyntaxError('Extended messages can be only up to 511 characters long. Your message is ' + IntToStr(length(CurrentText))+ ' long.');
 							// Convert XMESSAGE into XMES with a string with #n at the end
@@ -641,6 +641,7 @@ BEGIN
 							  XMES_OPCODE : Opcode := MES_OPCODE;
 							  XMESSAGE_OPCODE :Opcode := MESSAGE_OPCODE;
 						 END;
+
 						 IF (Opcode = XPLAY_OPCODE) or (Opcode = XDATA_OPCODE) THEN 
 						  BEGIN		
 						  	CurrentIntVal := insertMessageFromProcessIntoSpecificList(OtherTX, CurrentText); // Signal with +512 so DRB knows it's a "other string" index and not a proper value.

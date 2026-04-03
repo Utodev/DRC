@@ -41,13 +41,14 @@ define('EXTERN_OPCODE', 61);
 define('BEEP_OPCODE',   64);
 define('AT_OPCODE', 0);
 define('PROCESS_OPCODE',75);
+define('INDIR_OPCODE',  122);
+
 
 define('XPLAY_OCTAVE', 0);
 define('XPLAY_VOLUME', 1);
 define('XPLAY_LENGTH', 2);
 define('XPLAY_TEMPO',  3);
 
-define('INDIR',  122);
 
 
 
@@ -430,6 +431,8 @@ function getXMessageFileSizeByTarget($target, $subtarget, $adventure)
         case 'PCW' : return 64; 
         case 'MSX2': return 16; 
         case 'HTML': return 64; 
+        case 'AMIGA': return 64;
+        case 'ST': return 64;
         case 'CPC' : return 2;
         case 'C64' : return 2;
         case 'CP4' : return 2;      
@@ -501,8 +504,17 @@ function generateXMessages($adventure, $target, $subtarget, $outputFileName)
         writeByte($fileHandler,ord("\n") ^ OFUSCATE_VALUE ); //mark of end of string
         $currentOffset++;
     }
+    // Fill the file with 512 bytes more so Amiga OPENF routine doesn't fail because of EOF
+    if ($target=='AMIGA') 
+    {
+        $gapSize = 512;
+        writeBlock($fileHandler, $gapSize); 
+        $currentOffset += $gapSize;   
+    }
+
     fclose($fileHandler);
-    if ($currentOffset>65535) Error("XMessages data exceeds 64K");
+    if (($target=='AMIGA')  && ($currentOffset>65535+512)) Error("XMessages data exceeds 64K including Amiga gap of 512 bytes");
+    if (($target!=='AMIGA') && ($currentOffset>65535)) Error("XMessages data exceeds 64K");
     $GLOBALS['xMessageSize'] = $maxFileSize * $currentFile + $currentOffset;
 }
 
@@ -797,7 +809,7 @@ function checkMaluva($adventure)
 function MaluvaEmbedded($adventure, $target, $subtarget)
 {
     // All ZX targets, jDAAD, PCDAAD, MSX2DAAD, CPC target and MSX2 target have Maluva embedded
-    if (($target=='PCW')||($target=='CP4') || ($target=='C64') || ($target=='HTML') || ($target=='MSX1') || ($target=='MSX') || ($target=='CPC') ||  ($target=='ZX') ||  ($target=='MSX2') || ($subtarget=='VGA256')) return true;
+    if (($target=='PCW')||($target=='CP4') || ($target=='C64') || ($target=='HTML') || ($target=='MSX1') || ($target=='MSX') || ($target=='CPC') ||  ($target=='ZX')  ||  ($target=='ST') ||  ($target=='AMIGA') ||  ($target=='MSX2') || ($subtarget=='VGA256')) return true;
     return false;
 }
 
