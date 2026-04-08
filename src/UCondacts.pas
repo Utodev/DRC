@@ -290,10 +290,6 @@ BEGIN
 	Condacts[122].Type3 := none;
 	Condacts[122].CanBeJump := false;
 
-	Condacts[61].Numparams := 3;
-	Condacts[61].Type3 := value;
-
-
 END;
 
 

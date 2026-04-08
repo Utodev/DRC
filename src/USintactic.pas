@@ -560,7 +560,6 @@ VAR Opcode : Longint;
 	LabelData: TLabelData;
 	LabelID : Word;
 	CurrentCondact  :Integer;
-	TempStr : AnsiString;
 	
 
 BEGIN
@@ -708,12 +707,7 @@ BEGIN
 					// if still the value is not found, check the Vocavulary again, but more openly
 					IF Value = MAXLONGINT THEN Value:= GetWordParamValue(CurrentText, 255);
 					// If still MAXLONGINT, then it should be a bad parameter
-					IF Value = MAXLONGINT THEN 
-					BEGIN
-						TempStr := 'Invalid parameter #' + IntToStr(i+1) + ': "'+CurrentText+'" for condact '+ Condacts[Opcode].Condact;
-						if (Condacts[Opcode].Condact = 'EXTERN') AND (i=2) THEN TempStr := TempStr + '. When using DAAD V3 EXTERN always has 3 parameters';
-						SyntaxError(TempStr);
-					END;
+					IF Value = MAXLONGINT THEN SyntaxError('Invalid parameter #' + IntToStr(i+1) + ': "'+CurrentText+'" for condact '+ Condacts[Opcode].Condact);
 					IF (Opcode=SKIP_OPCODE) AND (Value<0) THEN Value := 256 + Value;
 					IF (Opcode in [XMES_OPCODE, XMESSAGE_OPCODE]) THEN 
 					BEGIN
