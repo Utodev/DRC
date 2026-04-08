@@ -857,7 +857,6 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                 }
                 else if ($condact->Opcode == XUNDONE_OPCODE)
                 {
-                    if($v3code) Error('XUNDONE condact has been deprecated.');
                     $condact->Opcode = EXTERN_OPCODE;
                     $condact->NumParams=2;
                     $condact->Param1 = 0; // Useless but it must be set
@@ -974,11 +973,6 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                     $condact->Opcode = EXTERN_OPCODE;
                     $condact->NumParams=2;
                     $condact->Param2 = 6; // Maluva function 6.
-                    if ($v3code) 
-                        {
-                            $condact->NumParams=3;
-                            $condact->Param3 = 0; // Useless but it must be set as EXTERN has always 3 parameters in v3
-                        }                   
                     $condact->Condact = 'EXTERN'; // XSPLITSCR X  ==> EXTERN X 6 
                     $targetSubtarget ="${target}${subtarget}";                    
                     if (($target!='CPC')  && ($target!='C64')) Error('XSPLITSCR is not supported by target [ '.$target.' ]');
