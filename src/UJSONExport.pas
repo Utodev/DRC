@@ -264,8 +264,7 @@ BEGIN
     MessageListsArray[3]:=OTX;
     MessageListsArray[4]:=XTX;
     MessageListsArray[5]:=OtherTX;
-    MessageListsArray[6]:=MTX2;
-
+    
     MessageListsnames[0]:='messages';
     MessageListsnames[1]:='sysmess';
     MessageListsnames[2]:='locations';
@@ -274,7 +273,7 @@ BEGIN
     MessageListsnames[5]:='other_strings';
     MessageListsnames[6]:='messages2';
 
-    for i := 0 to 6 DO
+    for i := 0 to 5 DO
     BEGIN
         TempMessageList := MessageListsArray[i];
         WriteLn(JSON,tabs(),'"',MessageListsnames[i],'":');

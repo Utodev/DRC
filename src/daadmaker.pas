@@ -85,7 +85,7 @@ CONST EmptyGraphics : array[0..2088] of byte =
 228, 247, 228, 255, 255, 255, 1, 0, 0);
 
 CONST version_hi = 0;
-      version_lo = 6;
+      version_lo = 7;
 
 var Buffer: TBigBuffer;
     TAPFilename, DDBFilename, SDGFilename, INTFilename, SCRFilename, LoaderFilename, CHRFilename, BINIDXFilename : string;
@@ -97,13 +97,14 @@ var Buffer: TBigBuffer;
     i : integer;
     FileSizeBINIDX : word;
     PageString : ShortString;
+    Is48kIndex : boolean;
 
 procedure SYNTAX();
 begin
     WriteLn('DAADMAKER ' , version_hi, '.', version_lo);
     Writeln('Creates ZX Spectrum TAP files from DAAD DDB file and database');
     Writeln('Syntax:');
-    WriteLn('daadmaker <TAP file> <INT file> <DDB file> [SDG file] [SCR file] [CHR file] [loader file] [BIN Indexfile]');
+    WriteLn('daadmaker <TAP file> <INT file> <DDB file> [SDG file] [SCR file] [CHR file] [loader file] [BIN Indexfile] [/48]');
     WriteLn();
     WriteLn('<TAP file> : output TAP file');
     WriteLn('<INT file> : ZX Spectrum interpreter file');
@@ -113,6 +114,7 @@ begin
     WriteLn('[CHR file] : input CHR file (optional)');
     WriteLn('[loader file] : alternative basic loader, already in tap format (optional)');
     WriteLn('[BIN Index file] : input BIN file (optional)');
+    WriteLn('[/48] : flag to indicate index file is a 48K index file');
     WriteLn();
     WriteLn('Please notice parameters after third one will be identified by file extension, depending on if it''s SDG, SCR, CHR, BIN or TAP. A CHR file is a 2048 bytes file with the definition of a charset (o bytes per character, 256 characters).A BIn IDX file is a file that will be preppended to the SDG file and loaded just below with bytes in inverse order. ');
     halt(1);
@@ -223,10 +225,12 @@ begin
     LoaderFilename := '';
     CHRFilename := '';
     BINIDXFilename := '';
+    Is48KIndex := false;
     for i := 4 to ParamCount() do
     begin
       AuxStr := ParamStr(i);
-      if not FileExists(AuxStr) then Error(AuxStr + ' not found');
+      if (AuxStr = '/48') then Is48KIndex:=true else
+      if not FileExists(AuxStr) then Error(AuxStr + ' not found') else
       if UpperCase(ExtractFileExt(AuxStr)) = '.SCR' then SCRFilename := AuxStr else 
       if UpperCase(ExtractFileExt(AuxStr)) = '.TAP' then LoaderFilename := AuxStr else 
       if UpperCase(ExtractFileExt(AuxStr)) = '.CHR' then CHRFilename := AuxStr else 
@@ -324,13 +328,17 @@ begin
     IF (BINIDXFilename <>'') then
     begin
       //Add the 128K pages
-      PageString := '';
-      FileSizeBINIDX := filesize(FileBINIDX) -5 ;
-      while (buffer[FileSizeBINIDX] <> 255) do
-      begin
-        PageString := PageString + CHR(buffer[FileSizeBINIDX]+48);
-        FileSizeBINIDX := FileSizeBINIDX - 1;
-      end;
+      PageString := '';      
+      if (Is48KIndex) then PageString := '0'
+      ELSE
+      BEGIN
+        FileSizeBINIDX := filesize(FileBINIDX) -5 ;
+        while (buffer[FileSizeBINIDX] <> 255) do
+        begin
+            PageString := PageString + CHR(buffer[FileSizeBINIDX]+48);
+            FileSizeBINIDX := FileSizeBINIDX - 1;
+        end;
+       END;
 
       // at this point we have a string like 134 o 34167, etc.
       for i := 1 to length(PageString) do

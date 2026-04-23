@@ -7,7 +7,7 @@ USES UConstants;
 
 type TParamType = (none, locno, objno, flagno, sysno, mesno, procno, value, locno_, percent, 
 				  vocabularyVerb, vocabularyNoun, vocabularyPrep, vocabularyAdverb, vocabularyAdjective,
-				  skip, string_,mesno2,
+				  skip, string_,
 				  window, // 0-7
 				  bitno // 0-15
 				  );
@@ -254,7 +254,6 @@ BEGIN
 	flagno: Result := '';
 	sysno: IF ParamValue >= STXCount THEN Result := 'System message ' + IntToStr(ParamValue) + ' does not exist';
 	mesno: IF ParamValue >= MTXCount THEN Result := 'Message ' + IntToStr(ParamValue) + ' does not exist';
-	mesno2: IF ParamValue >= MTX2Count THEN Result := 'Message ' + IntToStr(ParamValue) + ' does not exist';
 	procno: Result := ''; // For the time being we don't check procno as there could be forward references
 	value: Result := '';
 	locno_: IF (ParamValue >= LTXCount) AND (ParamValue< 252) THEN Result := 'Location  ' + IntToStr(ParamValue) + ' does not exist';

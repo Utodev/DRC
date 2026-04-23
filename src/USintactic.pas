@@ -942,7 +942,6 @@ BEGIN
 	LTXCount := 0;
 	OTXCount := 0;
 	OtherTXCount := 0;
-	MTX2Count := 0;
 	Target := ATarget;
 	Subtarget := ASubtarget;
 	GlobalNestedIfdefCount := 0;
