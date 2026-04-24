@@ -42,12 +42,16 @@ define('BEEP_OPCODE',   64);
 define('AT_OPCODE', 0);
 define('PROCESS_OPCODE',75);
 define('INDIR_OPCODE',  122);
+define('XMES_FINAL_OPCODE', 120);
+define('GFX_OPCODE', 87);
+
 
 
 define('XPLAY_OCTAVE', 0);
 define('XPLAY_VOLUME', 1);
 define('XPLAY_LENGTH', 2);
 define('XPLAY_TEMPO',  3);
+
 
 
 
@@ -425,6 +429,7 @@ function getXMessageFileSizeByTarget($target, $subtarget, $adventure)
         case 'ZX'  : switch($subtarget)
                         {
                             case 'PLUS3': return 16;
+                            case '128K': return 16;
                             default:  return 64;     
                         }
         case 'MSX' : return 64; 
@@ -457,8 +462,9 @@ function generateXMessages($adventure, $target, $subtarget, $outputFileName)
     //Start the Spectrum +3 file with a gap of 512 bytes. In the latest implementation the +3 interpreter loads
     // first 16K of the file in the RAM (page 1 in the 128K memory layout), but it will have to load other messages
     // from disk (those beyond offset 16384 in the file. That's why this gap is added, so first real xmessage is
-    // at offset 512, and the first 512 bytes of that page can be used as buffer
-    if ($subtarget=='PLUS3') 
+    // at offset 512, and the first 512 bytes of that page can be used as buffer. Amiga also as on real machine
+    // sometimes first xmessage gets corrupted
+    if (($subtarget=='PLUS3')  ||($target=='AMIGA'))
     {
         $gapSize = 512;
         writeBlock($fileHandler, $gapSize); 
@@ -476,7 +482,7 @@ function generateXMessages($adventure, $target, $subtarget, $outputFileName)
             // maxFileSize of the xmes files means when one file is "full" you have to close it and create the next one.
             // But with some targets, there is only one file, which needs padding to $maxFileSize though, to be 
             // able to load those parts in the RAM
-            if (($target!="MSX2") && ($subtarget!='PLUS3')) 
+            if (($target!="MSX2") && ($subtarget!='PLUS3') && ($subtarget!='128K')) 
             {
                 fclose($fileHandler);
                 $currentFile++;
@@ -835,15 +841,31 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                 }
                 else if  ($condact->Opcode == XMES_OPCODE)  // Convert XMESS in a Maluva CALL, XMESSAGE does not actually get to drb, as drf already converts all XMESSAGE into XMESS with a \n added to the string
                 {
-                    $condact->Opcode = EXTERN_OPCODE;
-                    $messno = $condact->Param1;
-                    $offset = $GLOBALS['xMessageOffsets'][$messno];
-                    if ($offset>0xFFFF) Error('Size of xMessages exceeds the 64K limit');
-                    $condact->NumParams = 3;
-                    $condact->Param2 = 3; // Maluva's function 3
-                    $condact->Param1 = $offset & 0xFF; // Offset LSB
-                    $condact->Param3 = ($offset & 0xFF00) >> 8; // Offset MSB
-                    $condact->Condact = 'EXTERN';
+                    if ($v3code)
+                    {
+                        $condact->Opcode = XMES_FINAL_OPCODE;
+                        $messno = $condact->Param1;
+                        $offset = $GLOBALS['xMessageOffsets'][$messno];
+                        if ($offset>0xFFFF) Error('Size of xMessages exceeds the 64K limit');
+                        $condact->NumParams = 2;
+                        #echo "Debug: Converting XMES condact with message #$messno to XMES_FINAL with offset " . prettyFormat($offset) . " for target $target $subtarget\n";
+                        $condact->Param1 = $offset & 0xFF; // Offset LSB
+                        $condact->Param2 = ($offset & 0xFF00) >> 8; // Offset MSB
+                        $condact->Condact = 'XMES';
+                    }
+                    else
+                    {
+                        $condact->Opcode = EXTERN_OPCODE;
+                        $messno = $condact->Param1;
+                        $offset = $GLOBALS['xMessageOffsets'][$messno];
+                        if ($offset>0xFFFF) Error('Size of xMessages exceeds the 64K limit');
+                        $condact->NumParams = 3;
+                        #echo "Debug: Converting XMES condact with message #$messno to XMES_FINAL with offset " . prettyFormat($offset) . " for target $target $subtarget\n";
+                        $condact->Param1 = $offset & 0xFF; // Offset LSB
+                        $condact->Param3 = ($offset & 0xFF00) >> 8; // Offset MSB
+                        $condact->Param2 = 3; // Maluva function 3
+                        $condact->Condact = 'EXTERN';
+                    }
                     if ((!CheckMaluva($adventure)) && !MaluvaEmbedded($adventure, $target, $subtarget)) Error("XMES condact requires Maluva Extension [$target $subtarget]");
                 }
                 else if ($condact->Opcode == PAUSE_OPCODE)
@@ -857,6 +879,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                 }
                 else if ($condact->Opcode == XUNDONE_OPCODE)
                 {
+                    if ($v3code) Error('XUNDONE condact has been deprecated.');
                     $condact->Opcode = EXTERN_OPCODE;
                     $condact->NumParams=2;
                     $condact->Param1 = 0; // Useless but it must be set
@@ -970,11 +993,20 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                 }
                 else if ($condact->Opcode == XSPLITSCR_OPCODE)
                 {
-                    $condact->Opcode = EXTERN_OPCODE;
-                    $condact->NumParams=2;
-                    $condact->Param2 = 6; // Maluva function 6.
-                    $condact->Condact = 'EXTERN'; // XSPLITSCR X  ==> EXTERN X 6 
-                    $targetSubtarget ="${target}${subtarget}";                    
+                    if ($v3code) 
+                    {
+                        $condact->Opcode = GFX_OPCODE;
+                        $condact->NumParams=2;
+                        $condact->Param2 = 15; // GFX function 15
+                        $condact->Condact = 'GFX'; // XSPLITSCR X  ==> GFX X 15                           
+                    }
+                    else
+                    {
+                        $condact->Opcode = EXTERN_OPCODE;
+                        $condact->NumParams=2;
+                        $condact->Param2 = 6; // Maluva function 6.
+                        $condact->Condact = 'EXTERN'; // XSPLITSCR X  ==> EXTERN X 6
+                    }
                     if (($target!='CPC')  && ($target!='C64')) Error('XSPLITSCR is not supported by target [ '.$target.' ]');
                 }
                 else if ($condact->Opcode == XPICTURE_OPCODE)
