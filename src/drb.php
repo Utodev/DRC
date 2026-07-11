@@ -1893,32 +1893,51 @@ if ($adventure->dumpToXMB)
     if (!$XMBFileHandler) Error('Can\'t create output TX file'); 
 }  else $XMBFileHandler = null;      
 
+$previousAddress = $currentAddress;
 // DumpExterns
 generateExterns($adventure, $currentAddress, $outputFileHandler);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+$EXTERNSize = $currentAddress - $previousAddress;
+$previousAddress = $currentAddress;
 // Object Texts first, to make sure they are first in RAM for -x flag. Also force dump to RAM
 generateOTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian, $target, false, $XMBCurrentAddress, $XMBFileHandler);
 $objectLookupOffset = $currentAddress - 2 * sizeof($adventure->object_data);
 if ($adventure->verbose) echo "Object texts      [" . prettyFormat($objectLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+$OTXSize = $currentAddress - $previousAddress;
+$previousAddress = $currentAddress;
 // Object names
 $objectNamesOffset = $currentAddress;
 if ($adventure->verbose) echo "Object words      [" . prettyFormat($objectNamesOffset) . "]\n";
 generateObjectNames($adventure, $currentAddress, $outputFileHandler);
+$OBJSize = $currentAddress - $previousAddress;
+$previousAddress = $currentAddress;
+
 // Weight & standard Attr
 $objectWeightAndAttrOffset = $currentAddress;
 if ($adventure->verbose) "Weight & std attr [" . prettyFormat($objectWeightAndAttrOffset) . "]\n";
 generateObjectWeightAndAttr($adventure, $currentAddress, $outputFileHandler);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+$OBJWEIGHTSize = $currentAddress - $previousAddress;
+$previousAddress = $currentAddress;
+
 // Extra Attr
 $objectExtraAttrOffset = $currentAddress;
 if ($adventure->verbose) echo "Extra attr        [" . prettyFormat($objectExtraAttrOffset) . "]\n";
 generateObjectExtraAttr($adventure, $currentAddress, $outputFileHandler, $isLittleEndian);
+$OBJATTRSize = $currentAddress - $previousAddress;
+$previousAddress = $currentAddress;
+
+
 // InitiallyAt
 $initiallyAtOffset = $currentAddress;
 if ($adventure->verbose) echo "Initially at      [" . prettyFormat($initiallyAtOffset) . "]\n";
 generateObjectInitially($adventure, $currentAddress, $outputFileHandler);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+$OBJInitiallyAtSize = $currentAddress - $previousAddress;
+$previousAddress = $currentAddress;
+
+
 
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
 // Dump Vocabulary
@@ -1926,42 +1945,57 @@ $vocabularyOffset = $currentAddress;
 if ($adventure->verbose) echo "Vocabulary        [" . prettyFormat($vocabularyOffset) . "]\n";
 generateVocabulary($adventure, $currentAddress, $outputFileHandler);
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+$VOCSize = $currentAddress - $previousAddress;
+$previousAddress = $currentAddress;
+
 // Dump tokens for compression and compress text sections (if possible)
 if ($hasTokens) $compressedTextOffset = $currentAddress; else $compressedTextOffset = 0; // If no compression, the header should have 0x0000 in the compression pointer
 if ($adventure->verbose) echo "Tokens            [" . prettyFormat($compressedTextOffset) . "]\n";
 generateTokens($adventure , $currentAddress, $outputFileHandler, $hasTokens, $compressionData, $textSavings);
-
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+$TokenSize = $currentAddress - $previousAddress;
+$previousAddress = $currentAddress;
+
+
 // Sysmess
 generateSTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian, $target, $adventure->dumpToXMB, $XMBCurrentAddress, $XMBFileHandler);
 $sysmessLookupOffset = $currentAddress - 2 * sizeof($adventure->sysmess);
 if ($adventure->verbose) echo "Sysmess           [" . prettyFormat($sysmessLookupOffset) . "]\n";
-
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+$STXSize = $currentAddress - $previousAddress;
+$previousAddress = $currentAddress;
+
 // Messages
 generateMTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian, $target, $adventure->dumpToXMB, $XMBCurrentAddress, $XMBFileHandler);
 $messageLookupOffset = $currentAddress - 2 * sizeof($adventure->messages);
 if ($adventure->verbose) echo "Messages          [" . prettyFormat($messageLookupOffset) . "]\n";
-
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+$MTXSize = $currentAddress - $previousAddress;
+$previousAddress = $currentAddress;
+
 
 // Location texts
 generateLTX($adventure, $currentAddress, $outputFileHandler,  $isLittleEndian, $target, $adventure->dumpToXMB, $XMBCurrentAddress, $XMBFileHandler);
 $locationLookupOffset =  $currentAddress - 2 * sizeof($adventure->locations);
 if ($adventure->verbose) echo "Locations         [" . prettyFormat($locationLookupOffset) . "]\n";
 addPaddingIfRequired($target, $outputFileHandler, $currentAddress);
+$LTXSize = $currentAddress - $previousAddress;
+$previousAddress = $currentAddress;
+
 // Connections
 $connectionsLookupOffset = generateConnections($adventure, $target, $currentAddress, $outputFileHandler,$isLittleEndian);
-
-
-
 if ($adventure->verbose) echo "Connections       [" . prettyFormat($connectionsLookupOffset) . "]\n";
+
+$CONSize = $currentAddress - $previousAddress;
+$previousAddress = $currentAddress;
 
 
 // Dump Processes
 generateProcesses($adventure, $currentAddress, $outputFileHandler, $isLittleEndian, $target, $subtarget);
 $processListOffset = $currentAddress - sizeof($adventure->processes) * 2;
 if ($adventure->verbose) echo "Processes         [" . prettyFormat($processListOffset) . "]\n";
+$PROSize = $currentAddress - $previousAddress;
+$previousAddress = $currentAddress;
 
 
 // *********************************************
@@ -2006,7 +2040,34 @@ if ($adventure->verbose) echo "$outputFileName for $target created.\n";
 
 if ($currentAddress>0xFFFF) Error("DDB file goes " . ($currentAddress - 0xFFFF) . " bytes over the 65535 memory address boundary.\n");
 
-echo "DDB size is " . ($fileSize - $baseAddress) . " bytes.\nDatabase ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
+
+$ddbSize = $fileSize - $baseAddress;
+
+echo "\nSIZE PER BLOCK DETAIL\n";
+echo "=================================\n";
+echo "Vocabulary          : ".str_pad($VOCSize ,5,' ',STR_PAD_LEFT)." bytes\n";
+echo "Compression Tokens  : ".str_pad($TokenSize ,5,' ',STR_PAD_LEFT)." bytes\n";
+echo "object texts        : ".str_pad($OTXSize ,5,' ',STR_PAD_LEFT)." bytes\n";
+echo "Object definitions  : ".str_pad($OBJSize ,5,' ',STR_PAD_LEFT)." bytes\n";
+echo "Object weights      : ".str_pad($OBJWEIGHTSize ,5,' ',STR_PAD_LEFT)." bytes\n";
+echo "Object attributes   : ".str_pad($OBJATTRSize ,5,' ',STR_PAD_LEFT)." bytes\n";
+echo "Object location     : ".str_pad($OBJInitiallyAtSize ,5,' ',STR_PAD_LEFT)." bytes\n";
+echo "System Mesages      : ".str_pad($STXSize ,5,' ',STR_PAD_LEFT)." bytes\n";
+echo "User Messages       : ".str_pad($MTXSize ,5,' ',STR_PAD_LEFT)." bytes\n";
+echo "Location texts      : ".str_pad($LTXSize ,5,' ',STR_PAD_LEFT)." bytes\n";
+echo "Connections         : ".str_pad($CONSize ,5,' ',STR_PAD_LEFT)." bytes\n";
+echo "Processes           : ".str_pad($PROSize ,5,' ',STR_PAD_LEFT)." bytes\n";
+echo "Extern routines     : ".str_pad($EXTERNSize ,5,' ',STR_PAD_LEFT)." bytes\n";
+echo "DDB Header & others : ".str_pad($EXTERNSize ,5,' ',STR_PAD_LEFT)." bytes\n";
+echo "\n";
+
+
+
+echo "Total DDB size is $ddbSize bytes.\nDatabase starts at $baseAddress (". prettyFormat($baseAddress). ")\nDatabase ends at address $currentAddress (". prettyFormat($currentAddress). ")\n";
+
+$otherSize =$ddbSize -$VOCSize- $TokenSize -$OTXSize- $OBJSize -$OBJWEIGHTSize - $OBJATTRSize -$OBJInitiallyAtSize - $STXSize -$CONSize - $PROSize - $EXTERNSize;
+
+
 if ($xMessageSize)
 {
    
@@ -2014,7 +2075,7 @@ if ($xMessageSize)
     else echo "XMessages size is $xMessageSize bytes in files of 64K (" . round($paddingSize/1024,0) ."K padding) .\n";   
 } 
  
-if ($textSavings>0) echo "Text compression saving: $textSavings bytes.\n";
+if ($textSavings>0) echo "Text compression savings: $textSavings bytes.\n";
 if ($adventure->prependC64Header)
 {
     if ($adventure->verbose) echo ("Adding Commodore header\n");
