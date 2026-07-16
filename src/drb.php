@@ -927,7 +927,12 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                         else 
                             $note = $mml;
                         $beep = mmlToBeep($note, $values, $target, $subtarget);
-                        if ($beep!==NULL) $xplay[] = $beep;
+                        if ($beep!==NULL) 
+                            {
+                                $xplay[] = $beep;
+                                //echo "Debug: MML '$note' converted to " . $beep->Condact . " " . $beep->Param1 .  (isset($beep->Param2) ? ", $beep->Param2" : '') . "\n";
+                            }
+                            //else echo "Debug: MML '$note' --------------\n";
                         $mml = $next;
                     }
                     if (sizeof($xplay)) 
@@ -1512,7 +1517,7 @@ function getBaseLength($target, $subtarget)
     {
         case 'ZX':  {if (($subtarget=='NEXT') ||  ($subtarget=='UNO')) 
                         {
-                            $baseLength = 120;
+                            $baseLength = 100;
                         }
                         else
                         if (($subtarget=='PLUS3')  || ($subtarget=='128K')) 
@@ -1529,7 +1534,7 @@ function getBaseLength($target, $subtarget)
         case 'CP4': $baseLength = 80; break;
         case 'PC': if ($subtarget=='VGA256')
                     {
-                        $baseLength = 110;
+                        $baseLength = 120;
                     }
                     else
                     {
@@ -1548,6 +1553,20 @@ function getBaseLength($target, $subtarget)
 function getDurationAdjustment($target, $subtarget)
 {
     return getBaseLength($target, $subtarget) / DEFAULT_NOTE_DURAION; 
+}
+
+function getPitchAdjustment($target, $subtarget)
+{
+    switch ($target)
+    {
+        case 'C64': return -12; break;
+        case 'CP4': return 0; break;
+        case 'ZX': return -24; break;
+        case 'PC': return -24; break;
+        case 'MSX1': return -12; break;
+        case 'HTML': return -24; break;
+        default: return 0;
+    }
 }
 
 function mmlToBeep($note, &$values, $target, $subtarget)
@@ -1582,9 +1601,7 @@ function mmlToBeep($note, &$values, $target, $subtarget)
         $condact->NumParams = 2;
         if ($length==0) Error('Wrong length at note ' . $note);
         $condact->Param1 = intval(round($baseLength * (120 / $values[XPLAY_TEMPO]) / $length));
-        $condact->Param2 = 24 + $values[XPLAY_OCTAVE]*24 + $idx*2;
-        if (($target == 'C64') || ($target == 'CP4')  ) $condact->Param2 += 24; // C64/CP4 interpreter pitch it's too low otherwise
-        if ($target == 'CPC') $condact->Param2 += 18; // C64/CP4 interpreter pitch it's too low otherwise
+        $condact->Param2 = $values[XPLAY_OCTAVE]*24 + $idx*2 + getPitchAdjustment($target, $subtarget);
         $condact->Indirection1 = 0;
         $condact->Condact = 'BEEP';
     } else
