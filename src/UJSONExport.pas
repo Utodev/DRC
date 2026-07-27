@@ -42,6 +42,118 @@ BEGIN
   FixDoubleQuotes := Str;
 END;  
 
+Function ConvertAscii7Chars(Str: AnsiString):AnsiString;
+var i: integer;
+    strOut : AnsiString;
+BEGIN
+// First replace international chars. Please notice AnsiReplaceStr(Str, 'á', '\u0015') doesn't work. Probably a bug of the fpc compiler library.
+// That is the reason why all replacements are done the way you see below, which is a little complicated. Codes in the CASE statement are the
+// ISO 8559-1 LATIN1 code for each of the characters. The replacement values are the ASCII codes DAAD uses for the Spanish characters (first
+// part) and the #gX#t combination we use for the new international characters.
+strOut := '';
+for i := 1 to Length(Str) DO 
+BEGIN
+  CASE (Ord(Str[i])) OF
+  // Old spanish chars
+   170: strOut := strOut + 'a'; //ª - 16
+   161: strOut := strOut + '!'; //¡ - 17
+   191: strOut := strOut + '?'; //¿ - 18
+   171: strOut := strOut + '<<'; //<< - 19
+   187: strOut := strOut + '>>'; //<< - 20
+   225: strOut := strOut + 'a'; //á - 21
+   233: strOut := strOut + 'e'; //é - 22
+   237: strOut := strOut + 'i'; //í - 23
+   243: strOut := strOut + 'o'; //ó - 24
+   250: strOut := strOut + 'u'; //ú - 26
+   241: strOut := strOut + 'ny'; //ñ - 27
+   209: strOut := strOut + 'Ny'; //Ñ - 28
+   231: strOut := strOut + 'c'; //ç - 28
+   199: strOut := strOut + 'C'; //Ç - 29
+   252: strOut := strOut + 'u'; //ü - 30
+   220: strOut := strOut + 'U'; //Ü - 31
+  // New international chars - Upercase Vowels with acuté tilde
+   193: strOut := strOut + 'A'; //Á - 251
+   201: strOut := strOut + 'E'; //É - 252
+   205: strOut := strOut + 'I'; //Í - 253
+   211: strOut := strOut + 'O'; //Ó - 254
+   218: strOut := strOut + 'U'; //Ú - 255
+   // New international chars - Lowercase accented vowels
+   224: strOut := strOut + 'a'; //à - 16
+   227: strOut := strOut + 'a'; //ã - 17
+   228: strOut := strOut + 'a'; //ä - 18
+   226: strOut := strOut + 'a'; //â - 19
+   232: strOut := strOut + 'e'; //è - 20
+   235: strOut := strOut + 'e'; //ë - 21
+   234: strOut := strOut + 'e'; //ê - 22
+   236: strOut := strOut + 'i'; //ì - 23
+   239: strOut := strOut + 'i'; //ï - 24
+   238: strOut := strOut + 'i'; //î - 26
+   242: strOut := strOut + 'o'; //ò - 27
+   245: strOut := strOut + 'o'; //õ - 28
+   246: strOut := strOut + 'o'; //ö - 28
+   244: strOut := strOut + 'o'; //ô - 29
+   249: strOut := strOut + 'u'; //ù - 30
+   251: strOut := strOut + 'u'; //û - 31
+  // New international chars - Uppercase accented vowels
+   192: strOut := strOut + 'A'; //À - 32
+   195: strOut := strOut + 'A'; //Ã - 33
+   196: strOut := strOut + 'A'; //Ä - 34
+   194: strOut := strOut + 'A'; //Â - 35
+   200: strOut := strOut + 'E'; //È - 36
+   203: strOut := strOut + 'E'; //Ë - 37
+   202: strOut := strOut + 'E'; //Ê - 38
+   204: strOut := strOut + 'I'; //Ì - 30
+   207: strOut := strOut + 'I'; //Ï - 40
+   206: strOut := strOut + 'I'; //Î - 41
+   210: strOut := strOut + 'O'; //Ò - 42
+   213: strOut := strOut + 'O'; //Õ - 43
+   214: strOut := strOut + 'O'; //Ö - 44
+   212: strOut := strOut + 'O'; //Ô - 45
+   217: strOut := strOut + 'U'; //Ù - 46
+   219: strOut := strOut + 'U'; //Û - 47
+
+
+// New international chars - other chars
+   223: strOut := strOut + 'ss'; //ß - Low Charset 127
+
+   253: strOut := strOut + 'y'; //ý - 58
+   221: strOut := strOut + 'Y'; //Ý - 59
+   254: strOut := strOut + 'th'; //þ - 60
+   222: strOut := strOut + 'Th'; //Þ - 61
+   229: strOut := strOut + 'a'; //å - 62
+   197: strOut := strOut + 'A'; //Å - 63
+
+   240: strOut := strOut + 'd'; //ð - 93
+   208: strOut := strOut + 'D'; //Ð - 94
+   248: strOut := strOut + 'o'; //ø - 95
+   216: strOut := strOut + 'O'; //Ø - 96
+   
+
+   ELSE StrOut := strOut +  Str[i];
+  END;
+END;  
+
+// Give specific support for #e as the euro sign €
+  StrOut := AnsiReplaceStr(StrOut, '#e', '#g\u0060#t'); //€ - 98
+
+// Now replace escape sequences
+  StrOut := AnsiReplaceStr(StrOut, '#g', '\u000e');
+  StrOut := AnsiReplaceStr(StrOut, '#t', '\u000f');
+  StrOut := AnsiReplaceStr(StrOut, '#b', '\u000b');
+  StrOut := AnsiReplaceStr(StrOut, '#s', ' ');
+  StrOut := AnsiReplaceStr(StrOut, '#f', '\u007f');
+  StrOut := AnsiReplaceStr(StrOut, '#k', '\u000c');
+  StrOut := AnsiReplaceStr(StrOut, '#n', '\u000d');
+  StrOut := AnsiReplaceStr(StrOut, '#r', '\u000d');
+  StrOut := AnsiReplaceStr(StrOut, '\n', '\u000d');
+  StrOut := AnsiReplaceStr(StrOut, '\r', '\u000d');
+  // Add #A to #P to replacements array
+  for i := ord('A') to ord('P') DO StrOut := AnsiReplaceStr(StrOut, '#' + chr(i), '\u00' + IntToHex(i +$10 - ord('A'),2));
+
+  ConvertAscii7Chars := StrOut;
+END;
+
+
 FUNCTION ConvertChars(Str: AnsiString):AnsiString;
 var i: integer;
     strOut : AnsiString;
@@ -284,7 +396,8 @@ BEGIN
             WriteLn(JSON,tabs(),'{');
             INC(Indent);       
             WriteLn(JSON,tabs(),'"Value":', TempMessageList^.MessageID,',');
-            WriteLn(JSON,tabs(),'"Text":"', ConvertChars(FixDoubleQuotes(TempMessageList^.Text)),'"');
+            IF (ASCII7) THEN WriteLn(JSON,tabs(),'"Text":"', ConvertAscii7Chars(FixDoubleQuotes(TempMessageList^.Text)),'"') 
+                        ELSE WriteLn(JSON,tabs(),'"Text":"', ConvertChars(FixDoubleQuotes(TempMessageList^.Text)),'"');
             DEC(Indent);
             Write(JSON, tabs(), '}');
             if (TempMessageList^.Next <> nil) THEN WriteLn(JSON,',') ELSE WriteLn(JSON);

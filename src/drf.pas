@@ -16,7 +16,7 @@ BEGIN
   WriteLn();
 	WriteLn('file.DSF is a DAAD', ' ', version_hi, '.', version_lo, ' source file.');
   WriteLn();
-	WriteLn('<target> is the target machine, one of this list: ZX, CPC, C64, CP4, MSX, MSX2, PCW, PC, AMIGA, ST or HTML. The target machine will be added as if there were a ''#define <target> '' in the code, so you can make the code depend on target platform. Just to clarify, CP4 stands for Commodore Plus/4');
+	WriteLn('<target> is the target machine, one of this list: ZX, CPC, C64, CP4, CPM, MSX, MSX2, PCW, PC, AMIGA, ST or HTML. The target machine will be added as if there were a ''#define <target> '' in the code, so you can make the code depend on target platform. Just to clarify, CP4 stands for Commodore Plus/4');
   WriteLn();
 	WriteLn('[subtarget] is an parameter only required when the target is ZX, MSX2 or PC. Will define the internal variable COLS, which can later be used in DAAD processes.');
   Writeln('For MSX2 values are a compound value of video mode (from mode 5 to 12, except 9 and 11) and the with of the charset im pixels, which can be 6 or 8. Example: 5_8, 10_8, 12_6, 7_6, etc.');
@@ -35,6 +35,7 @@ BEGIN
   WriteLn('          -check-maluva-disabled: the compiler won''t check if Maluva was included when finding Maluva condacts.');
   WriteLn('          -replace-xcondacts: replace XSAVE, XPICTURE, XLOAD and XLOAD condacts with the original ones if the target does not support them. This does not affect XMES and XMESSAGE.');
   WriteLn('          -v3: compile for DAAD version 3.');
+  WriteLn('          -7: force messages to use only 7 bits ASCII, so for instance á will be replaced by a, ñ by ny, etc. This is useful for some targets that do not support 8 bits characters.');
   WriteLn();
 	WriteLn('[additional symbols] is an optional comma separated list of other symbols that would be created, so for instance if that parameter is "p3", then #ifdef "p3" will be true, and if that parameter is "p3,p4" then also #ifdef "p4" would be true.');
 	Halt(1);
@@ -108,6 +109,7 @@ BEGIN
  IF Target = 'C64' THEN Result := 40 ELSE
  IF Target = 'CP4' THEN Result := 40 ELSE
  IF Target = 'CPC' THEN Result := 40 ELSE
+ IF Target = 'CPM' THEN Result := 80 ELSE
  IF Target = 'HTML' THEN Result := 53 ELSE
  IF Target = 'MSX' THEN Result := 42 ELSE
  IF Target = 'MSX2' THEN Result := getMSX2ColsBySubtarget(SubTarget) ELSE
@@ -123,11 +125,7 @@ BEGIN
   IF Target = 'MSX2' THEN Result := 26 ELSE Result := 25;
 END;
 
- FUNCTION targetUsesDstringsGraphics(Target:AnsiString): Boolean;
- BEGIN
-  Result := (Target='ZX') AND (SubTarget='48K');
- END;
-
+ 
 // Global vars
 
 VAR Target, SubTarget: AnsiString;
@@ -229,7 +227,7 @@ BEGIN
   END; 
   machine :=AnsiUpperCase(Target);
   // The target superset BIT8 or BIT16
-  if (machine='ZX') OR (machine='CPC') OR (machine='PCW') OR (machine='MSX') OR (machine='C64') OR (machine='CP4') or (MACHINE='MSX2') THEN AddSymbol(SymbolList, 'BIT8', 1);
+  if (machine='ZX') OR (machine='CPC') OR (machine='PCW') OR (machine='MSX') OR (machine='C64') OR (machine='CP4') OR (machine='MSX2') OR (machine='CPM') THEN AddSymbol(SymbolList, 'BIT8', 1);
   if (machine='PC') OR (machine='AMIGA') OR (machine='ST') THEN AddSymbol(SymbolList, 'BIT16', 1);
   // Please notice HTML target adds neither BIT8 nor BIT16 symbols.
   // add COLS Symbol
@@ -237,9 +235,7 @@ BEGIN
   if (cols<>0) THEN AddSymbol(SymbolList, 'COLS', cols);
   // add ROWS Symbol
   AddSymbol(SymbolList, 'ROWS', GetRowsByTarget(Target));
-  // Add Dstrings Symbol
-  if (targetUsesDstringsGraphics(Target)) THEN AddSymbol(SymbolList, 'DSTRINGS', 1);
-  // Add common Symbols
+    // Add common Symbols
   AddSymbol(SymbolList, 'CARRIED', LOC_CARRIED);
   AddSymbol(SymbolList, 'NOT_CREATED', LOC_NOT_CREATED);
   AddSymbol(SymbolList, 'NON_CREATED', LOC_NOT_CREATED);
@@ -384,6 +380,12 @@ BEGIN
                                       MAX_PARAM_ACCEPTING_INDIRECTION := 2;
                                       WriteLn('Generating DAAD V3 DDB'); 
                                       ApplyV3Changes;
+                                    END
+                                    ELSE
+                                    IF AuxString = '-7' THEN
+                                    BEGIN 
+                                      ASCII7 := true;
+                                      WriteLn('Generating DAAD 7-bit ASCII DDB'); 
                                     END
                                     ELSE
                                     IF AuxString = '-replace-xcondacts' THEN
