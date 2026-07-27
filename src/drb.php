@@ -53,7 +53,16 @@ define('XPLAY_LENGTH', 2);
 define('XPLAY_TEMPO',  3);
 
 
-
+$convertions = array(
+    "DE" => array("ß" => "ss", "Ä" => "Ae", "Ö" => "Oe", "Ü" => "Ue", "ä" => "ae", "ö" => "oe", "ü" => "ue"),
+    "FR" => array(),
+    "PT" => array(),
+    'ES' => array(),
+    "ALL"=> array('á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','à'=>'a','è'=>'e','ì'=>'i','ò'=>'o','ù'=>'u','ä'=>'a','ë'=>'e','ï'=>'i','ö'=>'o','ü'=>'u','â'=>'a','ê'=>'e','î'=>'i','ô'=>'o','û'=>'u','ã'=>'a','õ'=>'o','ñ'=>'n','ç'=>'c',
+                  'Á'=>'A','É'=>'E','Í'=>'I','Ó'=>'O','Ú'=>'U','À'=>'A','È'=>'E','Ì'=>'I','Ò'=>'O','Ù'=>'U','Ä'=>'A','Ë'=>'E','Ï'=>'I','Ö'=>'O','Ü'=>'U','Â'=>'A','Ê'=>'E','Î'=>'I','Ô'=>'O','Û'=>'U','Ã'=>'A','Õ'=>'O','Ñ'=>'N','Ç'=>'C',
+                  'ª'=>'a','º'=>'o','¿'=>'','¡'=>'','€'=>'e','£'=>'l','ÿ'=>'y','Ÿ'=>'Y','«'=>'"','»'=>'"'
+                  )
+);
 
 
 
@@ -434,6 +443,7 @@ function getXMessageFileSizeByTarget($target, $subtarget, $adventure)
                         }
         case 'MSX' : return 64; 
         case 'PCW' : return 64; 
+        case 'CPM' : return 64;
         case 'MSX2': return 16; 
         case 'HTML': return 64; 
         case 'AMIGA': return 64;
@@ -815,7 +825,7 @@ function checkMaluva($adventure)
 function MaluvaEmbedded($adventure, $target, $subtarget)
 {
     // All ZX targets, jDAAD, PCDAAD, MSX2DAAD, CPC target and MSX2 target have Maluva embedded
-    if (($target=='PCW')||($target=='CP4') || ($target=='C64') || ($target=='HTML') || ($target=='MSX1') || ($target=='MSX') || ($target=='CPC') ||  ($target=='ZX')  ||  ($target=='ST') ||  ($target=='AMIGA') ||  ($target=='MSX2') || ($subtarget=='VGA256')) return true;
+    if (($target=='CPM')||($target=='PCW')||($target=='CP4') || ($target=='C64') || ($target=='HTML') || ($target=='MSX1') || ($target=='MSX') || ($target=='CPC') ||  ($target=='ZX')  ||  ($target=='ST') ||  ($target=='AMIGA') ||  ($target=='MSX2') || ($subtarget=='VGA256')) return true;
     return false;
 }
 
@@ -1235,7 +1245,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
 
 function isValidTarget($target)
 {
-    return ($target == 'HTML') || ($target == 'ZX') || ($target == 'CPC') ||  ($target == 'C64') ||  ($target == 'PCW') ||  ($target == 'MSX') ||  ($target == 'AMIGA') ||  ($target == 'PC') ||  ($target == 'ST') || ($target == 'MSX2') || ($target=='CP4');
+    return ($target == 'CPM') || ($target == 'HTML') || ($target == 'ZX') || ($target == 'CPC') ||  ($target == 'C64') ||  ($target == 'PCW') ||  ($target == 'MSX') ||  ($target == 'AMIGA') ||  ($target == 'PC') ||  ($target == 'ST') || ($target == 'MSX2') || ($target=='CP4');
 }
 
 function isValidSubtarget($target, $subtarget)
@@ -1289,7 +1299,7 @@ function getBaseAddressByTarget($target)
         case 'MSX': return 0x0100;break;
         case 'CPC': return 0x2880;break;
         case 'PCW': return 0x100;break;
-        case 'CPM': return 0x100;break;
+        case 'CPM': return 0x2000;break;
         case 'CP4': return 0x7080;break;
         case 'C64': return 0x3880;break;
         default: return 0;
