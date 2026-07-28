@@ -56,8 +56,8 @@ BEGIN
   CASE (Ord(Str[i])) OF
   // Old spanish chars
    170: strOut := strOut + 'a'; //ª - 16
-   161: strOut := strOut + '!'; //¡ - 17
-   191: strOut := strOut + '?'; //¿ - 18
+   161: strOut := strOut + '#'; //¡ - 17
+   191: strOut := strOut + '#'; //¿ - 18
    171: strOut := strOut + '<<'; //<< - 19
    187: strOut := strOut + '>>'; //<< - 20
    225: strOut := strOut + 'a'; //á - 21
@@ -66,7 +66,7 @@ BEGIN
    243: strOut := strOut + 'o'; //ó - 24
    250: strOut := strOut + 'u'; //ú - 26
    241: strOut := strOut + 'ny'; //ñ - 27
-   209: strOut := strOut + 'Ny'; //Ñ - 28
+   209: strOut := strOut + 'NY'; //Ñ - 28
    231: strOut := strOut + 'c'; //ç - 28
    199: strOut := strOut + 'C'; //Ç - 29
    252: strOut := strOut + 'u'; //ü - 30
@@ -134,14 +134,14 @@ BEGIN
 END;  
 
 // Give specific support for #e as the euro sign €
-  StrOut := AnsiReplaceStr(StrOut, '#e', '#g\u0060#t'); //€ - 98
+  StrOut := AnsiReplaceStr(StrOut, '#e', 'e'); //€ - 98
 
 // Now replace escape sequences
   StrOut := AnsiReplaceStr(StrOut, '#g', '\u000e');
   StrOut := AnsiReplaceStr(StrOut, '#t', '\u000f');
   StrOut := AnsiReplaceStr(StrOut, '#b', '\u000b');
   StrOut := AnsiReplaceStr(StrOut, '#s', ' ');
-  StrOut := AnsiReplaceStr(StrOut, '#f', '\u007f');
+  StrOut := AnsiReplaceStr(StrOut, '#f', '');
   StrOut := AnsiReplaceStr(StrOut, '#k', '\u000c');
   StrOut := AnsiReplaceStr(StrOut, '#n', '\u000d');
   StrOut := AnsiReplaceStr(StrOut, '#r', '\u000d');
