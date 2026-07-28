@@ -1263,7 +1263,6 @@ function getSubMachineIDByTarget($target, $subtarget)
 
 function getMachineIDByTarget($target, $subtarget)
 {
-  if (($target=='PC') && ($subtarget=='VGA256')) return 0x0D;  // New target for PCDAAD VGA 256 interpreterº
   if ($target=='PC')    return 0x00; 
   if ($target=='ZX')    return 0x01; 
   if ($target=='C64')   return 0x02; 
@@ -1272,7 +1271,8 @@ function getMachineIDByTarget($target, $subtarget)
   if ($target=='ST')    return 0x05; 
   if ($target=='AMIGA') return 0x06; 
   if ($target=='PCW')   return 0x07; 
-  if ($target=='HTML')  return 0x0D;   // New target for jDAAD html/js interpreter
+  if ($target=='CPM')   return  0x0B;   // New target for CPM
+  if ((($target=='PC') && ($subtarget=='VGA256')) ||  ($target=='HTML')) return 0x0D;  // New target for PCDAAD VGA 256 interpreter and jDAAD
   if ($target=='CP4')   return 0x0E;    // New target for Commodore Plus/4 interpreter
   if ($target=='MSX2')  return 0x0F;   // New target for @ishwin MSX2 interpreter
   return 0x00; // Default in case of error
