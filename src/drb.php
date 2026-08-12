@@ -422,6 +422,7 @@ function getXMessageFileSizeByTarget($target, $subtarget, $adventure)
     if ($adventure->dumpToXMB) return 64; // If generating TX messages in the XMEssages file, use 64K always as it would be hard disk based machine
     switch ($target) 
     {
+        case 'ZX81': return 64;
         case 'ZX'  : switch($subtarget)
                         {
                             case 'PLUS3': return 16;
@@ -811,9 +812,7 @@ function checkMaluva($adventure)
 
 function MaluvaEmbedded($adventure, $target, $subtarget)
 {
-    // All ZX targets, jDAAD, PCDAAD, MSX2DAAD, CPC target and MSX2 target have Maluva embedded
-    if (($target=='CPM')||($target=='PCW')||($target=='CP4') || ($target=='C64') || ($target=='HTML') || ($target=='MSX1') || ($target=='MSX') || ($target=='CPC') ||  ($target=='ZX')  ||  ($target=='ST') ||  ($target=='AMIGA') ||  ($target=='MSX2') || ($subtarget=='VGA256')) return true;
-    return false;
+    return true;
 }
 
 function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $isLittleEndian, $target, $subtarget)
@@ -903,7 +902,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
                         $condact->NumParams = 1;
                     }
                     else
-                    if ($target=='ZX') // Zx Spectrum interpreter expects BEEP parameters in opposite order
+                    if (($target=='ZX') || ($target=='ZX81')) // Zx Spectrum interpreter expects BEEP parameters in opposite order
                     {
                         $tmp = $condact->Param1;
                         $condact->Param1 = $condact->Param2;
@@ -1232,7 +1231,7 @@ function generateProcesses($adventure, &$currentAddress, $outputFileHandler, $is
 
 function isValidTarget($target)
 {
-    return ($target == 'CPM') || ($target == 'HTML') || ($target == 'ZX') || ($target == 'CPC') ||  ($target == 'C64') ||  ($target == 'PCW') ||  ($target == 'MSX') ||  ($target == 'AMIGA') ||  ($target == 'PC') ||  ($target == 'ST') || ($target == 'MSX2') || ($target=='CP4');
+    return ($target == 'ZX81') || ($target == 'CPM') || ($target == 'HTML') || ($target == 'ZX') || ($target == 'CPC') ||  ($target == 'C64') ||  ($target == 'PCW') ||  ($target == 'MSX') ||  ($target == 'AMIGA') ||  ($target == 'PC') ||  ($target == 'ST') || ($target == 'MSX2') || ($target=='CP4');
 }
 
 function isValidSubtarget($target, $subtarget)
@@ -1242,6 +1241,7 @@ function isValidSubtarget($target, $subtarget)
     if ($target=='ZX') return ($subtarget == 'PLUS3') || ($subtarget == 'ESXDOS') ||  ($subtarget == 'NEXT') ||  ($subtarget == 'UNO') ||  ($subtarget == '48K') || ($subtarget == '128K');
 // In fact, drb doesn't care about PC subtargets, but just for coherence with drf, we make sure they are correct, despite we will not use them. 
     if ($target=='PC') return ($subtarget == 'VGA256') || ($subtarget == 'VGA') || ($subtarget == 'CGA') ||  ($subtarget == 'EGA') ||  ($subtarget == 'TEXT');
+    if ($target=='ZX81') return ($subtarget == '16K') || ($subtarget == 'SD81B');
     
 }
 
@@ -1271,6 +1271,7 @@ function getMachineIDByTarget($target, $subtarget)
   if ($target=='ST')    return 0x05; 
   if ($target=='AMIGA') return 0x06; 
   if ($target=='PCW')   return 0x07; 
+  if ($target=='ZX81')  return 0x08;
   if ($target=='CPM')   return  0x0B;   // New target for CPM
   if ((($target=='PC') && ($subtarget=='VGA256')) ||  ($target=='HTML')) return 0x0D;  // New target for PCDAAD VGA 256 interpreter and jDAAD
   if ($target=='CP4')   return 0x0E;    // New target for Commodore Plus/4 interpreter
@@ -1278,8 +1279,10 @@ function getMachineIDByTarget($target, $subtarget)
   return 0x00; // Default in case of error
 };  
 
-function getBaseAddressByTarget($target)
+function getBaseAddressByTarget($target, $subtarget='')
 {
+    $adventure = $GLOBALS['adventure'];
+    if (isset($adventure->forcedBaseAddress)) return $adventure->forcedBaseAddress;
     switch($target)
     {
         case 'ZX': return 0x8400;break;
@@ -1289,6 +1292,9 @@ function getBaseAddressByTarget($target)
         case 'CPM': return 0x2000;break;
         case 'CP4': return 0x7080;break;
         case 'C64': return 0x3880;break;
+        case 'ZX81': if ($subtarget == '16K') return 0x0000; 
+                     if ($subtarget == 'SD81B') return 0x8400;
+                     break;
         default: return 0;
     }
 };
@@ -1312,8 +1318,8 @@ function Syntax()
 {
     
     echo("SYNTAX: php drb <target> [subtarget] <language> <inputfile> [outputfile] [options]\n\n");
-    echo("+ <target>: target machine, should be 'ZX', 'CPC', 'C64', 'CP4', 'MSX', 'MSX2', 'PCW', 'PC', 'CPM', 'ST', 'AMIGA' or 'HTML'. Just to clarify, CP4 stands for Commodore Plus/4\n");
-    echo("+ [subtarget]: some targets need to specify a subtarget.\n\tFor MSX2 target: 5_6, 5_8, 6_6, 6_8, 7_6, 7_8, 8_6, 8_8, 10_6, 10_8, 12_6 ad 12_8 (being video mode and character width in pixels).\n\tFor PC target: VGA256, VGA, EGA, CGA and TEXT.\n\tFor ZX target: 48K, 128K, PLUS3, NEXT, UNO and ESXDOS.\n");
+    echo("+ <target>: target machine, should be 'ZX', 'CPC', 'C64', 'CP4', 'MSX', 'MSX2', 'ZX81', 'PCW', 'PC', 'CPM', 'ST', 'AMIGA' or 'HTML'. Just to clarify, CP4 stands for Commodore Plus/4\n");
+    echo("+ [subtarget]: some targets need to specify a subtarget.\n\tFor MSX2 target: 5_6, 5_8, 6_6, 6_8, 7_6, 7_8, 8_6, 8_8, 10_6, 10_8, 12_6 ad 12_8 (being video mode and character width in pixels).\n\tFor PC target: VGA256, VGA, EGA, CGA and TEXT.\n\tFor ZX target: 48K, 128K, PLUS3, NEXT, UNO and ESXDOS.\n\tFor ZX81 target: 16K or SD81B\n");
     echo("+ <language>: game language, should be 'EN', 'ES', 'DE', 'FR' or 'PT' (English, Spanish, German, French or Portuguese).\n");
     echo("+ <inputfile>: a json file generated by DRF.\n");
     echo("+ [outputfile] : (optional) name of output file. If absent, same name of json file would be used, with DDB extension.\n");
@@ -1326,6 +1332,7 @@ function Syntax()
     echo ("          -np : Forced no padding on padding platforms\n");
     echo ("          -p  : Forced padding on non padding platforms\n");
     echo ("          -x  : Generate TX sections data in the XMB file(s).\n"); 
+    echo ("          -b= : Forced base address for the DDB file. It must be a number between 1 and 65535 (or 0x0001 and 0xFFFF). If not specified, the default base address for each target will be used.\n");
     echo "\n";
     echo "Examples:\n";
     echo "php drb zx es game.json\n";
@@ -1364,9 +1371,19 @@ function parseOptionalParameters($argv, $nextParam, &$adventure)
                 case "-NP" : $adventure->forcedNoPadding = true; break;
                 case "-P" : $adventure->forcedPadding = true; break;
                 case "-X" : $adventure->dumpToXMB = true; break;
-                default: Error("$currentParam is not a valid option");
+                default: {
+                            if (substr($currentParam,0,3)=='-B=')
+                            {
+                                $value = substr($currentParam,3);
+                                $adventure->forcedBaseAddress = (stripos($value,'0X')===0) ? hexdec(substr($value,2)) : intval($value);
+                                if (($adventure->forcedBaseAddress<1) || ($adventure->forcedBaseAddress>0xFFFF))
+                                    Error("Invalid base address in $currentParam");
+                            }
+                            else Error("$currentParam is not a valid option");
+                        }
             }
         } 
+        
         else
         {
             if ($result == '') $result = $currentParam; else Error("Bad parameter: $currentParam");
@@ -1477,7 +1494,7 @@ function prependC64HeaderToDDB($outputFileName, $target)
 {
     $inputHandle = fopen($outputFileName, 'r');
     $outputHandle = fopen("prepend.tmp", "w");
-    $baseAddress = getBaseAddressByTarget($target);
+    $baseAddress = getBaseAddressByTarget($target, $subtarget); 
     fputs($outputHandle, chr($baseAddress & 0xFF), 1);
     fputs($outputHandle, chr(($baseAddress>>8) & 0XFF), 1); 
     while (!feof($inputHandle))
@@ -1507,12 +1524,13 @@ function dataToLet($flagno, $value)
 //********************************************** XPLAY *************************************************************** */
 
 
-define('DEFAULT_NOTE_DURAION',200);
+define('DEFAULT_NOTE_DURATION',200);
 
 function getBaseLength($target, $subtarget)
 {
    switch ($target)
     {
+        case 'ZX81': $baseLength = 105; break;
         case 'ZX':  {if (($subtarget=='NEXT') ||  ($subtarget=='UNO')) 
                         {
                             $baseLength = 100;
@@ -1543,14 +1561,14 @@ function getBaseLength($target, $subtarget)
         case 'CPC': $baseLength = 300; break;
 	    case 'MSX': 
 	    case 'MSX2': $baseLength = 230; break;
-        default: $baseLength = DEFAULT_NOTE_DURAION; // Full note (1 sec)
+        default: $baseLength = DEFAULT_NOTE_DURATION; // Full note (1 sec)
     }
     return $baseLength; // Base length in milliseconds
 }
 
 function getDurationAdjustment($target, $subtarget)
 {
-    return getBaseLength($target, $subtarget) / DEFAULT_NOTE_DURAION; 
+    return getBaseLength($target, $subtarget) / DEFAULT_NOTE_DURATION; 
 }
 
 function getPitchAdjustment($target, $subtarget)
@@ -1692,7 +1710,7 @@ $target = strtoupper($argv[1]);
 if (!isValidTarget($target)) Error("Invalid target machine '$target'");
 $nextParam =2;
 $subtarget = '';
-if (($target=='MSX2') || ($target=='PC') || ($target=='ZX'))
+if (($target=='MSX2') || ($target=='PC') || ($target=='ZX') || ($target=='ZX81'))
 {
     $subtarget = strtoupper($argv[$nextParam]);
     $nextParam++;
@@ -1797,7 +1815,7 @@ if ($adventure->verbose)
 
 // **** DUMP DATA TO DDB ****
 
-$baseAddress = getBaseAddressByTarget($target);
+$baseAddress = getBaseAddressByTarget($target, $subtarget);
 $currentAddress = $baseAddress;
 $isLittleEndian = isLittleEndianPlatform($target);
 

@@ -16,12 +16,13 @@ BEGIN
   WriteLn();
 	WriteLn('file.DSF is a DAAD', ' ', version_hi, '.', version_lo, ' source file.');
   WriteLn();
-	WriteLn('<target> is the target machine, one of this list: ZX, CPC, C64, CP4, CPM, MSX, MSX2, PCW, PC, AMIGA, ST or HTML. The target machine will be added as if there were a ''#define <target> '' in the code, so you can make the code depend on target platform. Just to clarify, CP4 stands for Commodore Plus/4');
+	WriteLn('<target> is the target machine, one of this list: ZX, CPC, C64, CP4, CPM, MSX, MSX2, ZX81, PCW, PC, AMIGA, ST or HTML. The target machine will be added as if there were a ''#define <target> '' in the code, so you can make the code depend on target platform. Just to clarify, CP4 stands for Commodore Plus/4');
   WriteLn();
-	WriteLn('[subtarget] is an parameter only required when the target is ZX, MSX2 or PC. Will define the internal variable COLS, which can later be used in DAAD processes.');
+	WriteLn('[subtarget] is an parameter only required when the target is ZX, ZX81, MSX2 or PC. Will define the internal variable COLS, which can later be used in DAAD processes.');
   Writeln('For MSX2 values are a compound value of video mode (from mode 5 to 12, except 9 and 11) and the with of the charset im pixels, which can be 6 or 8. Example: 5_8, 10_8, 12_6, 7_6, etc.');
   WriteLn('For PC values can be VGA256, VGA, EGA, CGA or TEXT.');
   WriteLn('For ZX the values can be 48K, 128K, PLUS3, ESXDOS, UNO or NEXT.');
+  WriteLn('For ZX81 the values can be 16K or SD81B.');
   WriteLn('Please notice subtarget for ZX is only relevant if you use Maluva, if you don''t use it or you don''t know what it is, choose any of the targets, i.e. plus3');
   WriteLn();
 	WriteLn('[output.json] is optional file name for output json file, if missing, '+AppName+' will just use same name of input file, but with .json extension.');
@@ -82,6 +83,11 @@ BEGIN
  ELSE Result :=53;  // Conservative
 END;
 
+FUNCTION getZX81ColsBySubtarget(SubTarget:AnsiString):Byte;
+BEGIN
+  IF Subtarget = '16K' THEN Result := 32 ELSE Result := 42;  
+END;  
+
 FUNCTION CheckEND(Filename: String):Boolean;
 VAR T: TEXT;
     S: WideString;
@@ -115,14 +121,19 @@ BEGIN
  IF Target = 'MSX2' THEN Result := getMSX2ColsBySubtarget(SubTarget) ELSE
  IF Target = 'ST' THEN Result := 53 ELSE
  IF Target = 'AMIGA' THEN Result := 53 ELSE
- IF Target = 'PCW' THEN Result := 90 
+ IF Target = 'PCW' THEN Result := 90 ELSE
+ IF Target = 'ZX81' THEN Result := getZX81ColsBySubtarget(SubTarget)
  ELSE Result :=42;  // Conservative
  END;
 
 FUNCTION GetRowsByTarget(Target:String):Byte;
 BEGIN
   IF Target = 'PCW' THEN Result := 32 ELSE
-  IF Target = 'MSX2' THEN Result := 26 ELSE Result := 25;
+  IF Target = 'MSX2' THEN Result := 26 ELSE
+  IF Target = 'ZX81' THEN Result := 24 ELSE
+  IF Target = 'ZX' THEN Result := 24 ELSE
+  IF Target = 'MSX' THEN Result := 24 
+  ELSE  Result := 25;
 END;
 
  
@@ -227,7 +238,7 @@ BEGIN
   END; 
   machine :=AnsiUpperCase(Target);
   // The target superset BIT8 or BIT16
-  if (machine='ZX') OR (machine='CPC') OR (machine='PCW') OR (machine='MSX') OR (machine='C64') OR (machine='CP4') OR (machine='MSX2') OR (machine='CPM') THEN AddSymbol(SymbolList, 'BIT8', 1);
+  if (machine='ZX') OR (machine='CPC') OR (machine='PCW') OR (machine='MSX') OR (machine='C64') OR (machine='CP4') OR (machine='MSX2') OR (machine='ZX81') OR (machine='CPM') THEN AddSymbol(SymbolList, 'BIT8', 1);
   if (machine='PC') OR (machine='AMIGA') OR (machine='ST') THEN AddSymbol(SymbolList, 'BIT16', 1);
   // Please notice HTML target adds neither BIT8 nor BIT16 symbols.
   // add COLS Symbol
@@ -300,6 +311,7 @@ BEGIN
  if Target='MSX2' THEN  Result :=  (Subtarget = '5_6') OR (Subtarget = '5_8') OR  (Subtarget = '6_6') OR  (Subtarget = '6_8') OR  (Subtarget = '7_6') OR  (Subtarget = '7_8') OR  (Subtarget = '8_6') OR (Subtarget = '8_8')  OR (Subtarget = '10_6') OR  (Subtarget = '10_8') OR (Subtarget = '12_6') OR (Subtarget = '12_8');;
  if Target='PC'   THEN Result := (Subtarget = 'VGA256') OR (Subtarget = 'VGA') OR (Subtarget = 'EGA') OR  (Subtarget = 'CGA') OR  (Subtarget = 'TEXT');
  if Target='ZX' THEN Result :=  (Subtarget = 'PLUS3') OR (Subtarget = 'ESXDOS') OR  (Subtarget = 'NEXT') OR  (Subtarget = 'UNO') OR (Subtarget = '48K') OR (Subtarget = '128K');
+ if Target='ZX81' THEN Result :=  (Subtarget = '16K') OR (Subtarget = 'SD81B');
 END;
 
 
@@ -314,10 +326,10 @@ BEGIN
   Target := UpperCase(ParamStr(1));
   NextParam := 2;
   SubTarget := '';
-  IF (Target='MSX2') OR (Target='PC') OR (Target='ZX') THEN 
+  IF (Target='MSX2') OR (Target='PC') OR (Target='ZX') OR (Target='ZX81') THEN
   BEGIN
    SubTarget := UpperCase(ParamStr(NextParam));
-   if (NOT isValidSubTarget(Target,Subtarget)) THEN ParamError('"' + Subtarget + '" is not a valid subtarget for target "' + Target + '". Please specify a valid subtarget. Call DRF without parameters for more information.');
+   if (NOT isValidSubTarget(Target,SubTarget)) THEN ParamError('"' + SubTarget + '" is not a valid subtarget for target "' + Target + '". Please specify a valid subtarget. Call DRF without parameters for more information.');
    Inc(NextParam);
   END;
   InputFileName := ParamStr(NextParam);
