@@ -1236,13 +1236,13 @@ function isValidTarget($target)
 
 function isValidSubtarget($target, $subtarget)
 {
-    if (($target!='MSX2') && ($target!='PC') && ($target!='ZX')) return false;
+echo "Debug: Checking subtarget $subtarget for target $target\n";
+    if (($target!='MSX2') && ($target!='PC') && ($target!='ZX')  && ($target!='ZX81')) return false;
     if ($target=='MSX2') return ($subtarget == '5_6') || ($subtarget == '5_8') || ($subtarget == '6_6') || ($subtarget == '6_8') || ($subtarget == '7_6') || ($subtarget == '7_8') || ($subtarget == '8_6') || ($subtarget == '8_8') || ($subtarget == '10_6') || ($subtarget == '10_8') || ($subtarget == '12_6') || ($subtarget == '12_8');
     if ($target=='ZX') return ($subtarget == 'PLUS3') || ($subtarget == 'ESXDOS') ||  ($subtarget == 'NEXT') ||  ($subtarget == 'UNO') ||  ($subtarget == '48K') || ($subtarget == '128K');
-// In fact, drb doesn't care about PC subtargets, but just for coherence with drf, we make sure they are correct, despite we will not use them. 
-    if ($target=='PC') return ($subtarget == 'VGA256') || ($subtarget == 'VGA') || ($subtarget == 'CGA') ||  ($subtarget == 'EGA') ||  ($subtarget == 'TEXT');
     if ($target=='ZX81') return ($subtarget == '16K') || ($subtarget == 'SD81B');
-    
+    // In fact, drb doesn't care about PC subtargets, but just for coherence with drf, we make sure they are correct, despite we will not use them. 
+    if ($target=='PC') return ($subtarget == 'VGA256') || ($subtarget == 'VGA') || ($subtarget == 'CGA') ||  ($subtarget == 'EGA') ||  ($subtarget == 'TEXT');
 }
 
 function getSubMachineIDByTarget($target, $subtarget)
@@ -1530,7 +1530,7 @@ function getBaseLength($target, $subtarget)
 {
    switch ($target)
     {
-        case 'ZX81': $baseLength = 105; break;
+        case 'ZX81': $baseLength = 195; break;
         case 'ZX':  {if (($subtarget=='NEXT') ||  ($subtarget=='UNO')) 
                         {
                             $baseLength = 100;
@@ -1714,7 +1714,7 @@ if (($target=='MSX2') || ($target=='PC') || ($target=='ZX') || ($target=='ZX81')
 {
     $subtarget = strtoupper($argv[$nextParam]);
     $nextParam++;
-    if (!isValidSubtarget($target, $subtarget)) Error("Invalid subtarget '$subtarget'");
+    if (!isValidSubtarget($target, $subtarget)) Error("Invalid subtarget '$subtarget' for target '$target'");
 }
 echo "Target: $target";
 if ($subtarget!='') echo " ($subtarget)";
